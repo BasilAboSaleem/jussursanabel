@@ -1,0 +1,82 @@
+<% if (totalPages > 1) { %>
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination pagination-lux justify-content-center mb-0">
+        <% if (currentPage > 1) { %>
+            <li class="page-item">
+                <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        <% } %>
+
+        <% 
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) { %>
+                <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                <% if (startPage > 2) { %>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                <% } %>
+            <% } %>
+
+        <% for(let i = startPage; i <= endPage; i++) { %>
+            <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+            </li>
+        <% } %>
+
+        <% if (endPage < totalPages) { %>
+            <% if (endPage < totalPages - 1) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+            <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>"><%= totalPages %></a></li>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <li class="page-item">
+                <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        <% } %>
+    </ul>
+</nav>
+
+<style>
+    .pagination-lux .page-link {
+        border-radius: 8px !important;
+        margin: 0 4px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        background: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pagination-lux .page-item.active .page-link {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+        transform: translateY(-2px);
+    }
+    .pagination-lux .page-link:hover:not(.active) {
+        background: #f8fafc;
+        border-color: var(--secondary-light);
+        color: var(--secondary);
+        transform: translateY(-1px);
+    }
+    .pagination-lux .page-item.disabled .page-link {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+</style>
+<% } %>

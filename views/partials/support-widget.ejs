@@ -1,0 +1,51 @@
+<% if (user && user.role !== 'admin' && user.role !== 'super_admin') { %>
+<div id="support-widget" style="position: fixed; bottom: 30px; left: 30px; z-index: 9999; direction: rtl;">
+    <a href="/support/chat" class="support-btn" style="
+        width: 65px;
+        height: 65px;
+        background: var(--grad-gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.8rem;
+        box-shadow: 0 10px 30px rgba(217, 119, 6, 0.4);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        text-decoration: none;
+    ">
+        <i class="fas fa-headset"></i>
+        <span style="
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 900;
+            border: 2px solid white;
+            display: none; /* Dynamic unread count */
+        " id="support-badge">1</span>
+    </a>
+</div>
+
+<style>
+    .support-btn:hover {
+        transform: scale(1.1) translateY(-5px);
+        box-shadow: 0 15px 40px rgba(217, 119, 6, 0.5);
+    }
+    
+    @keyframes pulse-support {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .support-btn {
+        animation: pulse-support 3s infinite ease-in-out;
+    }
+</style>
+<% } %>

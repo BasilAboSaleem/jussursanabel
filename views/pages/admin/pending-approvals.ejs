@@ -1,0 +1,152 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= __('admin_pending_approvals_title') %></h2>
+            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_pending_approvals_desc') %></p>
+        </div>
+        <div class="badge badge-gold" style="padding: 10px 20px; font-size: 1rem;">
+            <%= __('admin_pending_approvals_total_prefix') %><%= users.length %>
+        </div>
+    </div>
+</div>
+
+<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <thead style="background: rgba(0,0,0,0.03);">
+                <tr>
+                    <th style="padding: 20px;"><%= __('common_user') %></th>
+                    <th style="padding: 20px;"><%= __('common_role') %></th>
+                    <th style="padding: 20px;"><%= __('common_id_number') %></th>
+                    <th style="padding: 20px;"><%= __('common_address') %></th>
+                    <th style="padding: 20px;"><%= __('common_registration_date') %></th>
+                    <th style="padding: 20px; text-align: center;"><%= __('common_actions') %></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if(users.length === 0) { %>
+                    <tr>
+                        <td colspan="6" style="padding: 50px; text-align: center; color: var(--text-muted);">
+                            <i class="fas fa-check-circle" style="font-size: 3rem; opacity: 0.1; display: block; margin-bottom: 15px;"></i>
+                            <%= __('admin_pending_approvals_empty') %>
+                        </td>
+                    </tr>
+                <% } %>
+                <% users.forEach(user => { %>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 20px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="<%= user.avatar || '/assets/images/default-avatar.png' %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary);">
+                                <div>
+                                    <div style="font-weight: 800; color: var(--primary);"><%= user.name %></div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);"><%= user.email %></div>
+                                    <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 700;"><%= user.phone %></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 20px;">
+                            <span class="badge badge-navy">
+                                <%= user.role === 'beneficiary' ? __('common_beneficiary') : (user.role === 'family' ? __('common_family') : __('common_orphan_guardian')) %>
+                            </span>
+                        </td>
+                        <td style="padding: 20px; font-family: monospace; font-weight: 700;">
+                            <%= user.idNumber || __('common_not_available') %>
+                        </td>
+                        <td style="padding: 20px; font-size: 0.85rem; max-width: 200px;">
+                            <%= user.address || __('common_not_available') %>
+                        </td>
+                        <td style="padding: 20px; font-size: 0.85rem; color: var(--text-muted);">
+                            <%= new Date(user.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                            <br>
+                            <%= new Date(user.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                        </td>
+                        <td style="padding: 20px;">
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                <button onclick="approveUser('<%= user._id %>')" class="btn-lux btn-lux-primary btn-sm" style="background: var(--success); border-color: var(--success);">
+                                    <i class="fas fa-check"></i> <%= __('common_activate') %>
+                                </button>
+                                <a href="/admin/users/<%= user._id %>/moderation" class="btn-lux btn-lux-outline btn-sm">
+                                    <i class="fas fa-eye"></i> <%= __('common_details') %>
+                                </a>
+                                <button onclick="rejectUser('<%= user._id %>')" class="btn-lux btn-lux-outline btn-sm" style="color: #ef4444; border-color: #ef4444;">
+                                    <i class="fas fa-times"></i> <%= __('common_reject') %>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function approveUser(userId) {
+    if(!confirm('<%= __("admin_pending_approvals_js_confirm_approve") %>')) return;
+    
+    try {
+        const res = await fetch(`/admin/users/${userId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': '<%= csrfToken %>'
+            },
+            body: JSON.stringify({ status: 'active' })
+        });
+        
+        if(res.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: '<%= __("admin_pending_approvals_js_success_title") %>',
+                text: '<%= __("admin_pending_approvals_js_success_text") %>',
+                confirmButtonText: '<%= __("common_excellent") %>'
+            }).then(() => window.location.reload());
+        } else {
+            alert('<%= __("admin_pending_approvals_js_error_approve") %>');
+        }
+    } catch(err) {
+        console.error(err);
+        alert('<%= __("admin_pending_approvals_js_error_conn") %>');
+    }
+}
+
+async function rejectUser(userId) {
+    const { value: reason } = await Swal.fire({
+        title: '<%= __("admin_pending_approvals_js_reject_title") %>',
+        input: 'textarea',
+        inputLabel: '<%= __("admin_pending_approvals_js_reject_label") %>',
+        inputPlaceholder: '<%= __("admin_pending_approvals_js_reject_placeholder") %>',
+        showCancelButton: true,
+        confirmButtonText: '<%= __("admin_pending_approvals_js_reject_confirm") %>',
+        cancelButtonText: '<%= __("common_cancel") %>'
+    });
+
+    if (reason) {
+        try {
+            const res = await fetch('/admin/moderate-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    action: 'ban',
+                    note: reason
+                })
+            });
+            
+            if(res.ok) {
+                Swal.fire('<%= __("admin_pending_approvals_js_reject_success_title") %>', '<%= __("admin_pending_approvals_js_reject_success_text") %>', 'success')
+                .then(() => window.location.reload());
+            }
+        } catch(err) {
+            console.error(err);
+        }
+    }
+}
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

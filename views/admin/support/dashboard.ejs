@@ -1,0 +1,125 @@
+<%- include('../../partials/header-top') %>
+
+<main style="min-height: 100vh; background: #f1f5f9; padding-top: 100px;">
+    <div class="container-fluid" style="padding: 0 40px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <div style="text-align: right;">
+                <h2 class="font-cairo" style="font-size: 2.2rem; font-weight: 900; color: var(--primary);">مركز الدعم الموحد</h2>
+                <p style="color: var(--text-muted); margin: 0;">إدارة كافة طلبات الدعم الفني من المتبرعين والمستفيدين في مكان واحد.</p>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="stat-card" style="padding: 15px 25px; min-width: 150px; text-align: center;">
+                    <span style="display: block; font-size: 0.85rem; color: var(--text-light);">إجمالي التذاكر</span>
+                    <strong style="font-size: 1.5rem;"><%= tickets.length %></strong>
+                </div>
+                <div class="stat-card" style="padding: 15px 25px; min-width: 150px; text-align: center; border-right: 4px solid #f59e0b;">
+                    <span style="display: block; font-size: 0.85rem; color: var(--text-light);">تذاكر نشطة</span>
+                    <strong style="font-size: 1.5rem;"><%= tickets.filter(t => t.status !== 'closed' && t.status !== 'resolved').length %></strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-4" style="grid-template-columns: 350px 1fr; gap: 30px; height: 700px; align-items: stretch;">
+            <!-- Tickets List -->
+            <div class="luxury-card" style="padding: 0; background: white; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
+                    <h5 class="font-cairo" style="margin: 0; font-weight: 800;">طلبات الدعم</h5>
+                </div>
+                <div style="flex: 1; overflow-y: auto;">
+                    <% if (tickets.length === 0) { %>
+                        <div style="text-align: center; padding: 40px; opacity: 0.5;">
+                            <p>لا توجد تذاكر حالياً</p>
+                        </div>
+                    <% } %>
+                    <% tickets.forEach(t => { %>
+                        <div class="ticket-item <%= t.status %>" onclick="loadTicketMessages('<%= t._id %>')" style="
+                            padding: 20px;
+                            border-bottom: 1px solid #f1f5f9;
+                            cursor: pointer;
+                            transition: var(--transition-fast);
+                            position: relative;
+                        ">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <img src="<%= t.user.avatar %>" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                                <div style="flex: 1; overflow: hidden;">
+                                    <h6 style="margin: 0; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= t.user.name %></h6>
+                                    <span style="font-size: 0.75rem; color: var(--text-light);"><%= t.user.role === 'donor' ? 'متبرع' : 'مستفيد' %></span>
+                                </div>
+                                <span style="font-size: 0.65rem; color: var(--text-light);">
+                                    <%= new Date(t.lastMessageAt).toLocaleDateString('ar-SA') %>
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="badge <%= t.status === 'open' ? 'badge-gold' : (t.status === 'in_progress' ? 'badge-teal' : (t.status === 'resolved' ? 'badge-success' : 'badge-navy')) %>" style="font-size: 0.65rem;">
+                                    <%= t.status === 'open' ? 'جديد' : (t.status === 'in_progress' ? 'قيد الرد' : (t.status === 'resolved' ? 'تم الحل' : 'مغلق')) %>
+                                </span>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div id="chat-window-container" style="display: none;">
+               <!-- Loaded via AJAX -->
+            </div>
+
+            <!-- Placeholder -->
+            <div id="chat-placeholder" class="luxury-card" style="display: flex; align-items: center; justify-content: center; background: white; opacity: 0.6;">
+                <div style="text-align: center;">
+                    <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 20px; color: var(--text-light);"></i>
+                    <h4 class="font-cairo">الرجاء اختيار تذكرة لبدء الرد</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Socket.io for Real-time Admin Updates -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const currentAdminId = '<%= user._id %>';
+    
+    // Join support admin room
+    socket.emit('join', { userId: currentAdminId, role: 'admin' });
+
+    // Listen for new support messages sitewide (for notifications or list updates)
+    socket.on('newSupportMessage', (data) => {
+        // Update ticket list last activity and status
+        const ticketItem = document.querySelector(`.ticket-item[onclick*="${data.ticketId}"]`);
+        if (ticketItem) {
+            // Move to top
+            const container = ticketItem.parentElement;
+            container.prepend(ticketItem);
+            
+            // Update status badge if user sent message
+            if (!data.isAdminTeam) {
+                const badge = ticketItem.querySelector('.badge');
+                badge.className = 'badge badge-gold';
+                badge.innerText = 'جديد';
+            }
+        } else {
+            // Potentially inject a new ticket item if it's a brand new one (would need more data from socket)
+            // For now, let's just reload list via AJAX if we want it perfect, or wait for next refresh
+        }
+    });
+
+    function loadTicketMessages(ticketId) {
+        // Since we want full real-time chat, redirecting to the chat page with adminTicketId is best 
+        // to reuse the heavy chat logic we just built.
+        window.location.href = '/support/chat?adminTicketId=' + ticketId;
+    }
+</script>
+
+<style>
+    .ticket-item:hover { background: #f8fafc; }
+    .ticket-item.active { background: #eef2ff; border-right: 4px solid var(--primary); }
+    .badge-gold { background: #fffbeb; color: #b45309; }
+    .badge-teal { background: #f0fdfa; color: #0f766e; }
+    .badge-success { background: #f0fdf4; color: #166534; }
+    .badge-navy { background: #f1f5f9; color: #475569; }
+</style>
+
+<%- include('../../partials/footer-bottom') %>

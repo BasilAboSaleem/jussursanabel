@@ -1,0 +1,627 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<style>
+.tab-btn { background: transparent; border: none; padding: 10px 20px; font-size: 1rem; color: var(--text-color); font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-content { display: none; animation: fadeIn 0.3s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.msg-bubble { max-width: 80%; padding: 12px 18px; border-radius: 12px; margin-bottom: 10px; position: relative; }
+.msg-out { background: var(--secondary); color: white; margin-right: auto; border-bottom-right-radius: 4px; }
+.msg-in { background: #f1f5f9; color: var(--text-color); margin-left: auto; border-bottom-left-radius: 4px; }
+.msg-meta { font-size: 0.7rem; opacity: 0.8; margin-top: 5px; display: block; }
+</style>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <img src="<%= oversightUser.avatar || '/assets/images/default-avatar.png' %>" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+            <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= oversightUser.name %></h2>
+                <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    <i class="fas fa-id-card"></i> <%= oversightUser.role %> | <i class="fas fa-envelope"></i> <%= oversightUser.email %> | 
+                    <% if (oversightUser.role === 'donor') { %>
+                        <i class="fab fa-whatsapp"></i> <%= oversightUser.whatsapp || __('common_not_listed') %>
+                    <% } else { %>
+                        <i class="fas fa-phone"></i> <%= oversightUser.phone || __('common_not_listed') %>
+                    <% } %>
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <span><i class="fas fa-fingerprint"></i> <%= __('common_id_number') %> <strong><%= oversightUser.idNumber || __('common_not_available') %></strong></span>
+                    <span><i class="fas fa-map-marker-alt"></i> <%= __('common_address') %> <strong><%= oversightUser.address || __('common_not_available') %></strong></span>
+                    <% if (oversightUser.altPhone) { %>
+                        <span><i class="fas fa-phone-alt"></i> <%= __('register_alt_phone') %> <strong><%= oversightUser.altPhone %></strong></span>
+                    <% } %>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="badge <%= oversightUser.isSoftDeleted ? 'badge-danger' : (oversightUser.status === 'active' ? 'badge-teal' : (oversightUser.status === 'suspended' ? 'badge-danger' : 'badge-gold')) %>">
+                        <%= oversightUser.isSoftDeleted ? __('admin_oversight_deleted_soft') : (oversightUser.status === 'active' ? __('admin_oversight_status_active') : (oversightUser.status === 'suspended' ? __('admin_oversight_status_suspended') : __('admin_oversight_status_pending'))) %>
+                    </span>
+                    <%= __('admin_oversight_permissions_scope') %> <span class="badge badge-navy"><%= oversightUser.role === 'super_admin' ? __('common_super_admin') : (oversightUser.role === 'admin' ? __('common_admin') : (oversightUser.role === 'donor' ? __('common_donor') : __('common_family'))) %></span>
+                    <% if (oversightUser.role === 'donor') { %>
+                        <span class="badge <%= oversightUser.isVerifiedDonor ? 'badge-teal' : 'badge-outline' %>">
+                            <% if (oversightUser.isVerifiedDonor) { %><i class="fas fa-check-circle"></i> <%= __('admin_oversight_verified_donor') %><% } else { %><%= __('admin_oversight_new_donor') %><% } %>
+                        </span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted);"><%= __('common_joined_date') %></div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);"><%= oversightUser.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+        </div>
+    </div>
+</div>
+
+<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; margin-bottom: 30px;">
+    <div style="display: flex; background: rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.05); overflow-x: auto;">
+        <button class="tab-btn active" onclick="switchTab('financials')"><i class="fas fa-wallet"></i> <%= __('admin_oversight_tab_financials') %></button>
+        <button class="tab-btn" onclick="switchTab('cases')"><i class="fas fa-folder-open"></i> <%= __('common_published_cases') %> (<%= cases.length %>)</button>
+        <button class="tab-btn" onclick="switchTab('communications')"><i class="fas fa-comments"></i> <%= __('admin_oversight_tab_comms') %> (<%= discussions.length %> <%= __('common_entities') %>)</button>
+    </div>
+    
+    <div style="padding: 30px;">
+        
+        <!-- Financials Tab -->
+        <div id="financials" class="tab-content active">
+            <div class="grid-2" style="margin-bottom: 30px;">
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); padding: 25px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <div style="font-size: 1rem; font-weight: 800; color: #047857; margin-bottom: 15px;"><i class="fas fa-hand-holding-usd"></i> <%= __('admin_oversight_total_donated') %></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #047857;">$<%= stats.totalDonatedAmount.toLocaleString() %></div>
+                    <div style="font-size: 0.85rem; color: #065f46; margin-top: 10px;"><%= __('common_via') %> <%= donationsMade.length %> <%= __('admin_oversight_documented_payments') %></div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05)); padding: 25px; border-radius: 12px; border: 1px solid rgba(234, 179, 8, 0.2); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <div style="font-size: 1rem; font-weight: 800; color: #a16207; margin-bottom: 15px;"><i class="fas fa-box-open"></i> <%= __('admin_oversight_total_received') %></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #a16207;">$<%= stats.totalReceivedAmount.toLocaleString() %></div>
+                    <div style="font-size: 0.85rem; color: #854d0e; margin-top: 10px;"><%= __('common_via') %> <%= donationsReceived.length %> <%= __('admin_oversight_documented_receipts') %></div>
+                </div>
+            </div>
+
+            <!-- Detailed Payment Information -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px;">
+                <h4 class="font-cairo" style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 900; font-size: 1.15rem; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-credit-card"></i> <%= __('admin_dist_payout_info') %>
+                </h4>
+                <div class="grid-3" style="gap: 20px;">
+                    <div style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; box-shadow: var(--shadow-sm);">
+                        <small style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; display: block; margin-bottom: 8px;"><%= __('register_bank_palestine_iban') %></small>
+                        <div style="font-family: monospace; font-weight: 800; color: var(--primary); font-size: 0.95rem; word-break: break-all;">
+                            <%= (oversightUser.paymentDetails && (oversightUser.paymentDetails.iban || oversightUser.paymentDetails.accountNumber)) || '---' %>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; box-shadow: var(--shadow-sm);">
+                        <small style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; display: block; margin-bottom: 8px;">PalPay / PiPay</small>
+                        <div style="font-family: monospace; font-weight: 800; color: #15803d; font-size: 0.95rem;">
+                            <%= (oversightUser.paymentDetails && oversightUser.paymentDetails.palpayNumber) || '---' %>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; box-shadow: var(--shadow-sm);">
+                        <small style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; display: block; margin-bottom: 8px;">Jawwal Pay</small>
+                        <div style="font-family: monospace; font-weight: 800; color: #b91c1c; font-size: 0.95rem;">
+                            <%= (oversightUser.paymentDetails && oversightUser.paymentDetails.jawwalPayNumber) || '---' %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-list"></i> <%= __('admin_oversight_outgoing_ops') %></h4>
+            <div style="overflow-x: auto; margin-bottom: 30px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th style="padding: 15px;"><%= __('common_amount') %></th>
+                            <th style="padding: 15px;"><%= __('admin_oversight_supported_case') %></th>
+                            <th style="padding: 15px;"><%= __('common_date') %></th>
+                            <th style="padding: 15px;"><%= __('common_type') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(donationsMade.length === 0) { %><tr><td colspan="4" style="padding: 15px; text-align: center;"><%= __('admin_oversight_no_outgoing') %></td></tr><% } %>
+                        <% donationsMade.forEach(tx => { %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px; font-weight: 800; color: #10b981;">$<%= tx.amount %></td>
+                                <td style="padding: 15px;"><a href="/cases/<%= tx.case._id %>"><%= tx.case.title %></a></td>
+                                <td style="padding: 15px;"><%= tx.createdAt.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></td>
+                                <td style="padding: 15px;"><span class="badge badge-navy"><%= tx.type %></span></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-list"></i> <%= __('admin_oversight_incoming_ops') %></h4>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th style="padding: 15px;"><%= __('admin_oversight_collected_amount') %></th>
+                            <th style="padding: 15px;"><%= __('common_donor') %></th>
+                            <th style="padding: 15px;"><%= __('admin_oversight_for_case') %></th>
+                            <th style="padding: 15px;"><%= __('common_date') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(donationsReceived.length === 0) { %><tr><td colspan="4" style="padding: 15px; text-align: center;"><%= __('admin_oversight_no_incoming') %></td></tr><% } %>
+                        <% donationsReceived.forEach(tx => { %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px; font-weight: 800; color: var(--secondary);">$<%= tx.amount %></td>
+                                <td style="padding: 15px;"><%= tx.donor.name %></td>
+                                <td style="padding: 15px;"><%= tx.case.title %></td>
+                                <td style="padding: 15px;"><%= tx.createdAt.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cases Tab -->
+        <div id="cases" class="tab-content">
+            <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-folder-open"></i> <%= __('admin_oversight_case_details') %></h4>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th style="padding: 15px;"><%= __('common_case_title') %></th>
+                            <th style="padding: 15px;"><%= __('common_type') %></th>
+                            <th style="padding: 15px;"><%= __('common_financial_need') %></th>
+                            <th style="padding: 15px;"><%= __('common_status') %></th>
+                            <th style="padding: 15px;"><%= __('common_link') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(cases.length === 0) { %><tr><td colspan="5" style="padding: 15px; text-align: center;"><%= __('admin_oversight_no_cases') %></td></tr><% } %>
+                        <% cases.forEach(c => { %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px; font-weight: 700;"><%= c.title %></td>
+                                <td style="padding: 15px;"><%= c.type === 'orphan' ? __('common_orphan_sponsorship') : __('common_family_relief') %></td>
+                                <td style="padding: 15px;"><strong style="color:var(--primary)">$<%= c.raised %></strong> / $<%= c.goalAmount %></td>
+                                <td style="padding: 15px;"><span class="badge <%= c.status === 'published' ? 'badge-teal' : 'badge-gold' %>"><%= c.status %></span></td>
+                                <td style="padding: 15px;"><a href="/cases/<%= c._id %>" class="btn-lux btn-lux-outline btn-sm"><%= __('common_view') %></a></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Communications Tab -->
+        <div id="communications" class="tab-content">
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 25px; color: #b91c1c; font-size: 0.9rem; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <i class="fas fa-exclamation-triangle"></i> <strong><%= __('admin_oversight_privacy_warning') %></strong> <%= __('admin_oversight_comms_desc') %>
+            </div>
+
+            <div class="monitor-wrapper" style="display: grid; grid-template-columns: <%= langDir === 'rtl' ? '1fr 350px' : '350px 1fr' %>; height: 650px; gap: 20px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden;">
+                <!-- Sidebar -->
+                <div class="monitor-sidebar" style="background: white; border-<%= langDir === 'rtl' ? 'left' : 'right' %>: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; order: <%= langDir === 'rtl' ? 2 : 1 %>;">
+                    <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; background: #fff; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                        <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __('admin_oversight_chat_history') %></h5>
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;"><%= __('common_total_label') %> <%= discussions.length %> <%= __('common_contact') %></p>
+                    </div>
+                    <div style="flex: 1; overflow-y: auto; padding: 10px;">
+                        <% discussions.forEach((disc, index) => { %>
+                            <div class="monitor-item" id="nav-item-<%= index %>" onclick="showDiscussion('<%= index %>')" style="padding: 15px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; transition: all 0.2s; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                                <div style="width: 45px; height: 45px; border-radius: 10px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; flex-shrink: 0; overflow: hidden;">
+                                    <img src="<%= disc.partner.avatar || '/assets/images/default-avatar.png' %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b;">
+                                        <%= disc.partner.name %>
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                                        <%= disc.partner.role %> | <%= disc.messages.length %> <%= __('common_message_label') %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="monitor-content" style="display: flex; flex-direction: column; background: white; position: relative; min-height: 0; order: <%= langDir === 'rtl' ? '1' : '2' %>;">
+                    <!-- Placeholder -->
+                    <div id="disc-placeholder" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; background: #fcfdfe;">
+                        <i class="fas fa-comments" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px;"></i>
+                        <h6 class="font-cairo"><%= __('admin_oversight_select_contact') %></h6>
+                    </div>
+
+                    <% discussions.forEach((disc, index) => { %>
+                        <div id="disc-content-<%= index %>" class="disc-container" style="display: none; flex: 1; flex-direction: column; min-height: 0;">
+                            <!-- Header -->
+                            <div style="padding: 15px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: white; flex-shrink: 0; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                                <div>
+                                    <h6 style="margin: 0; font-weight: 800; color: #1e293b;"><%= __('admin_oversight_chat_with') %> <%= disc.partner.name %></h6>
+                                    <div style="font-size: 0.75rem; color: #64748b;"><%= disc.partner.email %> | <%= __('common_account_status_label') %> <%= disc.partner.status %></div>
+                                </div>
+                            </div>
+
+                            <!-- Messages -->
+                            <div style="flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; background: #fdfdfd; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                                <% disc.messages.forEach(msg => { 
+                                    const isTargetUser = msg.sender && msg.sender._id.toString() === oversightUser._id.toString();
+                                %>
+                                    <div class="msg-bubble <%= isTargetUser ? (langDir === 'rtl' ? 'msg-in' : 'msg-out') : (langDir === 'rtl' ? 'msg-out' : 'msg-in') %>">
+                                        <div style="font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; opacity: 0.8;">
+                                            <%= isTargetUser ? oversightUser.name : disc.partner.name %>
+                                        </div>
+                                        <div style="font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;"><%= msg.content %></div>
+                                        <% if(msg.imageUrl) { %>
+                                            <img src="<%= msg.imageUrl %>" style="max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                                        <% } %>
+                                        <span class="msg-meta"><%= msg.createdAt.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></span>
+                                    </div>
+                                <% }) %>
+                            </div>
+
+                            <!-- Moderation Panel -->
+                            <div style="padding: 20px 25px; border-top: 1px solid #f1f5f9; background: white; flex-shrink: 0; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                                <h6 class="font-cairo" style="margin-bottom: 10px; font-weight: 800; color: var(--primary);"><%= __('admin_oversight_mod_panel_title') %></h6>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    
+                                    <!-- Monitored User Moderation -->
+                                    <div style="background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                            <div>
+                                                <div style="font-weight: 800; color: var(--primary);"><i class="fas fa-crosshairs"></i> <%= __('admin_oversight_target_user') %> <%= oversightUser.name %></div>
+                                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;"><%= __('common_warnings_label') %> <span style="font-weight: 800; color: var(--secondary);"><%= oversightUser.warningsCount || 0 %></span></div>
+                                            </div>
+                                            <span class="badge <%= oversightUser.status === 'active' ? 'badge-teal' : (oversightUser.status === 'suspended' ? 'badge-danger' : 'badge-gold') %>"><%= oversightUser.status === 'active' ? __('common_active') : (oversightUser.status === 'suspended' ? __('common_blocked') : __('common_pending')) %></span>
+                                        </div>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                                        <button class="btn-lux btn-lux-primary btn-sm" style="flex: 1;" onclick="openModDialog('<%= oversightUser._id %>', '<%= oversightUser.name %>', 'all', '<%= disc.partner._id %>')"><i class="fas fa-gavel"></i> <%= __('admin_oversight_global_mod_btn') %></button>
+                                    </div>
+                                        
+                                        <div class="mod-history" style="font-size: 0.75rem; background: white; border-radius: 8px; border: 1px solid #f1f5f9; max-height: 120px; overflow-y: auto;">
+                                            <% if (!oversightUser.moderationNotes || oversightUser.moderationNotes.length === 0) { %>
+                                                <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_oversight_mod_history_empty') %></div>
+                                            <% } else { %>
+                                                <% oversightUser.moderationNotes.slice().reverse().slice(0, 10).forEach(n => { 
+                                                    const typeMap = { 
+                                                        'note': __('common_note'), 
+                                                        'warning': __('common_warning'), 
+                                                        'ban': __('admin_oversight_ban_label'),
+                                                        'ban_user_specific': __('admin_oversight_specific_ban_label'),
+                                                        'ban_global_comm': __('admin_oversight_global_ban_label'),
+                                                        'soft_delete': __('admin_oversight_soft_delete_label'),
+                                                        'hard_delete': __('admin_oversight_hard_delete_label')
+                                                    };
+                                                    const typeClasses = { 
+                                                        'note': 'color: #64748b', 
+                                                        'warning': 'color: var(--gold)', 
+                                                        'ban': 'color: #ef4444',
+                                                        'ban_user_specific': 'color: #ef4444',
+                                                        'ban_global_comm': 'color: #ef4444',
+                                                        'soft_delete': 'color: #7f1d1d',
+                                                        'hard_delete': 'color: #000'
+                                                    };
+                                                %>
+                                                <div style="padding: 8px 12px; border-bottom: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                                                    <div style="flex: 1;">
+                                                        <div style="font-weight: 800; <%= typeClasses[n.type] %>"><%= typeMap[n.type] || n.type %></div>
+                                                        <div style="margin-top: 2px;"><%= n.note %></div>
+                                                    </div>
+                                                    <div style="font-size: 0.65rem; color: #94a3b8; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+                                                        <%= new Date(n.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                                                    </div>
+                                                </div>
+                                                <% }) %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <!-- Partner Moderation -->
+                                    <div style="background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                            <div>
+                                                <div style="font-weight: 800; color: #1e293b;"><i class="fas fa-users"></i> <%= __('admin_oversight_other_party') %> <%= disc.partner.name %></div>
+                                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;"><%= __('common_warnings_label') %> <span style="font-weight: 800; color: var(--secondary);"><%= disc.partner.warningsCount || 0 %></span></div>
+                                            </div>
+                                            <span class="badge <%= disc.partner.status === 'active' ? 'badge-teal' : (disc.partner.status === 'suspended' ? 'badge-danger' : 'badge-gold') %>"><%= disc.partner.status === 'active' ? __('common_active') : (disc.partner.status === 'suspended' ? __('common_blocked') : __('common_pending')) %></span>
+                                        </div>
+                                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                                            <button class="btn-lux btn-lux-primary btn-sm" style="flex: 1;" onclick="openModDialog('<%= disc.partner._id %>', '<%= disc.partner.name %>', 'partner')"><i class="fas fa-gavel"></i> <%= __('admin_oversight_other_mod_btn') %></button>
+                                        </div>
+                                        
+                                        <div class="mod-history" style="font-size: 0.75rem; background: white; border-radius: 8px; border: 1px solid #f1f5f9; max-height: 120px; overflow-y: auto;">
+                                            <% if (!disc.partner.moderationNotes || disc.partner.moderationNotes.length === 0) { %>
+                                                <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_oversight_mod_history_empty') %></div>
+                                            <% } else { %>
+                                                <% disc.partner.moderationNotes.slice().reverse().slice(0, 10).forEach(n => { 
+                                                    const typeMap = { 
+                                                        'note': __('common_note'), 
+                                                        'warning': __('common_warning'), 
+                                                        'ban': __('admin_oversight_ban_label'),
+                                                        'ban_user_specific': __('admin_oversight_specific_ban_label'),
+                                                        'ban_global_comm': __('admin_oversight_global_ban_label'),
+                                                        'soft_delete': __('admin_oversight_soft_delete_label'),
+                                                        'hard_delete': __('admin_oversight_hard_delete_label')
+                                                    };
+                                                    const typeClasses = { 
+                                                        'note': 'color: #64748b', 
+                                                        'warning': 'color: var(--gold)', 
+                                                        'ban': 'color: #ef4444',
+                                                        'ban_user_specific': 'color: #ef4444',
+                                                        'ban_global_comm': 'color: #ef4444',
+                                                        'soft_delete': 'color: #7f1d1d',
+                                                        'hard_delete': 'color: #000'
+                                                    };
+                                                %>
+                                                <div style="padding: 8px 12px; border-bottom: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                                                    <div style="flex: 1;">
+                                                        <div style="font-weight: 800; <%= typeClasses[n.type] %>"><%= typeMap[n.type] || n.type %></div>
+                                                        <div style="margin-top: 2px;"><%= n.note %></div>
+                                                    </div>
+                                                    <div style="font-size: 0.65rem; color: #94a3b8; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+                                                        <%= new Date(n.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                                                    </div>
+                                                </div>
+                                                <% }) %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Moderation Dialog -->
+<div id="moderationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="luxury-card" style="width: 450px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <h5 class="font-cairo" style="margin-bottom: 15px; font-weight: 800; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;" id="modTitle"><%= __('admin_oversight_take_action') %></h5>
+        <div id="userInfoShort" style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 12px; font-size: 0.85rem; font-weight: 700;"></div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;"><%= __('admin_oversight_action_type_label') %></label>
+            <select id="modAction" class="form-control" style="border-radius: 12px; height: 45px;" onchange="updateModUI()">
+                <option value="note"><%= __('admin_oversight_opt_note') %></option>
+                <option value="warning"><%= __('admin_oversight_opt_warning') %></option>
+                <option value="ban_user_specific" id="opt-ban-specific"><%= __('admin_oversight_opt_ban_specific') %></option>
+                <% if (user.role === 'super_admin') { %>
+                <div id="full-mod-options">
+                    <option value="ban_global_comm" class="full-mod"><%= __('admin_oversight_opt_ban_global') %></option>
+                    <option value="ban" class="full-mod"><%= __('admin_oversight_opt_ban') %></option>
+                    <option value="soft_delete" class="full-mod"><%= __('admin_oversight_opt_soft_delete') %></option>
+                    <option value="hard_delete" class="full-mod"><%= __('admin_oversight_opt_hard_delete') %></option>
+                    <option value="undo_warning"><%= __('admin_oversight_opt_undo_warning') %></option>
+                    <option value="undo_ban_global_comm"><%= __('admin_oversight_opt_undo_ban_global') %></option>
+                    <option value="undo_soft_delete"><%= __('admin_oversight_opt_undo_soft_delete') %></option>
+                </div>
+                <% } %>
+                <option value="undo_ban_user_specific" id="opt-undo-ban-specific"><%= __('admin_oversight_opt_undo_ban_specific') %></option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;" id="noteLabel"><%= __('admin_oversight_reason_label') %></label>
+            <textarea id="modNote" rows="4" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; resize: none;" placeholder="<%= __('admin_oversight_reason_placeholder') %>"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-lux btn-lux-outline" onclick="closeModDialog()"><%= __('common_cancel') %></button>
+            <button class="btn-lux btn-lux-primary" id="confirmModBtn" onclick="submitModeration()"><%= __('common_confirm_action') %></button>
+        </div>
+
+        <% if (user.role !== 'super_admin') { %>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
+            <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; margin-bottom: 12px;"><%= __('admin_oversight_escalation_info') %></div>
+            <button class="btn-lux btn-lux-danger" style="width: 100%; opacity: 0.8;" onclick="openEscalationForm()">
+                <i class="fas fa-tower-observation"></i> <%= __('admin_oversight_escalation_btn') %>
+            </button>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Escalation Request Modal (Admins only) -->
+<div id="escalationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1001; align-items:center; justify-content:center;">
+    <div class="luxury-card" style="width:500px; padding:30px; background:white; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.4); border-top: 4px solid #ef4444;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="width:50px;height:50px;background:#fee2e2;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:1.4rem;">
+                <i class="fas fa-tower-observation"></i>
+            </div>
+            <div>
+                <h5 class="font-cairo" style="margin:0;font-weight:800;color:#991b1b;"><%= __('admin_oversight_escalation_modal_title') %></h5>
+                <p style="margin:0;font-size:0.8rem;color:#94a3b8;"><%= __('admin_oversight_escalation_desc') %></p>
+            </div>
+        </div>
+
+        <form action="/admin/escalations/submit" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="targetUser" value="<%= oversightUser._id %>">
+
+            <div class="form-group mb-3">
+                <label style="font-weight:800;color:var(--primary);display:block;margin-bottom:8px;"><%= __('admin_escalation_label_type') %></label>
+                <select name="type" class="form-input" required>
+                    <option value="hard_delete_user"><%= __('admin_escalation_type_hard_delete') %></option>
+                    <option value="change_role"><%= __('admin_escalation_type_role') %></option>
+                    <option value="other"><%= __('admin_escalation_type_other') %></option>
+                </select>
+            </div>
+
+            <div class="form-group mb-4">
+                <label style="font-weight:800;color:var(--primary);display:block;margin-bottom:8px;"><%= __('admin_oversight_escalation_reason_label') %> <span style="color:#ef4444;">*</span></label>
+                <textarea name="reason" rows="4" class="form-input" placeholder="<%= __('admin_oversight_escalation_placeholder') %>" required></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="button" class="btn-lux btn-lux-outline" style="flex:1;" onclick="closeEscalationModal()"><%= __('common_cancel') %></button>
+                <button type="submit" class="btn-lux btn-lux-danger" style="flex:2;">
+                    <i class="fas fa-paper-plane"></i> <%= __('admin_oversight_escalation_submit_btn') %>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentModUserId = null;
+let currentModTargetId = null; // Used for specific chat ban
+let currentContext = null;
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+function showDiscussion(index) {
+    document.getElementById('disc-placeholder').style.display = 'none';
+    document.querySelectorAll('.disc-container').forEach(el => el.style.display = 'none');
+    
+    const target = document.getElementById('disc-content-' + index);
+    if(target) {
+        target.style.display = 'flex';
+        // Auto scroll to bottom of messages container
+        const msgContainer = target.querySelector('.msg-bubble').parentElement;
+        if(msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+    
+    document.querySelectorAll('.monitor-item').forEach(el => {
+        el.style.background = 'transparent';
+        el.style.borderColor = 'transparent';
+    });
+    
+    const navItem = document.getElementById('nav-item-' + index);
+    if(navItem) {
+        navItem.style.background = 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)';
+        navItem.style.borderColor = '#eab308';
+    }
+}
+
+function openModDialog(userId, userName, context, partnerId = null) {
+    currentModUserId = userId;
+    currentContext = context;
+    // If context is 'partner' or 'all', we want the option to ban the partner from talking to the oversightUser
+    // If context is 'all' (the main user), we can ban him from talking to a specific partner if we are in a conversation
+    
+    document.getElementById('userInfoShort').textContent = `<%= __('common_user') %>: ${userName}`;
+    document.getElementById('moderationModal').style.display = 'flex';
+    
+    const specificOpt = document.getElementById('opt-ban-specific');
+    const specificUndoOpt = document.getElementById('opt-undo-ban-specific');
+    const fullOptions = document.querySelectorAll('.full-mod');
+    
+    if (context === 'partner' || context === 'all') {
+        // If coming from communications vault, we show specific options
+        specificOpt.style.display = 'block';
+        specificUndoOpt.style.display = 'block';
+        fullOptions.forEach(opt => opt.style.display = 'none');
+        currentModTargetId = (context === 'partner') ? '<%= oversightUser._id %>' : partnerId;
+        
+        // Ensure action is reset to note if the previous action was a hidden one
+        document.getElementById('modAction').value = 'note';
+    } else {
+        specificOpt.style.display = 'none';
+        specificUndoOpt.style.display = 'none';
+        fullOptions.forEach(opt => opt.style.display = 'block');
+    }
+
+    updateModUI();
+}
+
+function updateModUI() {
+    const action = document.getElementById('modAction').value;
+    const confirmBtn = document.getElementById('confirmModBtn');
+    const warningText = document.getElementById('userInfoShort');
+    const noteLabel = document.getElementById('noteLabel');
+    
+    // Reset colors
+    confirmBtn.className = 'btn-lux btn-lux-primary';
+    
+    if (action === 'ban') {
+        confirmBtn.className = 'btn-lux btn-lux-gold';
+        noteLabel.textContent = '<%= __('admin_oversight_opt_ban') %>';
+    } else if (action === 'soft_delete') {
+        confirmBtn.className = 'btn-lux btn-lux-danger';
+        noteLabel.textContent = '<%= __('admin_oversight_opt_soft_delete') %>';
+    } else if (action === 'hard_delete') {
+        confirmBtn.className = 'btn-lux btn-lux-danger';
+        noteLabel.textContent = '<%= __('admin_oversight_opt_hard_delete') %>';
+        warningText.innerHTML += `<div style="color: #ef4444; margin-top: 10px; font-weight: 800;"><i class="fas fa-radiation"></i> <%= __('admin_oversight_js_hard_delete_confirm') %></div>`;
+    } else {
+        noteLabel.textContent = '<%= __('admin_oversight_reason_label') %>';
+    }
+}
+
+function closeModDialog() {
+    document.getElementById('moderationModal').style.display = 'none';
+    document.getElementById('modNote').value = '';
+    document.getElementById('modAction').value = 'note';
+    currentModTargetId = null;
+}
+
+async function submitModeration() {
+    const action = document.getElementById('modAction').value;
+    const note = document.getElementById('modNote').value;
+
+    if (!note && (action === 'soft_delete' || action === 'ban' || action === 'hard_delete')) {
+        alert('<%= __('admin_oversight_js_reason_required') %>');
+        return;
+    }
+
+    if (action === 'hard_delete' && !confirm('<%= __('admin_oversight_js_hard_delete_confirm') %>')) {
+        return;
+    }
+
+    try {
+        const body = { 
+            userId: currentModUserId, 
+            action: action, 
+            note: note,
+            targetUserId: currentModTargetId 
+        };
+
+        const res = await fetch('/admin/moderate-user', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': '<%= csrfToken %>'
+            },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            alert(data.message || '<%= __('admin_mod_js_success') %>');
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                window.location.reload();
+            }
+        } else {
+            alert(data.error || '<%= __('admin_mod_js_error') %>');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('<%= __('admin_mod_js_conn_error') %>');
+    }
+}
+
+function openEscalationForm() {
+    closeModDialog();
+    document.getElementById('escalationModal').style.display = 'flex';
+}
+
+function closeEscalationModal() {
+    document.getElementById('escalationModal').style.display = 'none';
+}
+
+window.addEventListener('click', function(e) {
+    if (e.target === document.getElementById('escalationModal')) {
+        closeEscalationModal();
+    }
+});
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

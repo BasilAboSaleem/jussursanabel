@@ -1,0 +1,458 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="container-fluid" style="padding: 30px; max-width: 1300px; margin: 0 auto;">
+    <div class="section-header-luxury" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <span class="section-badge"><i class="fas fa-tower-observation"></i> <%= __('admin_escalations_monitor_title') %></span>
+            <h2 class="section-title-luxury"><%= __('admin_escalations_emergency_room') %></h2>
+            <p class="section-subtitle-luxury" style="margin-bottom: 0;">
+                <% if (user.role === 'super_admin') { %>
+                    <%= __('admin_escalations_super_desc') %>
+                <% } else { %>
+                    <%= __('admin_escalations_admin_desc') %>
+                <% } %>
+            </p>
+        </div>
+        <% if (user.role !== 'super_admin') { %>
+            <button class="btn-lux btn-lux-danger" onclick="openNewRequestModal()" style="padding: 14px 28px; border-radius: 14px; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-plus-circle"></i> <%= lang === 'ar' ? 'طلب جديد للإدارة العليا' : 'New Super Admin Request' %>
+            </button>
+        <% } %>
+    </div>
+
+    <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border-radius: 20px; box-shadow: var(--shadow-sm);">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-bottom: 2px solid #e2e8f0;">
+                    <tr>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_req_type') %></th>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_requester') %></th>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_target') %></th>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_submit_date') %></th>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_decision') %></th>
+                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;"><%= __('common_actions') %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (requests && requests.length > 0) { %>
+                        <% requests.forEach(reqObj => { %>
+                            <tr class="esc-table-row">
+                                <td style="padding: 18px 20px; vertical-align: middle;">
+                                    <% if (reqObj.type === 'hard_delete_user') { %>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block; flex-shrink: 0;"></span>
+                                            <span style="font-weight: 800; color: var(--danger); font-size: 0.88rem;"><%= __('admin_escalations_hard_delete_user') %></span>
+                                        </div>
+                                    <% } else { %>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary); display: inline-block; flex-shrink: 0;"></span>
+                                            <span style="font-weight: 700; color: var(--primary); font-size: 0.88rem;"><%= __(reqObj.type) || reqObj.type %></span>
+                                        </div>
+                                    <% } %>
+                                </td>
+
+                                <td style="padding: 18px 20px; vertical-align: middle;">
+                                    <% if (reqObj.requester) { %>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--grad-navy); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 2px 8px rgba(15,23,42,0.2);">
+                                                <%= reqObj.requester.name ? reqObj.requester.name.charAt(0) : '?' %>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: var(--primary); font-size: 0.88rem; line-height: 1.2;"><%= reqObj.requester.name || '---' %></div>
+                                                <div style="font-size: 0.72rem; color: var(--text-muted);"><%= reqObj.requester.email || '' %></div>
+                                            </div>
+                                        </div>
+                                    <% } else { %>
+                                        <span style="color: var(--text-muted);">—</span>
+                                    <% } %>
+                                </td>
+
+                                <td style="padding: 18px 20px; vertical-align: middle; font-size: 0.88rem;">
+                                    <% if (reqObj.targetUser) { %>
+                                        <a href="/admin/users/<%= reqObj.targetUser._id %>/moderation" style="font-weight: 700; color: var(--accent); text-decoration: none;">
+                                            <i class="fas fa-user" style="opacity: 0.5;"></i> <%= reqObj.targetUser.name %>
+                                        </a>
+                                    <% } else if (reqObj.targetCase) { %>
+                                        <span style="font-weight: 700;"><i class="fas fa-folder" style="opacity: 0.5;"></i> <%= reqObj.targetCase.title %></span>
+                                    <% } else { %>
+                                        <span style="color: var(--text-muted);">—</span>
+                                    <% } %>
+                                </td>
+
+                                <td style="padding: 18px 20px; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: var(--primary); font-size: 0.88rem;">
+                                        <%= new Date(reqObj.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                                    </div>
+                                    <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 2px;">
+                                        <%= new Date(reqObj.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                                    </div>
+                                </td>
+
+                                <td style="padding: 18px 20px; vertical-align: middle;">
+                                    <% if (reqObj.status === 'pending') { %>
+                                        <span class="esc-badge pending"><i class="fas fa-hourglass-half"></i> <%= __('common_pending_review') %></span>
+                                    <% } else if (reqObj.status === 'approved') { %>
+                                        <span class="esc-badge approved"><i class="fas fa-check-circle"></i> <%= __('admin_escalations_approved_exec') %></span>
+                                    <% } else { %>
+                                        <span class="esc-badge rejected"><i class="fas fa-times-circle"></i> <%= __('common_rejected') %></span>
+                                    <% } %>
+                                </td>
+
+                                <td style="padding: 18px 20px; vertical-align: middle; text-align: center;">
+                                    <button class="esc-details-btn" onclick="openDetailsModal(this)"
+                                        data-id="<%= reqObj._id %>"
+                                        data-type="<%= reqObj.type %>"
+                                        data-status="<%= reqObj.status %>"
+                                        data-reason="<%= encodeURIComponent(reqObj.reason || '') %>"
+                                        data-requester-name="<%= reqObj.requester ? (reqObj.requester.name || '') : '' %>"
+                                        data-requester-email="<%= reqObj.requester ? (reqObj.requester.email || '') : '' %>"
+                                        data-target="<%= reqObj.targetUser ? reqObj.targetUser.name : (reqObj.targetCase ? reqObj.targetCase.title : '') %>"
+                                        data-date="<%= new Date(reqObj.createdAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %>"
+                                        data-reply="<%= encodeURIComponent(reqObj.superAdminReply || '') %>"
+                                        data-resolved-by="<%= reqObj.resolvedBy ? reqObj.resolvedBy.name : '' %>"
+                                        data-csrf="<%= csrfToken %>"
+                                        data-is-super="<%= user.role === 'super_admin' %>"
+                                        data-type-label="<%= reqObj.type === 'hard_delete_user' ? (lang === 'ar' ? 'حذف كلي للمستخدم' : 'Hard Delete User') : (__(reqObj.type) || reqObj.type) %>">
+                                        <i class="fas fa-eye"></i>
+                                        <%= lang === 'ar' ? 'عرض التفاصيل' : 'View Details' %>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                                <i class="fas fa-check-double fa-3x" style="opacity: 0.12; margin-bottom: 20px; display: block; color: #10b981;"></i>
+                                <div style="font-size: 1.05rem; font-weight: 600;"><%= __('admin_escalations_no_requests') %></div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SINGLE DYNAMIC DETAILS MODAL ===== -->
+<div id="escDetailsModal" class="esc-overlay" style="display: none;" onclick="handleOverlayClick(event)">
+    <div class="esc-panel">
+        <div class="esc-panel-header" id="escPanelHeader">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="esc-panel-icon"><i class="fas fa-file-invoice" id="escPanelIcon"></i></div>
+                <div>
+                    <div class="esc-panel-title" id="escPanelType">—</div>
+                    <div class="esc-panel-sub" id="escPanelDate">—</div>
+                </div>
+            </div>
+            <button class="esc-close-btn" onclick="closeDetailsModal()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div style="padding: 28px;">
+
+            <div class="esc-row" id="escRowRequester">
+                <div class="esc-row-label"><i class="fas fa-user-tie"></i> <%= lang === 'ar' ? 'مقدم الطلب' : 'Requester' %></div>
+                <div class="esc-row-val" id="escValRequester">—</div>
+            </div>
+
+            <div class="esc-row" id="escRowTarget">
+                <div class="esc-row-label"><i class="fas fa-crosshairs"></i> <%= lang === 'ar' ? 'المعني بالطلب' : 'Target' %></div>
+                <div class="esc-row-val" id="escValTarget">—</div>
+            </div>
+
+            <div class="esc-row">
+                <div class="esc-row-label"><i class="fas fa-circle-dot"></i> <%= lang === 'ar' ? 'الحالة' : 'Status' %></div>
+                <div class="esc-row-val"><span id="escValStatus" class="esc-badge">—</span></div>
+            </div>
+
+            <div class="esc-reason-box" style="margin-top: 20px;">
+                <div class="esc-reason-title"><i class="fas fa-align-right"></i> <%= __('admin_escalations_reasons_label') %></div>
+                <div class="esc-reason-body" id="escValReason">—</div>
+            </div>
+
+            <div id="escReplyBox" style="display: none; margin-top: 16px; border-radius: 14px; padding: 20px;">
+                <div style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;" id="escReplyTitle"><%= __('admin_escalations_super_reply_label') %></div>
+                <div style="font-size: 0.92rem; line-height: 1.7; color: #374151;" id="escReplyContent">—</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;" id="escReplyResolvedBy"></div>
+            </div>
+
+            <div id="escFormBox" style="display: none; margin-top: 24px; border-top: 2px dashed #e2e8f0; padding-top: 24px;">
+                <form id="escResolveForm" method="POST">
+                    <input type="hidden" name="_csrf" id="escCsrfInput">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 800; color: var(--primary); margin-bottom: 10px; font-size: 0.88rem;"><%= __('admin_escalations_decision_label') %></label>
+                        <textarea name="reply" id="escReplyInput" rows="4" class="form-input" style="resize: vertical;" placeholder="<%= __('admin_escalations_reply_placeholder') %>"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button type="submit" name="action" value="approved" class="btn-lux btn-lux-success" style="flex: 1; padding: 13px; font-size: 0.95rem; border-radius: 12px; font-weight: 800;" onclick="return confirm('<%= lang === 'ar' ? 'هل أنت متأكد من قرارك؟' : 'Are you sure?' %>')">
+                            <i class="fas fa-check-circle"></i> <%= __('admin_escalations_approve_btn') %>
+                        </button>
+                        <button type="submit" name="action" value="rejected" class="btn-lux btn-lux-danger" style="flex: 1; padding: 13px; font-size: 0.95rem; border-radius: 12px; font-weight: 800;">
+                            <i class="fas fa-times-circle"></i> <%= __('admin_escalations_reject_btn') %>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Request Modal -->
+<% if (user.role !== 'super_admin') { %>
+<div id="newRequestModal" class="esc-overlay" style="display: none;" onclick="handleOverlayClick(event)">
+    <div class="esc-panel" style="max-width: 560px;">
+        <div class="esc-panel-header" style="background: linear-gradient(135deg, #1e3a8a, #1d4ed8);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="esc-panel-icon"><i class="fas fa-paper-plane"></i></div>
+                <div>
+                    <div class="esc-panel-title"><%= lang === 'ar' ? 'طلب جديد للإدارة العليا' : 'New Super Admin Request' %></div>
+                    <div class="esc-panel-sub"><%= lang === 'ar' ? 'يُراجع من قِبل المدير العام' : 'Reviewed by super admin' %></div>
+                </div>
+            </div>
+            <button class="esc-close-btn" onclick="document.getElementById('newRequestModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 28px;">
+            <form action="/admin/escalations/submit" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 800; color: var(--primary); margin-bottom: 10px; font-size: 0.88rem;"><%= lang === 'ar' ? 'نوع الطلب' : 'Request Type' %></label>
+                    <select name="type" required class="form-input">
+                        <option value="general_request"><%= lang === 'ar' ? 'طلب عام / تواصل' : 'General Request / Contact' %></option>
+                        <option value="permission_request"><%= lang === 'ar' ? 'طلب صلاحية استثنائية' : 'Exceptional Permission Request' %></option>
+                        <option value="system_issue"><%= lang === 'ar' ? 'الإبلاغ عن خلل بالنظام' : 'Report System Issue' %></option>
+                        <option value="other"><%= lang === 'ar' ? 'أخرى' : 'Other' %></option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 800; color: var(--primary); margin-bottom: 10px; font-size: 0.88rem;"><%= __('common_details_reason') %></label>
+                    <textarea name="reason" rows="5" required class="form-input" style="resize: vertical;" placeholder="<%= lang === 'ar' ? 'اكتب تفاصيل طلبك أو رسالتك للمدير العام...' : 'Write your request details here...' %>"></textarea>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn-lux btn-lux-outline" onclick="document.getElementById('newRequestModal').style.display='none'"><%= __('common_cancel') %></button>
+                    <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 28px;"><i class="fas fa-paper-plane"></i> <%= __('common_confirm_action') %></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<style>
+    .esc-table-row { transition: background 0.15s; }
+    .esc-table-row:hover { background: #f8fafc; }
+
+    .esc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 13px;
+        border-radius: 20px;
+        font-size: 0.77rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .esc-badge.pending  { background: #fef9c3; color: #854d0e; }
+    .esc-badge.approved { background: #dcfce7; color: #166534; }
+    .esc-badge.rejected { background: #fee2e2; color: #991b1b; }
+
+    .esc-details-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 20px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 0.83rem;
+        font-weight: 700;
+        font-family: inherit;
+        transition: all 0.2s;
+        box-shadow: 0 3px 10px rgba(30,58,138,0.25);
+        white-space: nowrap;
+    }
+    .esc-details-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(30,58,138,0.35);
+    }
+
+    /* Overlay */
+    .esc-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,15,35,0.65);
+        backdrop-filter: blur(8px);
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* Panel */
+    .esc-panel {
+        background: white;
+        width: 100%;
+        max-width: 640px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+        animation: escSlide 0.3s cubic-bezier(0.16,1,0.3,1);
+        max-height: 92vh;
+        overflow-y: auto;
+    }
+    @keyframes escSlide {
+        from { transform: translateY(50px) scale(0.97); opacity: 0; }
+        to   { transform: translateY(0)    scale(1);    opacity: 1; }
+    }
+
+    .esc-panel-header {
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .esc-panel-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: white; flex-shrink: 0;
+    }
+    .esc-panel-title { font-size: 1.05rem; font-weight: 800; color: white; }
+    .esc-panel-sub   { font-size: 0.77rem; color: rgba(255,255,255,0.5); margin-top: 3px; }
+    .esc-close-btn {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: rgba(255,255,255,0.1); border: none; color: white;
+        cursor: pointer; font-size: 1rem; display: flex; align-items: center;
+        justify-content: center; transition: background 0.2s; flex-shrink: 0;
+    }
+    .esc-close-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* Info rows */
+    .esc-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .esc-row-label {
+        font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+        min-width: 150px; padding-top: 2px;
+        display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .esc-row-val { font-size: 0.9rem; font-weight: 600; color: var(--primary); flex: 1; }
+
+    /* Reason box */
+    .esc-reason-box {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 20px;
+        border-right: 4px solid var(--primary);
+    }
+    .esc-reason-title {
+        font-size: 0.77rem; font-weight: 800; color: var(--primary);
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-bottom: 10px; display: flex; align-items: center; gap: 7px;
+    }
+    .esc-reason-body { font-size: 0.95rem; color: #374151; line-height: 1.75; white-space: pre-wrap; }
+</style>
+
+<script>
+    const STRINGS = {
+        pendingLabel:   '<%= __("common_pending_review") %>',
+        approvedLabel:  '<%= __("admin_escalations_approved_exec") %>',
+        rejectedLabel:  '<%= __("common_rejected") %>',
+        superReplyLbl:  '<%= __("admin_escalations_super_reply_label") %>',
+        autoReply:      '<%= __("admin_escalations_auto_reply") %>',
+        resolvedByPfx:  '<%= __("admin_escalations_resolved_by") %>',
+        reasonLabel:    '<%= __("admin_escalations_reasons_label") %>',
+    };
+
+    function openDetailsModal(btn) {
+        const d = btn.dataset;
+        const status   = d.status;
+        const reason   = decodeURIComponent(d.reason);
+        const reply    = decodeURIComponent(d.reply);
+        const isSuper  = d.isSuper === 'true';
+
+        // --- Header color based on status ---
+        const header = document.getElementById('escPanelHeader');
+        if      (status === 'approved') header.style.background = 'linear-gradient(135deg, #065f46, #059669)';
+        else if (status === 'rejected') header.style.background = 'linear-gradient(135deg, #7f1d1d, #dc2626)';
+        else                            header.style.background = 'linear-gradient(135deg, #1e3a8a, #1d4ed8)';
+
+        document.getElementById('escPanelType').textContent = d.typeLabel || d.type;
+        document.getElementById('escPanelDate').textContent = d.date;
+
+        // --- Status badge ---
+        const badge = document.getElementById('escValStatus');
+        badge.className = 'esc-badge ' + status;
+        badge.innerHTML = status === 'approved'
+            ? `<i class="fas fa-check-circle"></i> ${STRINGS.approvedLabel}`
+            : status === 'rejected'
+            ? `<i class="fas fa-times-circle"></i> ${STRINGS.rejectedLabel}`
+            : `<i class="fas fa-hourglass-half"></i> ${STRINGS.pendingLabel}`;
+
+        // --- Requester ---
+        const rowR = document.getElementById('escRowRequester');
+        if (d.requesterName) {
+            document.getElementById('escValRequester').innerHTML =
+                `<strong>${d.requesterName}</strong><br><small style="color:var(--text-muted);font-size:0.75rem">${d.requesterEmail}</small>`;
+            rowR.style.display = 'flex';
+        } else { rowR.style.display = 'none'; }
+
+        // --- Target ---
+        const rowT = document.getElementById('escRowTarget');
+        if (d.target) {
+            document.getElementById('escValTarget').textContent = d.target;
+            rowT.style.display = 'flex';
+        } else { rowT.style.display = 'none'; }
+
+        // --- Reason ---
+        document.getElementById('escValReason').textContent = reason || '—';
+
+        // --- Reply block ---
+        const replyBox = document.getElementById('escReplyBox');
+        if (status !== 'pending') {
+            replyBox.style.display = 'block';
+            replyBox.style.background = status === 'approved' ? '#f0fdf4' : '#fef2f2';
+            replyBox.style.borderRight = `4px solid ${status === 'approved' ? '#22c55e' : '#ef4444'}`;
+            document.getElementById('escReplyTitle').style.color = status === 'approved' ? '#166534' : '#991b1b';
+            document.getElementById('escReplyTitle').textContent = STRINGS.superReplyLbl;
+            document.getElementById('escReplyContent').textContent = reply || STRINGS.autoReply;
+            document.getElementById('escReplyResolvedBy').textContent = d.resolvedBy
+                ? `${STRINGS.resolvedByPfx} ${d.resolvedBy}` : '';
+        } else { replyBox.style.display = 'none'; }
+
+        // --- Action form (super admin + pending) ---
+        const formBox = document.getElementById('escFormBox');
+        if (isSuper && status === 'pending') {
+            document.getElementById('escResolveForm').action = `/admin/escalations/${d.id}/resolve`;
+            document.getElementById('escCsrfInput').value = d.csrf;
+            document.getElementById('escReplyInput').value = '';
+            formBox.style.display = 'block';
+        } else { formBox.style.display = 'none'; }
+
+        document.getElementById('escDetailsModal').style.display = 'flex';
+    }
+
+    function closeDetailsModal() {
+        document.getElementById('escDetailsModal').style.display = 'none';
+    }
+
+    function openNewRequestModal() {
+        document.getElementById('newRequestModal').style.display = 'flex';
+    }
+
+    function handleOverlayClick(e) {
+        if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+    }
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

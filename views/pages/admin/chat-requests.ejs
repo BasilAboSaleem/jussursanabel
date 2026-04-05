@@ -1,0 +1,67 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--accent);">
+    <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-comments"></i> <%= __('admin_chat_requests_title') %></h3>
+    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_chat_requests_desc') %></p>
+</div>
+
+    <div class="luxury-card" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <thead>
+                <tr style="background: var(--bg-subtle); border-bottom: 2px solid rgba(0,0,0,0.05);">
+                    <th style="padding: 20px;"><%= __('common_donor') %></th>
+                    <th style="padding: 20px;"><%= __('common_case_family') %></th>
+                    <th style="padding: 20px;"><%= __('common_date') %></th>
+                    <th style="padding: 20px;"><%= __('common_status') %></th>
+                    <th style="padding: 20px;"><%= __('common_actions') %></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (requests.length === 0) { %>
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                            <%= __('admin_chat_requests_empty') %>
+                        </td>
+                    </tr>
+                <% } %>
+                <% requests.forEach(req => { %>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 700; color: var(--primary);"><%= req.donor.name %></div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);"><%= req.donor.email %></div>
+                        </td>
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 700; color: var(--primary);"><%= req.case.title %></div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);"><%= __('common_guardian_prefix') %><%= req.family.name %></div>
+                        </td>
+                        <td style="padding: 20px; font-size: 0.9rem;">
+                            <%= req.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                        </td>
+                        <td style="padding: 20px;">
+                            <span class="badge <%= 
+                                req.status === 'approved' ? 'badge-success' : 
+                                req.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
+                            %>">
+                                <%= 
+                                    req.status === 'approved' ? __('common_approved_status') : 
+                                    req.status === 'rejected' ? __('common_rejected_status') : __('common_pending_review') 
+                                %>
+                            </span>
+                        </td>
+                        <td style="padding: 20px;">
+                            <form action="/admin/chat-requests/handle" method="POST" style="display: flex; gap: 10px;">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="requestId" value="<%= req._id %>">
+                                <select name="status" class="form-input" style="padding: 5px 10px; width: auto; font-size: 0.85rem;">
+                                    <option value="approved" <%= req.status === 'approved' ? 'selected' : '' %>><%= __('common_approve') %></option>
+                                    <option value="rejected" <%= req.status === 'rejected' ? 'selected' : '' %>><%= __('common_reject') %></option>
+                                </select>
+                                <button type="submit" class="btn-lux btn-lux-primary" style="padding: 5px 15px; font-size: 0.85rem;"><%= __('common_update') %></button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+<%- include('../../partials/admin-layout-bottom') %>

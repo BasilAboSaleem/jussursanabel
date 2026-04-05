@@ -1,0 +1,115 @@
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-header">
+        <a href="/" class="logo-luxury" style="color: white; font-size: 1.3rem;">
+            <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+            <span class="font-cairo"><%= __('site_name') %></span>
+        </a>
+    </div>
+
+    <div class="admin-sidebar-nav">
+        <div class="admin-nav-group-label"><%= __('admin_nav_group_main') %></div>
+        <a href="/admin/dashboard" class="admin-nav-item <%= title.includes('لوحة التحكم') || title.includes('Dashboard') ? 'active' : '' %>">
+            <i class="fas fa-chart-line"></i>
+            <span><%= __('admin_nav_dashboard') %></span>
+        </a>
+
+        <div class="admin-nav-group-label"><%= __('admin_nav_group_management') %></div>
+        <a href="/admin/chat-requests" class="admin-nav-item <%= title.includes('طلبات التواصل') || title.includes('Chat Requests') ? 'active' : '' %>">
+            <i class="fas fa-comments"></i>
+            <span><%= __('admin_nav_chat_requests') %></span>
+        </a>
+
+        <a href="/support/admin/dashboard" class="admin-nav-item <%= title.includes('مركز الدعم') || title.includes('Support Center') ? 'active' : '' %>">
+            <i class="fas fa-headset"></i>
+            <span><%= __('admin_nav_support_center') %></span>
+        </a>
+        
+        <a href="/admin/monitor-chats" class="admin-nav-item <%= title.includes('مراقبة المحادثات') || title.includes('Monitor Chats') ? 'active' : '' %>">
+            <i class="fas fa-shield-halved"></i>
+            <span><%= __('admin_nav_chat_monitor') %></span>
+        </a>
+
+        <a href="/admin/analytics" class="admin-nav-item <%= title.includes('التحليلات') || title.includes('Analytics') ? 'active' : '' %>">
+            <i class="fas fa-chart-line"></i>
+            <span><%= __('admin_nav_analytics') %></span>
+        </a>
+
+        <a href="/admin/distribution" class="admin-nav-item <%= title.includes('توزيع السنابل') || title.includes('Distribution') ? 'active' : '' %>">
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span><%= __('admin_nav_distribution') %></span>
+        </a>
+
+        <a href="/admin/activity-logs" class="admin-nav-item <%= title.includes('سجل العمليات') || title.includes('Operation Logs') ? 'active' : '' %>">
+            <i class="fas fa-history"></i>
+            <span><%= __('admin_nav_activity_logs') %></span>
+        </a>
+
+        <a href="/admin/notifications" class="admin-nav-item <%= title.includes('إدارة الإشعارات') || title.includes('Notifications') ? 'active' : '' %>">
+            <i class="fas fa-bullhorn"></i>
+            <span><%= __('admin_nav_notifications') %></span>
+        </a>
+        
+        <a href="/admin/cases-manager" class="admin-nav-item <%= title.includes('إدارة الحالات') || title.includes('Cases Manager') ? 'active' : '' %>">
+            <i class="fas fa-folder-open"></i>
+            <span><%= __('admin_nav_cases_manager') %></span>
+        </a>
+
+        <a href="/admin/pending-impact-proofs" class="admin-nav-item <%= title.includes('مراجعة إثباتات') || title.includes('Impact Proofs') ? 'active' : '' %>">
+            <i class="fas fa-file-shield"></i>
+            <span><%= __('admin_nav_impact_proofs') %></span>
+            <span class="badge badge-navy-mini" style="<%= langDir === 'rtl' ? 'margin-right: auto;' : 'margin-left: auto;' %> font-size: 0.65rem; padding: 2px 6px;"><%= __('common_new_badge') %></span>
+        </a>
+
+        <a href="/admin/pending-approvals" class="admin-nav-item <%= title.includes('طلبات التفعيل') || title.includes('Activation Requests') ? 'active' : '' %>">
+            <i class="fas fa-user-clock"></i>
+            <span><%= __('admin_nav_pending_approvals') %></span>
+        </a>
+
+        <a href="/admin/escalations" class="admin-nav-item <%= title.includes('غرفة الطوارئ') || title.includes('Emergency') ? 'active' : '' %>" style="<%= langDir === 'rtl' ? 'border-right: 3px solid #ef4444; padding-right: 17px;' : 'border-left: 3px solid #ef4444; padding-left: 17px;' %>">
+            <i class="fas fa-tower-observation" style="color: #ef4444;"></i>
+            <span><%= __('admin_nav_escalations') %></span>
+        </a>
+
+        <a href="/admin/all-users" class="admin-nav-item <%= title.includes('جميع مستخدمي') || title.includes('All Users') ? 'active' : '' %>">
+            <i class="fas fa-users"></i>
+            <span><%= __('admin_nav_all_users') %></span>
+        </a>
+
+        <% if (user && user.role === 'super_admin') { %>
+            <div class="admin-nav-group-label"><%= __('admin_nav_group_super_admin') %></div>
+            <a href="/admin/users" class="admin-nav-item <%= title.includes('إدارة المشرفين') || title.includes('Team Management') ? 'active' : '' %>">
+                <i class="fas fa-users-cog"></i>
+                <span><%= __('admin_nav_team_management') %></span>
+            </a>
+            <a href="/admin/settings" class="admin-nav-item <%= title.includes('إعدادات النظام') || title.includes('Settings') ? 'active' : '' %>">
+                <i class="fas fa-cogs"></i>
+                <span><%= __('admin_nav_settings') %></span>
+            </a>
+        <% } %>
+
+        <div class="admin-nav-group-label"><%= __('admin_nav_group_account') %></div>
+        <a href="/profile/settings" class="admin-nav-item <%= (typeof title !== 'undefined' && (title === 'إعدادات الحساب' || title === 'Account Settings')) ? 'active' : '' %>">
+            <i class="fas fa-user-circle"></i>
+            <span><%= __('admin_nav_my_profile') %></span>
+        </a>
+        <a href="/auth/logout" class="admin-nav-item" style="color: #ef4444;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span><%= __('admin_nav_logout') %></span>
+        </a>
+    </div>
+
+    <div class="admin-sidebar-footer">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="<%= user.avatar %>" style="width: 35px; height: 35px; border-radius: 50%; border: 1.5px solid var(--secondary); object-fit: cover;">
+            <div style="font-size: 0.85rem;">
+                <div style="font-weight: 700; color: white;"><%= user.name %></div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 0.75rem;">
+                    <%= user.role === 'super_admin' ? __('admin_role_super_admin') : 
+                        user.role === 'regulator' ? __('admin_role_regulator') : 
+                        user.role === 'support' ? __('admin_role_support') : 
+                        __('admin_role_admin') %>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>

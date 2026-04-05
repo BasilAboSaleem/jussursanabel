@@ -1,0 +1,61 @@
+<aside class="admin-sidebar" id="donorSidebar">
+    <div class="admin-sidebar-header">
+        <a href="/" class="logo-luxury" style="color: white; font-size: 1.3rem;">
+            <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+            <span class="font-cairo">جسور السنابل</span>
+        </a>
+    </div>
+
+    <div class="admin-sidebar-nav">
+        <div class="admin-nav-group-label" style="color: var(--secondary-light); font-size: 0.8rem; opacity: 0.9;">بوابة المتبرعين</div>
+
+        <a href="/dashboard" class="admin-nav-item <%= (typeof title !== 'undefined' && title === 'لوحة تحكم المتبرع') ? 'active' : '' %>">
+            <i class="fas fa-home"></i>
+            <span>الرئيسية</span>
+        </a>
+
+        <div class="admin-nav-group-label">الكفالات والتبرعات</div>
+        <a href="/cases" class="admin-nav-item">
+            <i class="fas fa-heart"></i>
+            <span>استكشاف الحالات</span>
+        </a>
+        <a href="/dashboard#history" class="admin-nav-item">
+            <i class="fas fa-history"></i>
+            <span>سجل عطائي</span>
+        </a>
+
+        <div class="admin-nav-group-label">التواصل</div>
+        <a href="/messages" class="admin-nav-item <%= (typeof title !== 'undefined' && (title === 'الرسائل' || title.includes('المحادثة'))) ? 'active' : '' %>">
+            <i class="fas fa-comments"></i>
+            <span>مركز الرسائل</span>
+            <span id="sidebar-unread-count" class="badge badge-danger <%= (typeof unreadCount === 'undefined' || unreadCount === 0) ? 'd-none' : '' %>" style="margin-right: auto; padding: 2px 8px; font-size: 0.7rem;">
+                <%= (typeof unreadCount !== 'undefined') ? unreadCount : 0 %>
+            </span>
+            <span id="sidebar-active-status" class="badge badge-gold <%= (typeof unreadCount !== 'undefined' && unreadCount > 0) ? 'd-none' : '' %>" style="margin-right: auto; padding: 2px 8px; font-size: 0.7rem;">نشط</span>
+        </a>
+
+        <div class="admin-nav-group-label">الحساب</div>
+        <a href="/profile/settings" class="admin-nav-item <%= (typeof title !== 'undefined' && title === 'إعدادات الحساب') ? 'active' : '' %>">
+            <i class="fas fa-user-gear"></i>
+            <span>إعدادات الحساب</span>
+        </a>
+        <a href="/auth/logout" class="admin-nav-item" style="color: #ef4444;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>تسجيل الخروج</span>
+        </a>
+    </div>
+
+    <div class="admin-sidebar-footer">
+        <% if (user) { %>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--accent)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1rem; flex-shrink: 0;">
+                <%= user.name ? user.name.charAt(0) : 'م' %>
+            </div>
+            <div style="font-size: 0.85rem; overflow: hidden;">
+                <div style="font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= user.name %></div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 0.72rem;">متبرع معتمد <i class="fas fa-check-circle" style="color: var(--secondary);"></i></div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</aside>

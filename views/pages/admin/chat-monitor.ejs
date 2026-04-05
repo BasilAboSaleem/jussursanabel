@@ -1,0 +1,531 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<style>
+    .monitor-wrapper {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        height: calc(100vh - 120px);
+        gap: 20px;
+        background: #f8fafc;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Left Sidebar: Conversations List */
+    .monitor-sidebar {
+        background: white;
+        border-<%= langDir === 'rtl' ? 'left' : 'right' %>: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .monitor-sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .monitor-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .monitor-item {
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .monitor-item:hover {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+
+    .monitor-item.active {
+        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+        border-color: #eab308;
+    }
+
+    .monitor-item.active .avatar {
+        background: var(--secondary);
+        color: white;
+    }
+
+    .monitor-item.active .active-text {
+        color: var(--secondary) !important;
+    }
+
+    .monitor-item .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+    /* Main Content: Chat View */
+    .monitor-content {
+        display: flex;
+        flex-direction: column;
+        background: white;
+        position: relative;
+        min-height: 0; /* CRITICAL for internal scrolling */
+        min-width: 0;  /* Protect grid bounds */
+        overflow: hidden;
+    }
+
+    .monitor-placeholder {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        background: #fcfdfe;
+    }
+
+    .chat-header {
+        padding: 15px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        z-index: 10;
+        flex-shrink: 0;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px;
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        background: #fdfdfd;
+        min-height: 0;
+    }
+
+    .msg-bubble {
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        position: relative;
+        word-break: break-word; /* Prevent long unbroken strings from causing shift */
+    }
+
+    .msg-donor {
+        align-self: flex-start;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-bottom-right-radius: 4px;
+        color: #1e293b;
+    }
+
+    .msg-family {
+        align-self: flex-end;
+        background: var(--primary);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+
+    .msg-info {
+        font-size: 0.7rem;
+        margin-top: 5px;
+        opacity: 0.7;
+    }
+
+    /* Moderation Controls */
+    .moderation-panel {
+        padding: 20px 25px;
+        border-top: 1px solid #f1f5f9;
+        background: white;
+        display: none;
+        gap: 20px;
+        flex-direction: column;
+        max-height: 400px;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    .mod-user-box {
+        background: #f8fafc;
+        border-radius: 15px;
+        padding: 15px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .mod-history {
+        margin-top: 10px;
+        font-size: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #f1f5f9;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .mod-history-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-tag {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .tag-donor { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+    .tag-family { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+    /* Modal Styles */
+    #moderationModal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<div class="monitor-wrapper">
+    <!-- Sidebar -->
+    <div class="monitor-sidebar" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div class="monitor-sidebar-header">
+            <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __('admin_chat_monitor_sidebar_title') %></h5>
+            <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;"><%= __('admin_chat_monitor_total_prefix') %><%= chats.length %><%= __('admin_chat_monitor_active_suffix') %></p>
+        </div>
+        <div class="monitor-list">
+            <% chats.forEach(chat => { %>
+                <div class="monitor-item" onclick="loadConversation('<%= chat._id %>')">
+                    <div class="avatar">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="active-text" style="font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b;">
+                            <%= chat.case ? chat.case.title : __('common_case') %>
+                        </div>
+                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                            <%= chat.donor ? chat.donor.name : __('common_donor') %> ↔ <%= chat.family ? chat.family.name : __('common_family') %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="monitor-content" id="monitorContent">
+        <!-- Placeholder -->
+        <div class="monitor-placeholder" id="placeholder" style="text-align: center;">
+            <i class="fas fa-shield-halved" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px;"></i>
+            <h6 class="font-cairo"><%= __('admin_chat_monitor_placeholder_title') %></h6>
+            <p style="font-size: 0.8rem; opacity: 0.6;"><%= __('admin_chat_monitor_placeholder_desc') %></p>
+        </div>
+
+        <!-- Chat Header -->
+        <div class="chat-header" id="chatHeader">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="line-height: 1.2;">
+                    <h6 id="headerCaseTitle" style="margin: 0; font-weight: 800; color: #1e293b;"></h6>
+                    <div style="font-size: 0.75rem; margin-top: 4px;">
+                        <span class="user-tag tag-donor" id="donorNameDisplay"></span>
+                        <span style="margin: 0 5px; color: #cbd5e1;">↔</span>
+                        <span class="user-tag tag-family" id="familyNameDisplay"></span>
+                    </div>
+                </div>
+            </div>
+            <div id="caseStatusBadge"></div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <!-- Moderation Panel -->
+        <div class="moderation-panel" id="moderationPanel" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <h6 class="font-cairo" style="margin-bottom: 5px; font-weight: 800; color: var(--primary);"><%= __('admin_chat_monitor_mod_title') %></h6>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Donor Moderation -->
+                <div class="mod-user-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-weight: 800; color: #1e293b;"><i class="fas fa-user-tie"></i> <%= __('admin_chat_monitor_donor_label') %><span id="donorLabel"></span></span>
+                        <div id="donorStatusBadge"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px; font-size: 0.8rem; color: #64748b;">
+                        <%= __('admin_chat_monitor_warnings_label') %><span id="donorWarningCount" style="font-weight: 800; color: var(--secondary);">0</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn-lux btn-lux-outline btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'note')"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
+                        <button class="btn-lux btn-lux-gold btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'warning')"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
+                        <button class="btn-lux btn-lux-danger btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'ban')"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
+                    </div>
+
+                    <div class="mod-history" id="donorModHistory">
+                        <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_chat_monitor_mod_history_empty') %></div>
+                    </div>
+                </div>
+
+                <!-- Family Moderation -->
+                <div class="mod-user-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-weight: 800; color: #1e293b;"><i class="fas fa-house-chimney-user"></i> <%= __('admin_chat_monitor_family_label') %><span id="familyLabel"></span></span>
+                        <div id="familyStatusBadge"></div>
+                    </div>
+
+                    <div style="margin-bottom: 10px; font-size: 0.8rem; color: #64748b;">
+                        <%= __('admin_chat_monitor_warnings_label') %><span id="familyWarningCount" style="font-weight: 800; color: var(--secondary);">0</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn-lux btn-lux-outline btn-sm" style="flex: 1;" onclick="openModDialog('family', 'note')"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
+                        <button class="btn-lux btn-lux-gold btn-sm" style="flex: 1;" onclick="openModDialog('family', 'warning')"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
+                        <button class="btn-lux btn-lux-danger btn-sm" style="flex: 1;" onclick="openModDialog('family', 'ban')"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
+                    </div>
+
+                    <div class="mod-history" id="familyModHistory">
+                        <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_chat_monitor_mod_history_empty') %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Moderation Dialog -->
+<div id="moderationModal" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="luxury-card" style="width: 450px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <h5 class="font-cairo" style="margin-bottom: 15px; font-weight: 800;" id="modTitle"><%= __('admin_chat_monitor_modal_title') %></h5>
+        <div id="userInfoShort" style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 12px; font-size: 0.85rem; font-weight: 700;"></div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;"><%= __('common_details_reason') %></label>
+            <textarea id="modNote" rows="4" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; resize: none;" placeholder="<%= __('admin_chat_monitor_modal_placeholder_note') %>"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-lux btn-lux-outline" onclick="closeModDialog()"><%= __('common_cancel') %></button>
+            <button class="btn-lux btn-lux-primary" id="confirmModBtn" onclick="submitModeration()"><%= __('common_confirm_action') %></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const lang = document.documentElement.lang;
+    let currentDonorId = null;
+    let currentFamilyId = null;
+    let currentActionTarget = null; // 'donor' or 'family'
+    let currentActionType = null;   // 'note', 'warning', 'ban'
+
+    async function loadConversation(requestId) {
+        // Toggle UI
+        document.getElementById('placeholder').style.display = 'none';
+        document.getElementById('chatHeader').style.display = 'flex';
+        document.getElementById('chatMessages').style.display = 'flex';
+        document.getElementById('moderationPanel').style.display = 'flex';
+
+        // Set active item
+        document.querySelectorAll('.monitor-item').forEach(el => el.classList.remove('active'));
+        const activeItem = document.querySelector(`.monitor-item[onclick="loadConversation('${requestId}')"]`);
+        if(activeItem) activeItem.classList.add('active');
+
+        // Fetch data
+        try {
+            const res = await fetch(`/admin/monitor-chats/${requestId}/messages`);
+            const data = await res.json();
+
+            if (data.success) {
+                const { chatRequest, messages } = data;
+                
+                // Update Header
+                document.getElementById('headerCaseTitle').textContent = chatRequest.case.title;
+                document.getElementById('donorNameDisplay').textContent = chatRequest.donor.name;
+                document.getElementById('familyNameDisplay').textContent = chatRequest.family.name;
+                
+                document.getElementById('donorLabel').textContent = chatRequest.donor.name;
+                document.getElementById('familyLabel').textContent = chatRequest.family.name;
+
+                // Update Moderation Stats
+                document.getElementById('donorWarningCount').textContent = chatRequest.donor.warningsCount || 0;
+                document.getElementById('familyWarningCount').textContent = chatRequest.family.warningsCount || 0;
+
+                // Status Badges
+                renderStatusBadge('donor', chatRequest.donor.status);
+                renderStatusBadge('family', chatRequest.family.status);
+
+                // Moderation History
+                renderModHistory('donor', chatRequest.donor.moderationNotes);
+                renderModHistory('family', chatRequest.family.moderationNotes);
+
+                currentDonorId = chatRequest.donor._id;
+                currentFamilyId = chatRequest.family._id;
+
+                // Render Messages
+                const chatArea = document.getElementById('chatMessages');
+                chatArea.innerHTML = '';
+                
+                if (messages.length === 0) {
+                    chatArea.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 20px;"><%= __("admin_chat_monitor_no_messages") %></div>';
+                }
+
+                messages.forEach(msg => {
+                    const isDonor = msg.sender._id === chatRequest.donor._id;
+                    const bubble = document.createElement('div');
+                    bubble.className = `msg-bubble ${isDonor ? 'msg-donor' : 'msg-family'}`;
+                    
+                    let content = '';
+                    if (msg.imageUrl) {
+                        content += `<img src="${msg.imageUrl}" style="width: 100%; border-radius: 10px; margin-bottom: 8px; cursor: pointer;" onclick="window.open(this.src)">`;
+                    }
+                    if (msg.content) {
+                        content += `<div>${msg.content}</div>`;
+                    }
+
+                    const time = new Date(msg.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                    bubble.innerHTML = `
+                        <div style="font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; opacity: 0.8;">${isDonor ? '<%= __("common_donor") %>' : '<%= __("common_family") %>'}</div>
+                        ${content}
+                        <div class="msg-info">${time}</div>
+                    `;
+                    chatArea.appendChild(bubble);
+                });
+
+                // Force scroll after images load or just delay slightly
+                setTimeout(() => {
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                }, 100);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('<%= __("admin_chat_monitor_js_load_error") %>');
+        }
+    }
+
+    function renderStatusBadge(target, status) {
+        const container = document.getElementById(`${target}StatusBadge`);
+        const statusMap = {
+            'active': { text: '<%= __("common_status_active") %>', class: 'badge-teal' },
+            'suspended': { text: '<%= __("common_status_suspended") %>', class: 'badge-danger' },
+            'pending': { text: '<%= __("common_pending_review") %>', class: 'badge-gold' }
+        };
+        const st = statusMap[status] || { text: status, class: 'badge-outline' };
+        container.innerHTML = `<span class="badge ${st.class}" style="font-size: 0.7rem;">${st.text}</span>`;
+    }
+
+    function renderModHistory(target, notes) {
+        const container = document.getElementById(`${target}ModHistory`);
+        if (!notes || notes.length === 0) {
+            container.innerHTML = '<div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;">سجل الإشراف فارغ</div>';
+            return;
+        }
+
+        const typeMap = { 'note': '<%= __("admin_mod_action_note") %>', 'warning': '<%= __("admin_mod_action_warning") %>', 'ban': '<%= __("admin_mod_action_suspend") %>' };
+        const typeClasses = { 'note': 'color: #64748b', 'warning': 'color: var(--secondary)', 'ban': 'color: #ef4444' };
+
+        container.innerHTML = notes.slice(-10).reverse().map(n => `
+            <div class="mod-history-item">
+                <div style="flex: 1;">
+                    <div style="font-weight: 800; ${typeClasses[n.type]}">${typeMap[n.type] || n.type}</div>
+                    <div style="margin-top: 2px;">${n.note}</div>
+                </div>
+                <div style="font-size: 0.65rem; color: #94a3b8; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+                    ${new Date(n.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openModDialog(target, type) {
+        currentActionTarget = target;
+        currentActionType = type;
+        
+        const name = target === 'donor' ? document.getElementById('donorLabel').textContent : document.getElementById('familyLabel').textContent;
+        const typeAr = { 
+            'note': '<%= __("admin_chat_monitor_js_action_note") %>', 
+            'warning': '<%= __("admin_chat_monitor_js_action_warning") %>', 
+            'ban': '<%= __("admin_chat_monitor_js_action_ban") %>' 
+        };
+        
+        document.getElementById('modTitle').textContent = typeAr[type];
+        document.getElementById('userInfoShort').textContent = `<%= __("admin_chat_monitor_js_target_prefix") %>${name}`;
+        
+        if (type === 'ban') {
+            document.getElementById('userInfoShort').innerHTML += ` <span style="color: #ef4444; display: block; margin-top: 5px; font-weight: 800;"><i class="fas fa-exclamation-triangle"></i><%= __("admin_chat_monitor_js_ban_warning") %></span>`;
+        }
+        
+        document.getElementById('moderationModal').style.display = 'flex';
+        
+        const confirmBtn = document.getElementById('confirmModBtn');
+        confirmBtn.className = type === 'ban' ? 'btn-lux btn-lux-danger' : (type === 'warning' ? 'btn-lux btn-lux-gold' : 'btn-lux btn-lux-primary');
+    }
+
+    function closeModDialog() {
+        document.getElementById('moderationModal').style.display = 'none';
+        document.getElementById('modNote').value = '';
+    }
+
+    async function submitModeration() {
+        const userId = currentActionTarget === 'donor' ? currentDonorId : currentFamilyId;
+        const note = document.getElementById('modNote').value;
+        const action = currentActionType;
+
+        if (!note && action !== 'ban') {
+            alert('<%= __("admin_chat_monitor_js_note_required") %>');
+            return;
+        }
+
+        try {
+            const res = await fetch('/admin/moderate-user', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                },
+                body: JSON.stringify({ userId, action, note })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('<%= __("admin_mod_js_success") %>');
+                closeModDialog();
+                // Refresh the view
+                const activeItem = document.querySelector('.monitor-item.active');
+                if (activeItem) {
+                    const requestId = activeItem.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    loadConversation(requestId);
+                }
+            } else {
+                alert(data.error || '<%= __("admin_mod_js_error") %>');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('<%= __("admin_mod_js_conn_error") %>');
+        }
+    }
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

@@ -1,0 +1,327 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="analytics-container" style="padding-bottom: 50px;">
+    <!-- Header with context -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div>
+            <h2 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 900; font-size: 2.2rem;"><%= __('admin_analytics_title') %></h2>
+            <p style="color: #64748b; margin-top: 5px; font-size: 1.1rem;"><%= __('admin_analytics_desc') %></p>
+        </div>
+        <div style="background: white; padding: 12px 25px; border-radius: 15px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;"><%= __('admin_analytics_last_update') %></div>
+            <div style="font-weight: 800; color: var(--primary); font-size: 1.1rem;"><%= new Date().toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+        </div>
+    </div>
+
+    <!-- KPI Ribbon -->
+    <!-- KPI Ribbon -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div class="kpi-card-lux" style="background: linear-gradient(135deg, var(--primary), var(--grad-navy)); color: white;">
+            <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+            <div class="kpi-value">$<%= stats.kpis.total.toLocaleString() %></div>
+            <div class="kpi-label text-align-inherit"><%= __('admin_analytics_total_donations') %></div>
+            <div class="kpi-trend text-align-inherit"><i class="fas fa-arrow-up"></i> <%= stats.kpis.count %> <%= __('admin_analytics_successful_ops') %></div>
+        </div>
+        <div class="kpi-card-lux" style="background: white; border: 1px solid #e2e8f0;">
+            <div class="kpi-icon" style="background: #fff7ed; color: #ea580c;"><i class="fas fa-repeat"></i></div>
+            <div class="kpi-value" style="color: var(--primary);"><%= stats.activeSponsorships %></div>
+            <div class="kpi-label text-align-inherit"><%= __('admin_analytics_active_sponsorships') %></div>
+            <div class="kpi-trend text-align-inherit" style="color: #059669;"><%= __('admin_analytics_sustainable_support') %></div>
+        </div>
+        <div class="kpi-card-lux" style="background: white; border: 1px solid #e2e8f0;">
+            <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;"><i class="fas fa-check-double"></i></div>
+            <div class="kpi-value" style="color: var(--primary);"><%= stats.satisfactionRate %>%</div>
+            <div class="kpi-label text-align-inherit"><%= __('admin_analytics_satisfaction_rate') %></div>
+            <div class="kpi-trend text-align-inherit" style="color: #64748b;"><%= __('admin_analytics_total_published') %></div>
+        </div>
+        <div class="kpi-card-lux" style="background: white; border: 1px solid #e2e8f0;">
+            <div class="kpi-icon" style="background: #fdf2f8; color: #db2777;"><i class="fas fa-bolt"></i></div>
+            <div class="kpi-value" style="color: var(--primary);"><%= stats.activityVol %></div>
+            <div class="kpi-label text-align-inherit"><%= __('admin_analytics_platform_activity_30d') %></div>
+            <div class="kpi-trend text-align-inherit" style="color: #64748b;"><%= __('admin_analytics_admin_interaction') %></div>
+        </div>
+    </div>
+
+    <!-- Main Charts Section -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+        <!-- 1. Revenue Timeline -->
+        <div class="chart-container-lux">
+            <div class="chart-header">
+                <h5 class="font-cairo"><i class="fas fa-chart-line"></i> <%= __('admin_analytics_revenue_timeline') %></h5>
+                <span class="badge badge-soft-primary"><%= __('admin_analytics_last_12m') %></span>
+            </div>
+            <div style="height: 350px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 2. Donation Type Breakdown -->
+        <div class="chart-container-lux">
+            <div class="chart-header">
+                <h5 class="font-cairo"><i class="fas fa-chart-pie"></i> <%= __('admin_analytics_donation_structure') %></h5>
+            </div>
+            <div style="height: 250px; position: relative;">
+                <canvas id="typeChart"></canvas>
+            </div>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 10px;">
+                    <span style="color: #64748b;"><%= __('admin_analytics_fees_collected') %></span>
+                    <strong style="color: var(--secondary);">$<%= stats.kpis.fees.toLocaleString() %></strong>
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8;"><%= __('admin_analytics_fees_note') %></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row: Users & Locations -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div class="chart-container-lux">
+            <div class="chart-header"><h6 class="font-cairo"><%= __('admin_analytics_user_distribution') %></h6></div>
+            <canvas id="userDistChart" height="280"></canvas>
+        </div>
+        <div class="chart-container-lux">
+            <div class="chart-header"><h6 class="font-cairo"><%= __('admin_analytics_case_status') %></h6></div>
+            <canvas id="caseStatusChart" height="280"></canvas>
+        </div>
+        <div class="chart-container-lux">
+            <div class="chart-header"><h6 class="font-cairo"><%= __('admin_analytics_geo_distribution') %></h6></div>
+            <canvas id="locationChart" height="280"></canvas>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Tables & Funnels -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
+        <!-- Top Donors Table -->
+        <div class="chart-container-lux">
+            <div class="chart-header">
+                <h5 class="font-cairo"><i class="fas fa-trophy" style="color: #eab308;"></i> <%= __('admin_analytics_top_donors_title') %></h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" style="margin-top: 10px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <thead style="background: #f8fafc;">
+                        <tr style="font-size: 0.85rem; color: #64748b;">
+                            <th class="border-0 px-3"><%= __('common_donor') %></th>
+                            <th class="border-0"><%= __('common_contributions_count') %></th>
+                            <th class="border-0 text-<%= langDir === 'rtl' ? 'left' : 'right' %> px-3"><%= __('common_total_donations') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% stats.topDonors.forEach(donor => { %>
+                            <tr>
+                                <td class="px-3">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <img src="<%= donor.donorDetails.avatar || '/assets/images/placeholder-avatar.jpg' %>" style="width: 35px; height: 35px; border-radius: 10px; object-fit: cover;">
+                                        <div>
+                                            <div style="font-weight: 800; color: var(--primary); font-size: 0.9rem;"><%= donor.donorDetails.name %></div>
+                                            <div style="font-size: 0.75rem; color: #94a3b8;"><%= donor.donorDetails.email %></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-soft-navy"><%= donor.count %> <%= __('common_donation') %></span></td>
+                                <td class="text-<%= langDir === 'rtl' ? 'left' : 'right' %> px-3"><strong style="color: var(--secondary); font-size: 1.1rem;">$<%= donor.totalDonated.toLocaleString() %></strong></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Communication Efficiency -->
+        <div class="chart-container-lux">
+            <div class="chart-header">
+                <h5 class="font-cairo"><i class="fas fa-comments"></i> <%= __('admin_analytics_comm_efficiency') %></h5>
+            </div>
+            <div style="padding: 10px;">
+                <canvas id="chatChart" height="250"></canvas>
+                <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <% 
+                        const totalReqs = stats.chatReqStats.reduce((a, b) => a + b.count, 0);
+                        const approved = stats.chatReqStats.find(s => s._id === 'approved')?.count || 0;
+                        const approvalRate = totalReqs > 0 ? ((approved / totalReqs) * 100).toFixed(0) : 0;
+                    %>
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 15px; border: 1px solid #dcfce7; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: 900; color: #16a34a;"><%= approvalRate %>%</div>
+                        <div style="font-size: 0.8rem; color: #15803d; font-weight: 700;"><%= __('admin_analytics_approval_rate') %></div>
+                    </div>
+                    <div style="background: #fff7ed; padding: 20px; border-radius: 15px; border: 1px solid #ffedd5; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: 900; color: #ea580c;"><%= totalReqs %></div>
+                        <div style="font-size: 0.8rem; color: #c2410c; font-weight: 700;"><%= __('common_total_requests') %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .kpi-card-lux {
+        padding: 25px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        transition: transform 0.3s ease;
+    }
+    .kpi-card-lux:hover { transform: translateY(-5px); }
+    .kpi-icon {
+        width: 45px; height: 45px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; margin-bottom: 15px;
+        background: rgba(255,255,255,0.15);
+    }
+    .kpi-value { font-size: 2rem; font-weight: 900; margin-bottom: 5px; }
+    .kpi-label { font-size: 0.85rem; opacity: 0.8; font-weight: 700; margin-bottom: 12px; }
+    .kpi-trend { font-size: 0.75rem; font-weight: 800; }
+    .text-align-inherit { text-align: inherit; }
+
+    .chart-container-lux {
+        background: white; border: 1px solid #f1f5f9; border-radius: 25px;
+        padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+    }
+    .chart-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f8fafc;
+    }
+    .chart-header h5, .chart-header h6 { margin: 0; font-weight: 850; color: var(--primary); }
+    
+    .badge-soft-primary { background: #eff6ff; color: #1e40af; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; }
+    .badge-soft-navy { background: #f1f5f9; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #e2e8f0; }
+</style>
+
+<script>
+    const locale = '<%= lang === "ar" ? "ar-EG" : "en-US" %>';
+    const monthFormatter = new Intl.DateTimeFormat(locale, { month: 'long' });
+    const stats = <%- JSON.stringify(stats) %>;
+
+    // 1. Revenue Timeline Chart
+    const revCtx = document.getElementById('revenueChart').getContext('2d');
+    const revGradient = revCtx.createLinearGradient(0, 0, 0, 350);
+    revGradient.addColorStop(0, 'rgba(30, 64, 175, 0.2)');
+    revGradient.addColorStop(1, 'rgba(30, 64, 175, 0)');
+
+    new Chart(revCtx, {
+        type: 'line',
+        data: {
+            labels: stats.financialTrends.map(d => monthFormatter.format(new Date(2000, d._id.month - 1, 1)) + ' ' + d._id.year),
+            datasets: [{
+                label: '<%= __("admin_analytics_js_net_donations") %>',
+                data: stats.financialTrends.map(d => d.total),
+                borderColor: '#1e40af',
+                borderWidth: 4,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#1e40af',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                backgroundColor: revGradient,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { borderDash: [5, 5] }, ticks: { font: { weight: '800' }, callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { font: { weight: '800' } } }
+            }
+        }
+    });
+
+    // 2. Donation Structure (Donut)
+    // We'll fake the split since it's common across our aggregation, but we'll show meaningful comparison
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['<%= __("admin_analytics_js_direct_donations") %>', '<%= __("admin_analytics_active_sponsorships") %>'],
+            datasets: [{
+                data: [stats.kpis.count - stats.activeSponsorships, stats.activeSponsorships],
+                backgroundColor: ['#1e40af', '#eab308'],
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            cutout: '75%',
+            plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', weight: '800' } } } }
+        }
+    });
+
+    // 3. Demographics Charts
+    const statusMap = { 
+        'verified': '<%= __("common_verified") %>', 
+        'pending': '<%= __("common_pending") %>', 
+        'rejected': '<%= __("common_rejected") %>', 
+        'orphan': '<%= __("common_orphans") %>', 
+        'family': '<%= __("common_families") %>' 
+    };
+    const roleMap = { 
+        'donor': '<%= __("common_donor") %>', 
+        'family': '<%= __("common_family") %>', 
+        'admin': '<%= __("common_admin") %>', 
+        'super_admin': '<%= __("common_super_admin") %>' 
+    };
+
+    new Chart(document.getElementById('userDistChart'), {
+        type: 'polarArea',
+        data: {
+            labels: stats.userRoleDistribution.map(r => roleMap[r._id] || r._id),
+            datasets: [{
+                data: stats.userRoleDistribution.map(r => r.count),
+                backgroundColor: ['rgba(30, 64, 175, 0.7)', 'rgba(234, 179, 8, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)']
+            }]
+        },
+        options: { plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('caseStatusChart'), {
+        type: 'bar',
+        data: {
+            labels: stats.casesByStatus.map(s => statusMap[s._id] || s._id),
+            datasets: [{
+                label: '<%= __("common_cases_count") %>',
+                data: stats.casesByStatus.map(s => s.count),
+                backgroundColor: '#10b981',
+                borderRadius: 8
+            }]
+        },
+        options: { plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('locationChart'), {
+        type: 'bar',
+        data: {
+            labels: stats.casesByLocation.map(l => l._id),
+            datasets: [{
+                data: stats.casesByLocation.map(l => l.count),
+                backgroundColor: '#cbd5e1',
+                borderRadius: 8
+            }]
+        },
+        options: { 
+            indexAxis: 'y',
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // 4. Communication Chart
+    const chatMap = { 
+        'approved': '<%= __("common_approved") %>', 
+        'pending': '<%= __("common_pending") %>', 
+        'rejected': '<%= __("common_rejected") %>' 
+    };
+    new Chart(document.getElementById('chatChart'), {
+        type: 'pie',
+        data: {
+            labels: stats.chatReqStats.map(s => chatMap[s._id] || s._id),
+            datasets: [{
+                data: stats.chatReqStats.map(s => s.count),
+                backgroundColor: ['#10b981', '#eab308', '#ef4444']
+            }]
+        },
+        options: { plugins: { legend: { position: 'right' } } }
+    });
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

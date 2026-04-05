@@ -1,0 +1,277 @@
+<%- include('../../partials/header-top') %>
+
+<main style="min-height: 100vh; background: #fafaf9; padding-top: 100px;">
+    <div class="container" style="max-width: 1000px;">
+        
+        <div class="section-header-luxury" style="margin-bottom: 40px; text-align: right;">
+            <h2 class="font-cairo section-title-luxury">الدعم الفني المباشر</h2>
+            <p class="section-subtitle-luxury" style="margin: 0;">نحن هنا لمساعدتكم في أي وقت. محادثتكم تصل لجميع فريق الإدارة لضمان سرعة الرد.</p>
+        </div>
+
+        <% if (!ticket) { %>
+            <!-- No Active Ticket: Show Open Ticket UI -->
+            <div class="luxury-card" style="text-align: center; padding: 60px 40px;">
+                <div style="font-size: 4rem; color: var(--secondary); margin-bottom: 30px; opacity: 0.8;">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3 class="font-cairo" style="font-size: 1.8rem; margin-bottom: 20px;">كيف يمكننا مساعدتكم اليوم؟</h3>
+                <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 1.1rem;">اضغط على الزر أدناه لبدء محادثة جديدة مع فريق الدعم الفني.</p>
+                
+                <button onclick="openNewTicket()" class="btn-lux btn-lux-primary btn-lg">
+                    فتح تذكرة دعم جديدة <i class="fas fa-plus-circle" style="margin-right: 12px;"></i>
+                </button>
+            </div>
+        <% } else { %>
+            <!-- Active Ticket: Show Chat Interface -->
+            <div class="luxury-card" style="padding: 0; display: flex; flex-direction: column; height: 650px; border-radius: 30px; overflow: hidden;">
+                <!-- Chat Header -->
+                <div style="background: <%= isAdmin ? 'var(--grad-navy)' : 'var(--grad-teal)' %>; color: white; padding: 20px 30px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <% if (isAdmin) { %>
+                            <img src="<%= ticket.user.avatar %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);">
+                            <div>
+                                <h4 class="font-cairo" style="margin: 0; font-size: 1.2rem;"><%= ticket.user.name %></h4>
+                                <span style="font-size: 0.85rem; opacity: 0.8;"><%= ticket.user.role === 'donor' ? 'متبرع' : 'مستفيد' %></span>
+                            </div>
+                        <% } else { %>
+                            <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981;"></div>
+                            <div>
+                                <h4 class="font-cairo" style="margin: 0; font-size: 1.2rem;">محادثة دعم نشطة</h4>
+                                <span style="font-size: 0.85rem; opacity: 0.8;">رقم التذكرة: <%= ticket._id.toString().slice(-6).toUpperCase() %></span>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="badge <%= ticket.status === 'resolved' ? 'badge-success' : 'badge-gold' %>">
+                            <%= ticket.status === 'resolved' ? 'تم الحل' : (ticket.status === 'open' ? 'تذكرة جديدة' : 'قيد المتابعة') %>
+                        </div>
+                        <% if (isAdmin && ticket.status !== 'resolved') { %>
+                            <button onclick="resolveTicket()" class="btn-lux btn-lux-outline-white" style="padding: 6px 15px; font-size: 0.8rem; border-color: rgba(255,255,255,0.3); border-radius: 10px;">
+                                <i class="fas fa-check-circle"></i> تحديد كمحلولة
+                            </button>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-messages" style="flex: 1; padding: 30px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 20px;">
+                    <% if (messages.length === 0) { %>
+                        <div style="text-align: center; margin-top: 50px; opacity: 0.5;">
+                            <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                            <p>لا توجد رسائل بعد. ابدأ المحادثة الآن.</p>
+                        </div>
+                    <% } %>
+                    
+                    <% messages.forEach(msg => { %>
+                        <div style="display: flex; flex-direction: column; align-items: <%= msg.sender._id.toString() === user._id.toString() ? 'flex-end' : 'flex-start' %>;">
+                            <div style="
+                                max-width: 80%;
+                                padding: 15px 20px;
+                                border-radius: 20px;
+                                background: <%= msg.sender._id.toString() === user._id.toString() ? 'var(--grad-gold)' : '#ffffff' %>;
+                                color: <%= msg.sender._id.toString() === user._id.toString() ? 'var(--primary)' : 'var(--text-main)' %>;
+                                box-shadow: var(--shadow-sm);
+                                border-bottom-<%= msg.sender._id.toString() === user._id.toString() ? 'right' : 'left' %>-radius: 4px;
+                            ">
+                                <% if (msg.sender.role === 'admin' || msg.sender.role === 'super_admin') { %>
+                                    <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; opacity: 0.7;">
+                                        فريق الدعم (<%= msg.sender.name %>)
+                                    </div>
+                                <% } %>
+                                <p style="margin: 0; line-height: 1.6;"><%= msg.content %></p>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-light); margin-top: 5px;">
+                                <%= new Date(msg.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) %>
+                            </span>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <!-- Chat Input -->
+                <div style="padding: 25px; background: white; border-top: 1px solid #e2e8f0;">
+                    <div style="position: relative; display: flex; gap: 15px;">
+                        <input type="text" id="chat-input" 
+                            placeholder="<%= ticket.status === 'resolved' ? 'هذه التذكرة مغلقة (تم الحل)' : 'اكتب استفسارك هنا...' %>" 
+                            <%= ticket.status === 'resolved' ? 'disabled' : '' %>
+                            style="flex: 1; padding: 18px 25px; border-radius: 15px; border: 2px solid #f1f5f9; outline: none; transition: var(--transition-fast); <%= ticket.status === 'resolved' ? 'background: #f8fafc; cursor: not-allowed;' : '' %>">
+                        
+                        <button onclick="sendMessage()" class="btn-lux btn-lux-navy" 
+                            <%= ticket.status === 'resolved' ? 'disabled' : '' %>
+                            style="padding: 0 30px; border-radius: 15px; <%= ticket.status === 'resolved' ? 'opacity: 0.5; cursor: not-allowed;' : '' %>">
+                            إرسال <i class="fas fa-paper-plane" style="margin-right: 10px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+    </div>
+</main>
+
+<!-- Socket.io for Real-time Chat -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    // Global Constants
+    const socket = io();
+    const currentUserId = '<%= user._id %>';
+    const currentTicketId = '<%= ticket ? ticket._id : "" %>';
+    const socketIsAdmin = <%= isAdmin %>;
+
+    // Join room on connection
+    socket.emit('join', { userId: currentUserId, role: socketIsAdmin ? 'admin' : 'donor' });
+
+    // Scroll to bottom helper
+    function scrollToBottom() {
+        const chatBox = document.getElementById('chat-messages');
+        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    
+    // Initial scroll
+    scrollToBottom();
+
+    // UI: Listen for new messages
+    socket.on('newSupportMessage', (data) => {
+        // Ensure message belongs to this ticket
+        if (data.ticketId !== currentTicketId) return;
+
+        const isMe = data.senderId === currentUserId;
+        const messagesContainer = document.getElementById('chat-messages');
+        
+        // Remove empty placeholder
+        const placeholder = messagesContainer.querySelector('div[style*="opacity: 0.5"]');
+        if (placeholder) placeholder.remove();
+
+        // Check if message already rendered (prevent duplicates from local emit)
+        // Actually we don't need a formal check if we only emit to others, 
+        // but here we emit back to sender in server.js. Let's handle it by tracking rendered IDs or just relying on socket.
+        
+        const msgHtml = `
+            <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
+                <div style="
+                    max-width: 80%;
+                    padding: 15px 20px;
+                    border-radius: 20px;
+                    background: ${isMe ? 'var(--grad-gold)' : '#ffffff'};
+                    color: ${isMe ? 'var(--primary)' : 'var(--text-main)'};
+                    box-shadow: var(--shadow-sm);
+                    border-bottom-${isMe ? 'right' : 'left'}-radius: 4px;
+                ">
+                    ${data.isAdminTeam ? `
+                        <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; opacity: 0.7;">
+                            فريق الدعم (${data.senderName})
+                        </div>
+                    ` : ''}
+                    <p style="margin: 0; line-height: 1.6;">${data.content}</p>
+                </div>
+                <span style="font-size: 0.7rem; color: var(--text-light); margin-top: 5px;">
+                    ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+            </div>
+        `;
+        
+        messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
+        scrollToBottom();
+    });
+
+    async function openNewTicket() {
+        try {
+            const response = await fetch('/support/ticket/open', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                }
+            });
+            if (response.ok) {
+                location.reload(); // Reload is required here to switch from "No Ticket" to "Chat" view
+            } else {
+                alert('فشل في فتح تذكرة جديدة');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const content = input.value.trim();
+        if (!content || !currentTicketId) return;
+
+        try {
+            // 1. Save to DB via API
+            const response = await fetch('/support/message/send', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                },
+                body: JSON.stringify({
+                    ticketId: currentTicketId,
+                    content: content
+                })
+            });
+
+            if (response.ok) {
+                // 2. Emit via Socket (Server will broadcast to others AND sender)
+                socket.emit('sendSupportMessage', {
+                    senderId: currentUserId,
+                    receiverId: socketIsAdmin ? '<%= ticket ? (ticket.user._id || ticket.user) : "" %>' : null,
+                    ticketId: currentTicketId,
+                    content: content,
+                    isAdmin: socketIsAdmin,
+                    isAdminTeam: socketIsAdmin,
+                    senderName: '<%= user.name %>'
+                });
+                
+                input.value = '';
+                // No location.reload() here!
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Input handlers
+    document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Resolution Logic
+    async function resolveTicket() {
+        if (!confirm('هل أنت متأكد من أن المشكلة تم حلها؟ سيتم إغلاق المحادثة.')) return;
+        
+        try {
+            const response = await fetch(`/support/admin/ticket/${currentTicketId}/resolve`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                }
+            });
+            
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('فشل في إغلاق التذكرة');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Listen for resolution 
+    socket.on('ticketResolved', (data) => {
+        if (data.ticketId === currentTicketId) {
+            location.reload();
+        }
+    });
+</script>
+
+<style>
+    #chat-input:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(226, 176, 100, 0.1);
+    }
+</style>
+
+<%- include('../../partials/footer-bottom') %>

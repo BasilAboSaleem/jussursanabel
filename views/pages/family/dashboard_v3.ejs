@@ -1,0 +1,135 @@
+<%- include('../../partials/family-layout-top') %>
+
+<div style="max-width: 1200px; margin: 0 auto;">
+    <!-- Family Header Info -->
+    <div style="margin-bottom: 30px; background: white; padding: 25px; border-radius: var(--radius-md); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <span class="section-badge" style="margin: 0 0 10px 0;"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين</span>
+            <h2 class="font-cairo" style="margin: 0; font-weight: 800;">أهلاً بك، <%= user ? user.name : 'ضيفنا العزيز' %></h2>
+            <p style="color: var(--text-muted); margin-top: 5px; font-size: 0.95rem;">نحن هنا لخدمتكم وتقديم الدعم اللازم بكل احترافية وخصوصية.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="/cases/register" class="btn-lux btn-lux-primary btn-sm"><i class="fas fa-plus"></i> تقديم طلب جديد</a>
+            <a href="/messages" class="btn-lux btn-lux-navy btn-sm"><i class="fas fa-comments"></i> مركز التواصل</a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid-3" style="gap: 20px; margin-bottom: 40px;">
+        <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid var(--secondary);">
+            <div style="font-size: 2.22rem; color: var(--secondary); margin-bottom: 12px;"><i class="fas fa-file-invoice"></i></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">الحالات النشطة (الموثقة)</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= myCases.filter(c => c.status === 'approved').length %></div>
+        </div>
+        <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid var(--accent);">
+            <div style="font-size: 2.2rem; color: var(--accent); margin-bottom: 12px;"><i class="fas fa-clock"></i></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">قيد المراجعة / التحقق</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= myCases.filter(c => ['pending', 'field_verification'].includes(c.status)).length %></div>
+        </div>
+        <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid #10b981;">
+            <div style="font-size: 2.2rem; color: #10b981; margin-bottom: 12px;"><i class="fas fa-grin-hearts"></i></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">إجمالي المساعدات المحصلة</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">$<%= myCases.reduce((acc, c) => acc + c.raisedAmount, 0) %></div>
+        </div>
+    </div>
+
+    <div class="grid-2" style="gap: 30px; grid-template-columns: 1.8fr 1.2fr;" id="cases">
+        <!-- Cases Management -->
+        <div>
+            <div class="section-header-luxury" style="margin-bottom: 20px; text-align: right;">
+                <h3 class="font-cairo" style="font-size: 1.35rem; margin: 0;"><i class="fas fa-folder-open"></i> قائمة طلباتك الإنسانية</h3>
+            </div>
+            <% if (myCases.length > 0) { %>
+                <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                            <thead style="background: rgba(0,0,0,0.015); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <tr>
+                                    <th style="padding: 15px 20px;">اسم الحالة</th>
+                                    <th style="padding: 15px 20px;">المبلغ المحصل</th>
+                                    <th style="padding: 15px 20px;">حالة التوثيق</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% myCases.forEach(c => { %>
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                        <td style="padding: 15px 20px;">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <img src="<%= c.image || '/assets/images/default-case.jpg' %>" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover; border: 2px solid white; box-shadow: var(--shadow-sm);">
+                                                <div>
+                                                    <span style="font-weight: 700; display: block; color: var(--primary);"><%= c.title %></span>
+                                                    <span style="font-size: 0.72rem; color: var(--text-muted);"><%= c.type === 'orphan' ? 'كفالة يتيم' : 'أسرة متعففة' %></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <div style="font-size: 0.9rem; font-weight: 800; color: var(--secondary);">$<%= c.raisedAmount %></div>
+                                            <div class="progress-track" style="height: 6px; margin-top: 5px; width: 100px;">
+                                                <div class="progress-fill" style="width: <%= Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) %>%"></div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <span class="badge <%= 
+                                                c.status === 'approved' ? 'badge-teal' : 
+                                                c.status === 'field_verification' ? 'badge-gold' : 
+                                                c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
+                                            %>" style="font-size: 0.7rem;">
+                                                <i class="fas <%= 
+                                                    c.status === 'approved' ? 'fa-check-circle' : 
+                                                    c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
+                                                    c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
+                                                %>"></i>
+                                                <%= 
+                                                    c.status === 'approved' ? 'موثقة ونشطة' : 
+                                                    c.status === 'field_verification' ? 'مسح ميداني حالياً' : 
+                                                    c.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة' 
+                                                %>
+                                            </span>
+                                            <% if (c.status === 'rejected' && c.rejectionReason) { %>
+                                                <div style="font-size: 0.72rem; color: var(--danger); margin-top: 5px; max-width: 150px; line-height: 1.4;">
+                                                    <strong>السبب:</strong> <%= c.rejectionReason %>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="luxury-card glass-panel" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-clipboard-list" style="font-size: 3.5rem; opacity: 0.2; margin-bottom: 20px;"></i>
+                    <p style="font-size: 1.1rem;">لم تقم بتسجيل أي حالة بعد.</p>
+                    <a href="/cases/register" class="btn-lux btn-lux-primary" style="margin-top: 20px; justify-content: center;">تقديم طلب جديد الآن</a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Help Center -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="section-header-luxury" style="margin-bottom: 0px; text-align: right;">
+                <h3 class="font-cairo" style="font-size: 1.35rem; margin: 0;"><i class="fas fa-circle-question"></i> مركز المساعدة</h3>
+            </div>
+            <div class="luxury-card glass-panel" style="padding: 25px;">
+                <div style="padding: 18px; background: rgba(20, 184, 166, 0.04); border-radius: 15px; border-right: 4px solid var(--accent); margin-bottom: 20px;">
+                    <h5 style="color: var(--accent); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-clipboard-check"></i> فهم مراحل الطلب</h5>
+                    <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">بعد التقديم، يمر الطلب بمراجعة إدارية ثم مسح ميداني للتوثيق من صحة البيانات لضمان كفالة سريعة.</p>
+                </div>
+                <div style="padding: 18px; background: rgba(217, 119, 6, 0.04); border-radius: 15px; border-right: 4px solid var(--secondary); margin-bottom: 20px;">
+                    <h5 style="color: var(--secondary); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-message"></i> التواصل مع الكفلاء</h5>
+                    <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">نظام الرسائل يتيح لكم شكر الكفلاء والتواصل معهم بخصوص احتياجات الحالة الموثقة.</p>
+                </div>
+                
+                <div style="background: var(--grad-navy); padding: 25px; border-radius: 20px; color: white; text-align: center;">
+                    <i class="fas fa-headset" style="font-size: 2.5rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <h5 style="margin-bottom: 10px;">هل واجهتك مشكلة؟</h5>
+                    <p style="font-size: 0.82rem; margin-bottom: 20px; opacity: 0.8;">فريقنا التقني متاح على مدار الساعة لمساعدتكم في حل أي صعوبات تقنية.</p>
+                    <a href="/contact" class="btn-lux btn-lux-primary btn-sm" style="width: 100%; justify-content: center; box-shadow: none;">تحدث مع الدعم</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/family-layout-bottom') %>

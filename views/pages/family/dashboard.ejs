@@ -1,0 +1,860 @@
+<%- include('../../partials/family-layout-top') %>
+
+<!-- Main Responsive Container -->
+<div class="dashboard-container-lux">
+    <!-- Family Header Info -->
+    <div class="luxury-card glass-panel dashboard-header-card" style="border-radius: 20px; overflow: hidden; position: relative;">
+        <!-- Background Accent -->
+        <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: var(--grad-gold);"></div>
+        
+        <div class="header-info-group">
+            <span class="section-badge" style="background: rgba(212, 175, 55, 0.1); color: var(--secondary);"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين الرقمية</span>
+            <h2 class="font-cairo" style="margin-top: 10px;">أهلاً بك، <%= user ? user.name : 'ضيفنا العزيز' %></h2>
+            <p class="text-muted" style="margin: 0;">نحن هنا لخدمتكم وتقديم الدعم اللازم بكل احترافية وخصوصية.</p>
+        </div>
+        
+        <!-- Premium Communication Countdown (New) -->
+        <div class="comm-countdown-card-lux" id="commCountdown">
+            <div class="countdown-label-lux"><i class="fa-solid fa-comments"></i> نافذة التواصل القادمة</div>
+            <div class="countdown-timer-lux font-cairo" id="countdownDisplay">-- : -- : --</div>
+            <div class="countdown-sub-lux">يوم التواصل: <%= chatDay === 'Monday' ? 'الإثنين' : (chatDay === 'Friday' ? 'الجمعة' : chatDay) %></div>
+        </div>
+
+        <div class="header-actions-group">
+            <% const hasActiveCase = myCases.some(c => !c.isSatisfied && ['pending', 'field_verification', 'approved'].includes(c.status)); %>
+            <% if (!hasActiveCase) { %>
+                <a href="/cases/register" class="btn-lux btn-lux-primary btn-sm"><i class="fas fa-plus"></i> تقديم طلب جديد</a>
+            <% } else { %>
+                <button class="btn-lux btn-lux-primary btn-sm" style="opacity: 0.6; cursor: not-allowed;" title="لديك حالة معتمدة أو قيد المعالجة، لا يمكنك تقديم طلب جديد حتى يتم إنجازها."><i class="fas fa-lock"></i> تقديم طلب جديد</button>
+            <% } %>
+            <a href="/messages" class="btn-lux btn-lux-navy btn-sm"><i class="fas fa-messages"></i> مركز المراسلات</a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid-lux">
+        <div class="luxury-card glass-panel stat-card-lux secondary-active">
+            <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+            <div class="stat-label">الحالات النشطة (الموثقة)</div>
+            <div class="stat-value"><%= myCases.filter(c => c.status === 'approved').length %></div>
+        </div>
+        <div class="luxury-card glass-panel stat-card-lux accent-active">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-label">قيد المراجعة / التحقق</div>
+            <div class="stat-value"><%= myCases.filter(c => ['pending', 'field_verification'].includes(c.status)).length %></div>
+        </div>
+        <div class="luxury-card glass-panel stat-card-lux success-active">
+            <div class="stat-icon"><i class="fas fa-grin-hearts"></i></div>
+            <div class="stat-label">إجمالي المساعدات المحصلة</div>
+            <div class="stat-value">$<%= myCases.reduce((acc, c) => acc + c.raisedAmount, 0) %></div>
+        </div>
+    </div>
+
+    <div class="content-grid-lux" id="cases">
+        <!-- Cases Management -->
+        <div class="main-content-column">
+            <div class="section-header-compact">
+                <h3 class="font-cairo"><i class="fas fa-folder-open"></i> قائمة طلباتك الإنسانية</h3>
+            </div>
+            <% if (myCases.length > 0) { %>
+                <div class="luxury-card glass-panel table-card-lux">
+                    <div class="table-responsive">
+                        <table class="premium-table-lux">
+                            <thead>
+                                <tr>
+                                    <th>اسم الحالة</th>
+                                    <th>المبلغ المحصل</th>
+                                    <th>حالة التوثيق</th>
+                                    <th style="width: 180px;">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% myCases.forEach(c => { %>
+                                    <tr class="<%= c.isSatisfied ? 'row-satisfied' : '' %>">
+                                        <td>
+                                            <div class="case-info-cell">
+                                                <img src="<%= c.image || '/assets/images/default-case.jpg' %>" class="case-thumb-lux">
+                                                <div>
+                                                    <span class="case-title-lux">
+                                                        <%= c.title %>
+                                                        <% if (c.isSatisfied) { %>
+                                                            <span class="satisfied-label-mini">مكتفي <i class="fas fa-check-double"></i></span>
+                                                        <% } %>
+                                                    </span>
+                                                    <span class="case-type-lux"><%= c.type === 'orphan' ? 'كفالة يتيم' : 'أسرة متعففة' %></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="amount-cell">
+                                                <span class="amount-text">$<%= c.raisedAmount %></span>
+                                                <div class="progress-track-lux">
+                                                    <div class="progress-fill-lux" style="width: <%= Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) %>%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="status-cell">
+                                                <span class="badge <%= 
+                                                    c.status === 'approved' ? 'badge-teal' : 
+                                                    c.status === 'field_verification' ? 'badge-gold' : 
+                                                    c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
+                                                %>">
+                                                    <i class="fas <%= 
+                                                        c.status === 'approved' ? 'fa-check-circle' : 
+                                                        c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
+                                                        c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
+                                                    %>"></i>
+                                                    <%= 
+                                                        c.status === 'approved' ? 'موثقة' : 
+                                                        c.status === 'field_verification' ? 'مسح ميداني' : 
+                                                        c.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة' 
+                                                    %>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-start;">
+                                                <a href="/cases/<%= c._id %>" class="btn-action-lux" title="عرض التفاصيل"><i class="fas fa-eye"></i></a>
+                                                <button onclick="viewDonations('<%= c._id %>', '<%= c.title %>')" class="btn-action-lux success" title="سجل التبرعات"><i class="fas fa-receipt"></i></button>
+                                                <button onclick="openUploadProofModal('<%= c._id %>', '<%= c.title %>')" class="btn-action-lux navy" title="رفع إثبات أثر"><i class="fas fa-upload"></i></button>
+                                                
+                                                <form action="/dashboard/case/<%= c._id %>/toggle-satisfaction" method="POST" style="margin: 0;">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <button type="submit" class="btn-action-lux <%= c.isSatisfied ? 'active' : 'warning' %>" title="<%= c.isSatisfied ? 'إعادة التفعيل واستقبال الدعم' : 'إعلان الاكتفاء من التبرعات' %>">
+                                                        <i class="fas <%= c.isSatisfied ? 'fa-heart-circle-check' : 'fa-hand-holding-heart' %>"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="luxury-card glass-panel empty-state-lux">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>لم تقم بتسجيل أي حالة بعد.</p>
+                    <a href="/cases/register" class="btn-lux btn-lux-primary">تقديم طلب جديد الآن</a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Activity Feed Column -->
+        <div class="side-content-column">
+            <div class="section-header-compact">
+                <h3 class="font-cairo"><i class="fas fa-bolt"></i> آخر المستجدات</h3>
+            </div>
+            
+            <div class="luxury-card glass-panel" style="padding: 20px;">
+                <% if ((recentDonations && recentDonations.length > 0) || (recentChats && recentChats.length > 0)) { %>
+                    <div class="activity-timeline-lux">
+                        <!-- New Donations -->
+                        <% recentDonations.forEach(don => { %>
+                            <div class="activity-item-lux">
+                                <div class="act-icon donation"><i class="fa-solid fa-heart"></i></div>
+                                <div class="act-body">
+                                    <div class="act-title">تبرع جديد للحالة: <strong><%= don.case.title %></strong></div>
+                                    <div class="act-meta">بقيمة $<%= don.amount %> من <%= don.donor ? don.donor.name : 'فاعل خير' %></div>
+                                    <div class="act-time"><%= new Date(don.createdAt).toLocaleDateString('ar-EG') %></div>
+                                </div>
+                            </div>
+                        <% }) %>
+                        
+                        <!-- New Approved Chats -->
+                        <% recentChats.forEach(chat => { %>
+                            <div class="activity-item-lux">
+                                <div class="act-icon message"><i class="fa-solid fa-comments"></i></div>
+                                <div class="act-body">
+                                    <div class="act-title">طلب تواصل معتمد</div>
+                                    <div class="act-meta">المتبرع <strong><%= chat.donor.name %></strong> يود التواصل بخصوص <%= chat.case.title %></div>
+                                    <a href="/messages/<%= chat.donor._id %>" class="btn-sm-text">ابدأ المحادثة <i class="fa-solid fa-arrow-left"></i></a>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div style="text-align: center; padding: 30px; color: #94a3b8;">
+                        <i class="fa-solid fa-hourglass-start" style="font-size: 2rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                        <p style="font-size: 0.85rem;">لا توجد نشاطات حديثة حالياً. تابع لوحتك باستمرار.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <div class="section-header-compact" style="margin-top: 40px;">
+                <h3 class="font-cairo"><i class="fas fa-circle-question"></i> مركز المساعدة والتعليم</h3>
+            </div>
+            <div class="luxury-card glass-panel help-card-lux">
+                <div class="help-item teal-border">
+                    <h5><i class="fas fa-clipboard-check"></i> شفافية البيانات</h5>
+                    <p>تأكد من إرفاق فواتير أو صور تثبت استلام واستخدام المساعدات لضمان ثقة الكفلاء واستمرارية العطاء.</p>
+                </div>
+                
+                <div class="support-CTA-lux">
+                    <i class="fas fa-headset"></i>
+                    <h5>هل تحتاج مساعدة تقنية؟</h5>
+                    <p>فريق الدعم الفني متواجد لمساعدتكم في حال واجهتم أي صعوبة في تشغيل النظام.</p>
+                    <a href="/contact" class="btn-lux btn-lux-primary btn-sm" style="width: 100%;">تواصل معنا</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Impact Proofs History (New Section) -->
+    <div class="section-header-compact" style="margin-top: 50px; border-right: 4px solid #8b5cf6; padding-right: 15px; margin-bottom: 20px;">
+        <h3 class="font-cairo" style="color: #8b5cf6; margin: 0; font-size: 1.3rem;"><i class="fas fa-file-shield"></i> سجل إثباتات الأثر المرفوعة</h3>
+    </div>
+    
+    <div class="luxury-card glass-panel table-card-lux" style="margin-bottom: 40px;">
+        <% if (myUpdates && myUpdates.length > 0) { %>
+            <div class="table-responsive">
+                <table class="premium-table-lux">
+                    <thead>
+                        <tr>
+                            <th>تفاصيل الإثبات</th>
+                            <th>الحالة المرتبطة</th>
+                            <th>تاريخ الرفع</th>
+                            <th>حالة الإثبات</th>
+                            <th>ملاحظات الإدارة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% myUpdates.forEach(update => { %>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--primary);"><%= update.title %></div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);"><%= update.images ? update.images.length : 0 %> مرفقات</div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; font-weight: 600;"><%= update.case ? update.case.title : '---' %></span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: var(--text-muted);"><%= new Date(update.createdAt).toLocaleDateString('ar-EG') %></span>
+                                </td>
+                                <td>
+                                    <% if (update.status === 'approved') { %>
+                                        <span class="badge badge-teal"><i class="fas fa-check-circle"></i> مقبول وموثق</span>
+                                    <% } else if (update.status === 'rejected') { %>
+                                        <span class="badge badge-danger"><i class="fas fa-times-circle"></i> مرفوض</span>
+                                    <% } else { %>
+                                        <span class="badge badge-gold"><i class="fas fa-clock"></i> قيد المراجعة</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if (update.status === 'rejected' && update.rejectionReason) { %>
+                                        <span class="rejection-reason-text" style="display: block; max-width: 250px;"><%= update.rejectionReason %></span>
+                                    <% } else if (update.status === 'approved') { %>
+                                        <span style="font-size: 0.75rem; color: #10b981;">نُشر في الخط الزمني العام <i class="fas fa-eye"></i></span>
+                                    <% } else { %>
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);">بانتظار رد الإدارة</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state-lux" style="padding: 40px;">
+                <i class="fas fa-file-invoice" style="font-size: 3rem; opacity: 0.15; margin-bottom: 15px;"></i>
+                <p>لم تقم برفع أي إثبات أثر حتى الآن.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+    /* Family Dashboard Specific Styles */
+    .dashboard-container-lux {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-bottom: 40px;
+    }
+
+    .dashboard-header-card {
+        padding: 30px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 25px;
+        background: white !important;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .header-info-group h2 {
+        margin: 8px 0;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .header-actions-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* Stats Grid */
+    .stats-grid-lux {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card-lux {
+        padding: 30px;
+        text-align: center;
+        transition: transform 0.3s;
+    }
+
+    .stat-card-lux:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 2.4rem;
+        margin-bottom: 15px;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .secondary-active { border-bottom: 4px solid var(--secondary); }
+    .secondary-active .stat-icon { color: var(--secondary); }
+    
+    .accent-active { border-bottom: 4px solid var(--accent); }
+    .accent-active .stat-icon { color: var(--accent); }
+    
+    .success-active { border-bottom: 4px solid #10b981; }
+    .success-active .stat-icon { color: #10b981; }
+
+    /* Communication Countdown (Premium Add-on) */
+    .comm-countdown-card-lux {
+        background: var(--grad-navy);
+        padding: 15px 25px;
+        border-radius: 18px;
+        text-align: center;
+        min-width: 250px;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+    }
+    .countdown-label-lux { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    .countdown-timer-lux { font-size: 1.6rem; font-weight: 900; color: #fbbf24; line-height: 1; }
+    .countdown-sub-lux { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
+
+    /* Activity Timeline (Premium Add-on) */
+    .activity-timeline-lux { display: flex; flex-direction: column; gap: 20px; }
+    .activity-item-lux { display: flex; gap: 15px; position: relative; padding-bottom: 5px; }
+    .activity-item-lux:not(:last-child)::after {
+        content: ''; position: absolute; top: 30px; right: 15px; width: 1px; height: calc(100% - 10px); background: #e2e8f0;
+    }
+    .act-icon {
+        width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; z-index: 1;
+    }
+    .act-icon.donation { background: #fee2e2; color: #ef4444; }
+    .act-icon.message { background: #e0f2fe; color: #0ea5e9; }
+    
+    .btn-action-lux.navy { background: #e0f2fe; color: #0ea5e9; }
+    .btn-action-lux.navy:hover { background: #0ea5e9; color: white; }
+    .act-body { flex: 1; }
+    .act-title { font-size: 0.85rem; color: var(--primary); font-weight: 600; line-height: 1.4; }
+    .act-meta { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .act-time { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; }
+    .btn-sm-text { font-size: 0.75rem; color: var(--secondary); font-weight: 700; text-decoration: none; display: inline-block; margin-top: 5px; }
+    .btn-sm-text:hover { color: var(--primary); }
+
+    /* Content Grid */
+    .content-grid-lux {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    .section-header-compact {
+        margin-bottom: 20px;
+        border-right: 4px solid var(--secondary);
+        padding-right: 15px;
+    }
+
+    .section-header-compact h3 {
+        font-size: 1.3rem;
+        margin: 0;
+        color: var(--primary);
+    }
+
+    /* Table Styles */
+    .table-card-lux {
+        padding: 0 !important;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .premium-table-lux {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .premium-table-lux th {
+        background: #f8fafc;
+        padding: 18px 25px;
+        font-weight: 700;
+        color: var(--text-muted);
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .premium-table-lux td {
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .case-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .case-thumb-lux {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: var(--shadow-sm);
+        border: 2px solid white;
+    }
+
+    .case-title-lux {
+        font-weight: 700;
+        display: block;
+        color: var(--primary);
+    }
+
+    .case-type-lux {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .amount-text {
+        font-weight: 800;
+        color: var(--secondary);
+        font-size: 1rem;
+    }
+
+    .progress-track-lux {
+        height: 6px;
+        background: #f1f5f9;
+        border-radius: 10px;
+        margin-top: 8px;
+        width: 100%;
+        max-width: 150px;
+        overflow: hidden;
+    }
+
+    .progress-fill-lux {
+        height: 100%;
+        background: var(--grad-gold);
+        border-radius: 10px;
+    }
+
+    .status-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .rejection-reason-text {
+        font-size: 0.75rem;
+        color: var(--danger);
+        max-width: 180px;
+        line-height: 1.4;
+    }
+
+    /* Action Buttons */
+    .btn-action-lux {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: var(--primary);
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .btn-action-lux:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+    .btn-action-lux.success:hover { background: #10b981; }
+    .btn-action-lux.warning:hover { background: var(--secondary); }
+    .btn-action-lux.active { background: var(--secondary); color: white; }
+
+    /* Refined Case Actions */
+    .case-actions-refined {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .btn-satisfaction-lux {
+        width: 100%;
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-satisfaction-lux.needs-support {
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--secondary);
+        border: 2px solid rgba(212, 175, 55, 0.2);
+    }
+    .btn-satisfaction-lux.needs-support:hover {
+        background: var(--secondary);
+        color: white;
+    }
+    .btn-satisfaction-lux.satisfied {
+        background: #10b981;
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    .btn-satisfaction-lux.satisfied:hover {
+        background: #059669;
+        transform: scale(1.02);
+    }
+
+    .btn-refined-sm {
+        padding: 8px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: var(--primary);
+        border: none;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    .btn-refined-sm:hover {
+        background: var(--primary);
+        color: white;
+    }
+    .btn-refined-sm.success:hover { background: #10b981; }
+    .btn-refined-sm.navy { background: #e0f2fe; color: #0ea5e9; }
+    .btn-refined-sm.navy:hover { background: #0ea5e9; color: white; }
+
+    .satisfied-label-mini {
+        font-size: 0.65rem;
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--secondary);
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 800;
+        margin-right: 5px;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .row-satisfied { background: rgba(212, 175, 55, 0.02); }
+    .row-satisfied .case-title-lux { opacity: 0.8; }
+
+    /* Modal Styles */
+    .modal-lux {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .modal-content-lux {
+        background: white;
+        width: 100%;
+        max-width: 700px;
+        border-radius: 25px;
+        overflow: hidden;
+        animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: var(--shadow-premium);
+    }
+    @keyframes modalSlide {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header-lux {
+        padding: 25px;
+        background: var(--grad-navy);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-body-lux { padding: 25px; max-height: 60vh; overflow-y: auto; }
+
+    .donation-history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .donation-history-item:last-child { border: none; }
+
+    .help-card-lux {
+        padding: 25px;
+    }
+
+    .help-item {
+        padding: 15px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+    }
+
+    .help-item.teal-border { background: rgba(20, 184, 166, 0.04); border-right: 4px solid var(--accent); }
+    .help-item.gold-border { background: rgba(217, 119, 6, 0.04); border-right: 4px solid var(--secondary); }
+
+    .help-item h5 { margin-bottom: 5px; color: var(--primary); font-weight: 800; }
+    .help-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+    .support-CTA-lux {
+        background: var(--grad-navy);
+        padding: 25px;
+        border-radius: 20px;
+        color: white;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .support-CTA-lux i { font-size: 2.2rem; margin-bottom: 15px; opacity: 0.5; }
+    .support-CTA-lux p { font-size: 0.8rem; margin-bottom: 15px; opacity: 0.8; }
+
+    .empty-state-lux {
+        padding: 80px 40px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .empty-state-lux i { font-size: 4rem; opacity: 0.15; margin-bottom: 25px; }
+    .empty-state-lux p { font-size: 1.2rem; margin-bottom: 25px; }
+
+    /* Responsive Overrides */
+    @media (max-width: 1200px) {
+        .content-grid-lux {
+            grid-template-columns: 1fr;
+        }
+        .side-content-column {
+            order: -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .side-content-column {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-header-card {
+            text-align: center;
+            justify-content: center;
+        }
+        .header-actions-group {
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Case Impact Proof Upload Modal -->
+<div id="uploadProofModal" class="modal-lux">
+    <div class="modal-content-lux" style="max-width: 600px;">
+        <div class="modal-header-lux">
+            <h4 class="font-cairo" style="margin:0;"><i class="fa-solid fa-upload"></i> رفع إثبات أثر (فواتير/صور)</h4>
+            <span class="close-lux" onclick="closeUploadModal()" style="cursor:pointer; font-size: 1.5rem; color: white;">&times;</span>
+        </div>
+        <div class="modal-body-lux">
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                قم برفع صور الفواتير أو صور الحالة أثناء استلام المساعدة لتوثيق الأثر للمتبرعين. سيخضع الطلب لمراجعة الإدارة قبل النشر.
+            </p>
+            <form id="uploadProofForm" action="" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="form-group-lux" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary);">عنوان التحديث (مثال: شراء كسوة شتاء)</label>
+                    <input type="text" name="title" required placeholder="مثلاً: استلام مخصصات يناير" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                </div>
+                <div class="form-group-lux" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary);">وصف مختصر</label>
+                    <textarea name="content" rows="3" required placeholder="اشرح للمتبرع كيف ساعده هذا العطاء..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;"></textarea>
+                </div>
+                <div class="form-group-lux" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary);">الصور والإثباتات (يمكنك اختيار عدة صور)</label>
+                    <input type="file" name="images" multiple accept="image/*" required style="width: 100%; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 10px;">
+                    <small style="color: #94a3b8; display: block; margin-top: 5px;">يفضل رفع صور واضحة للفواتير أو السلع المستلمة.</small>
+                </div>
+                <div style="margin-top: 25px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn-lux btn-lux-primary" style="flex: 1;">إرسال المراجعة</button>
+                    <button type="button" onclick="closeUploadModal()" class="btn-lux btn-lux-outline" style="flex: 1;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Donations Modal -->
+<div id="donationsModal" class="modal-lux">
+    <div class="modal-content-lux">
+        <div class="modal-header-lux">
+            <h4 class="font-cairo" style="margin:0;"><i class="fas fa-hand-holding-dollar"></i> سجل التبرعات: <span id="modalCaseTitle"></span></h4>
+            <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body-lux">
+            <div id="transactionsList">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>جاري تحميل السجل...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function viewDonations(id, title) {
+        const modal = document.getElementById('donationsModal');
+        const list = document.getElementById('transactionsList');
+        const titleSpan = document.getElementById('modalCaseTitle');
+        
+        titleSpan.innerText = title;
+        modal.style.display = 'flex';
+        list.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);"><i class="fas fa-spinner fa-spin fa-2x"></i><p>جاري تحميل السجل...</p></div>`;
+
+        try {
+            const res = await fetch(`/dashboard/case/${id}/transactions`);
+            const data = await res.json();
+            
+            if (data.success) {
+                if (data.transactions.length === 0) {
+                    list.innerHTML = `<div style="text-align: center; padding: 60px; color: #94a3b8;"><i class="fas fa-heart-crack fa-3x" style="opacity:0.2; margin-bottom:15px;"></i><p>لم يتم استلام أي تبرعات موثقة لهذه الحالة بعد.</p></div>`;
+                } else {
+                    list.innerHTML = data.transactions.map(t => `
+                        <div class="donation-history-item">
+                            <div>
+                                <div style="font-weight:700; color:var(--primary);">${t.donor ? t.donor.name : 'فاعل خير'}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(t.createdAt).toLocaleDateString('ar-EG')}</div>
+                            </div>
+                            <div style="text-align:left;">
+                                <div style="font-weight:900; color:var(--secondary); font-size:1.1rem;">$${t.amount}</div>
+                                <div style="font-size:0.7rem; color:#10b981; font-weight:700;">${t.type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (err) {
+            list.innerHTML = '<p style="color:var(--danger); text-align:center;">حدث خطأ أثناء تحميل البيانات.</p>';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('donationsModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('donationsModal')) {
+            closeModal();
+        }
+        if (event.target == document.getElementById('uploadProofModal')) {
+            closeUploadModal();
+        }
+    }
+
+    // --- Proof Upload Modal Logic ---
+    function openUploadProofModal(caseId, caseTitle) {
+        const modal = document.getElementById('uploadProofModal');
+        const form = document.getElementById('uploadProofForm');
+        form.action = `/dashboard/case/${caseId}/proof-of-impact`;
+        modal.style.display = 'flex'; // Centered via flex
+    }
+
+    function closeUploadModal() {
+        document.getElementById('uploadProofModal').style.display = 'none';
+    }
+
+    // --- Premium Real-time Countdown Logic ---
+    function updateCommCountdown() {
+        let chatDay = '<%= chatDay %>'; // e.g., '1' or 'Monday'
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const daysAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        
+        let targetDayIndex;
+        if (!isNaN(chatDay)) {
+            targetDayIndex = parseInt(chatDay);
+        } else {
+            targetDayIndex = days.indexOf(chatDay);
+        }
+        
+        if (targetDayIndex === -1) targetDayIndex = 1; // Default to Monday if invalid
+        
+        let nextChat = new Date();
+        nextChat.setDate(now.getDate() + (targetDayIndex + 7 - now.getDay()) % 7);
+        nextChat.setHours(9, 0, 0, 0); // Open at 9 AM
+
+        if (nextChat < now) nextChat.setDate(nextChat.getDate() + 7);
+
+        const diff = nextChat - now;
+        
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        
+        const display = document.getElementById('countdownDisplay');
+        const timeStr = `${h < 10 ? '0'+h : h} : ${m < 10 ? '0'+m : m} : ${s < 10 ? '0'+s : s}`;
+
+        if (d > 0) {
+            display.innerHTML = `<span style="font-size: 1.2rem;">${d} أيام و </span>${timeStr}`;
+        } else {
+            display.innerHTML = timeStr;
+        }
+
+        // Ensure the sub-label shows the correct day name in Arabic
+        const subLabel = document.querySelector('.countdown-sub-lux');
+        if (subLabel) {
+            subLabel.innerHTML = `يوم التواصل القادم: <strong>${daysAr[targetDayIndex]}</strong>`;
+        }
+    }
+
+    setInterval(updateCommCountdown, 1000);
+    updateCommCountdown();
+</script>
+
+<%- include('../../partials/family-layout-bottom') %>

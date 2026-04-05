@@ -1,0 +1,158 @@
+<% if (user && user.role === 'admin') { %>
+    <%- include('../../partials/admin-layout-top') %>
+<% } else if (user && user.role === 'donor') { %>
+    <%- include('../../partials/donor-layout-top') %>
+<% } else { %>
+    <%- include('../../partials/family-layout-top') %>
+<% } %>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    
+    <!-- Header Title -->
+    <div style="margin-bottom: 30px; background: white; padding: 25px; border-radius: var(--radius-md); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <span class="section-badge" style="margin: 0 0 10px 0;"><i class="fas fa-user-gear"></i> إعدادات الحساب</span>
+            <h2 class="font-cairo" style="margin: 0; font-weight: 800;">الملف الشخصي</h2>
+            <p style="color: var(--text-muted); margin-top: 5px; font-size: 0.95rem;">تحكم في معلوماتك الشخصية وصورتك وكلمة المرور بكل سهولة.</p>
+        </div>
+    </div>
+
+    <!-- Main Settings Form -->
+    <div class="grid-1" style="gap: 30px;">
+        
+        <!-- Profile Info Card -->
+        <div class="luxury-card glass-panel" style="padding: 35px;">
+            <div class="section-header-luxury" style="margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <h3 class="font-cairo" style="font-size: 1.2rem; margin: 0; color: var(--primary);"><i class="fas fa-id-card"></i> المعلومات الأساسية</h3>
+            </div>
+
+            <form action="/profile/update?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- Avatar Upload -->
+                    <div style="text-align: center; flex: 0 0 180px;">
+                        <div style="position: relative; width: 150px; height: 150px; margin: 0 auto 15px;">
+                            <img src="<%= user.avatar %>" id="avatarPreview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 25px; border: 4px solid white; box-shadow: var(--shadow-md);">
+                            <% if (user.role !== 'admin' && user.role !== 'super_admin') { %>
+                                <label for="avatarInput" style="position: absolute; bottom: -10px; right: -10px; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;">
+                                    <i class="fas fa-camera"></i>
+                                    <input type="file" id="avatarInput" name="avatar" style="display: none;" onchange="previewImage(event)">
+                                </label>
+                            <% } %>
+                        </div>
+                        <% if (user.role !== 'admin' && user.role !== 'super_admin') { %>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">انقر على الأيقونة لتغيير الصورة</span>
+                        <% } else { %>
+                            <div class="badge badge-navy" style="font-size: 0.7rem; padding: 5px 12px; border-radius: 20px;">
+                                <i class="fas fa-shield-halved"></i> هوية إدارية موحدة
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Fields -->
+                    <div style="flex: 1; min-width: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group-luxury">
+                            <label>الاسم الكامل</label>
+                            <input type="text" name="name" value="<%= user.name %>" required placeholder="أدخل اسمك الكامل">
+                        </div>
+                        <div class="form-group-luxury">
+                            <label>البريد الإلكتروني (غير قابل للتعديل)</label>
+                            <input type="email" value="<%= user.email %>" disabled style="background: #f8fafc; color: var(--text-muted); cursor: not-allowed;">
+                        </div>
+                        <div class="form-group-luxury">
+                            <label>رقم الهوية</label>
+                            <input type="text" name="idNumber" value="<%= user.idNumber || '' %>" placeholder="أدخل رقم الهوية">
+                        </div>
+                        <div class="form-group-luxury">
+                            <label>رقم الجوال</label>
+                            <input type="text" name="phone" value="<%= user.phone || '' %>" placeholder="أدخل رقم الجوال">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 25px; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 30px;">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Password Change Card -->
+        <div class="luxury-card glass-panel" style="padding: 35px;">
+            <div class="section-header-luxury" style="margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <h3 class="font-cairo" style="font-size: 1.2rem; margin: 0; color: var(--primary);"><i class="fas fa-shield-halved"></i> الأمان وكلمة المرور</h3>
+            </div>
+
+            <form action="/profile/password" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <div class="form-group-luxury">
+                        <label>كلمة المرور الحالية</label>
+                        <input type="password" name="currentPassword" required placeholder="••••••••">
+                    </div>
+                    <div class="form-group-luxury">
+                        <label>كلمة المرور الجديدة</label>
+                        <input type="password" name="newPassword" required placeholder="أدخل كلمة مرور قوية">
+                    </div>
+                    <div class="form-group-luxury">
+                        <label>تأكيد كلمة المرور</label>
+                        <input type="password" name="confirmPassword" required placeholder="أعد إدخال كلمة المرور">
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 25px; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-lux btn-lux-navy" style="padding: 12px 30px;">
+                        <i class="fas fa-key"></i> تحديث كلمة المرور
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('avatarPreview');
+            output.src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+
+<style>
+    .form-group-luxury {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .form-group-luxury label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    .form-group-luxury input {
+        padding: 12px 15px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group-luxury input:focus {
+        border-color: var(--secondary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(226, 176, 100, 0.1);
+    }
+</style>
+
+<% if (user && user.role === 'admin') { %>
+    <%- include('../../partials/admin-layout-bottom') %>
+<% } else if (user && user.role === 'donor') { %>
+    <%- include('../../partials/donor-layout-bottom') %>
+<% } else { %>
+    <%- include('../../partials/family-layout-bottom') %>
+<% } %>

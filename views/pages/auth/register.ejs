@@ -1,0 +1,525 @@
+<%- include('../../partials/header-top') %>
+
+<main style="min-height: 100vh; position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 120px 20px;">
+    <!-- Soft Atmospheric Background -->
+    <div style="position: absolute; inset: 0; background: 
+        radial-gradient(circle at 80% 20%, rgba(226, 176, 100, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
+    </div>
+    <div class="bg-mesh" style="opacity: 0.15;"></div>
+
+    <!-- Floating Elements -->
+    <div class="float-element" style="position: absolute; top: 10%; right: 15%; font-size: 3.5rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
+        <i class="fas fa-heart"></i>
+    </div>
+    <div class="float-element" style="position: absolute; bottom: 10%; left: 12%; font-size: 5rem; color: var(--accent); opacity: 0.12; filter: blur(2px); animation-delay: -4s;">
+        <i class="fas fa-hand-holding-heart"></i>
+    </div>
+
+    <!-- Onboarding Card -->
+    <div class="luxury-card onboarding-card" style="width: 100%; max-width: 700px; padding: 0; border-radius: 35px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(30px); position: relative; z-index: 10; overflow: hidden; box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6);">
+        
+        <!-- Step Indicator -->
+        <div style="height: 6px; background: rgba(255,255,255,0.05); display: flex;">
+            <div id="progress-bar" style="width: 33.33%; background: var(--grad-gold); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </div>
+
+        <div style="padding: 45px 50px;">
+            <form action="/auth/register" method="POST" id="registration-form" class="premium-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="role" id="selected-role" value="donor">
+
+                <!-- STEP 1: IMPACT CHOICE -->
+                <div id="step-1" class="onboarding-step active">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <span class="section-badge" style="background: rgba(226, 176, 100, 0.1); color: var(--secondary); margin-bottom: 15px;">الخطوة 1 من 3</span>
+                        <h2 class="font-cairo" style="font-size: 2rem; color: #fff; margin-bottom: 12px; font-weight: 800;">كيف ترغب في المشاركة؟</h2>
+                        <p id="typewriter-text" style="color: rgba(255,255,255,0.6); min-height: 1.5em;"></p>
+                    </div>
+
+                    <div class="role-card-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 35px;">
+                        <div class="role-card active" onclick="selectRole('donor')" id="card-donor">
+                            <div class="role-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                            <h4 class="font-cairo">أريد التبرع</h4>
+                            <p>كفالة أيتام أو دعم حالات إنسانية</p>
+                        </div>
+                        <div class="role-card" onclick="selectRole('beneficiary')" id="card-beneficiary">
+                            <div class="role-icon"><i class="fas fa-home-heart"></i></div>
+                            <h4 class="font-cairo">أحتاج مساعدة</h4>
+                            <p>تسجيل حالة يتيم أو طلب دعم أسرة</p>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="nextStep(2)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; height: 55px; border-radius: 15px; font-size: 1.1rem;">
+                        المتابعة للخطوة التالية <i class="fas fa-arrow-left" style="margin-right: 12px;"></i>
+                    </button>
+                    
+                    <div style="margin-top: 35px; display: flex; align-items: center; justify-content: center; gap: 25px; opacity: 0.6;">
+                        <div style="text-align: center;">
+                            <div style="font-weight: 900; color: #fff; font-size: 1.1rem;">+5,000</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">متبرع نشط</div>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: 900; color: #fff; font-size: 1.1rem;">$2.4M</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">إجمالي التبرعات</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PERSONAL IDENTITY -->
+                <div id="step-2" class="onboarding-step" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 35px;">
+                        <button type="button" onclick="nextStep(1)" style="background: none; border: none; color: var(--secondary); font-size: 0.85rem; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-right: auto;">
+                            <i class="fas fa-chevron-right"></i> العودة للخلف
+                        </button>
+                        <h2 class="font-cairo" style="font-size: 1.85rem; color: #fff; margin-bottom: 10px; font-weight: 800;">عرفنا بنفسك</h2>
+                        <p style="color: rgba(255,255,255,0.6);">لنقم بإنشاء هويتك في مجتمع جسور سنابل</p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">الاسم الكامل</label>
+                        <input type="text" name="name" id="reg-name" class="form-input-dark" placeholder="الاسم كما يظهر في الهوية" required>
+                        <div class="field-error" id="error-name"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">البريد الإلكتروني</label>
+                        <input type="email" name="email" id="reg-email" class="form-input-dark" placeholder="yourname@example.com" required>
+                        <div class="field-error" id="error-email"></div>
+                    </div>
+
+                    <div class="form-group" id="phone-group" style="margin-bottom: 20px;">
+                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">رقم الجوال</label>
+                        <input type="text" name="phone" id="reg-phone" class="form-input-dark" placeholder="05XXXXXXXX" required>
+                        <div class="field-error" id="error-phone"></div>
+                    </div>
+
+                    <div id="donor-only-fields" style="display: none;">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_whatsapp') %></label>
+                            <input type="text" name="whatsapp" id="reg-whatsapp" class="form-input-dark" placeholder="05XXXXXXXX">
+                            <div class="field-error" id="error-whatsapp"></div>
+                        </div>
+                    </div>
+
+                    <!-- Beneficiary-only Fields -->
+                    <div id="beneficiary-fields" style="display: none;">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">رقم الهوية / الجواز</label>
+                            <input type="text" name="idNumber" id="reg-idNumber" class="form-input-dark" placeholder="رقم الهوية الوطنية أو جواز السفر">
+                            <div class="field-error" id="error-idNumber"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('common_address') %></label>
+                            <input type="text" name="address" id="reg-address" class="form-input-dark" placeholder="المدينة، الحي، الشارع">
+                            <div class="field-error" id="error-address"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_alt_phone') %></label>
+                            <input type="text" name="altPhone" id="reg-altPhone" class="form-input-dark" placeholder="05XXXXXXXX">
+                        </div>
+
+                        <div style="margin-top: 30px; padding: 20px; background: rgba(226, 176, 100, 0.05); border-radius: 20px; border: 1px solid rgba(226, 176, 100, 0.1);">
+                            <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 20px; font-size: 1.1rem;">
+                                <i class="fas fa-wallet" style="margin-left: 8px;"></i> بيانات الاستلام المالي
+                                <small style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 5px; font-weight: 400;">يجب إضافة وسيلة واحدة على الأقل</small>
+                            </h4>
+                            
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_bank_palestine_iban') %></label>
+                                <input type="text" name="paymentDetails[iban]" id="reg-iban" class="form-input-dark financial-field" placeholder="PS00 PALA 0000 0000 0000 0000 00000">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_palpay_wallet') %></label>
+                                <input type="text" name="paymentDetails[palpayNumber]" id="reg-palpay" class="form-input-dark financial-field" placeholder="05XXXXXXXX">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_jawwal_pay_wallet') %></label>
+                                <input type="text" name="paymentDetails[jawwalPayNumber]" id="reg-jawwalpay" class="form-input-dark financial-field" placeholder="05XXXXXXXX">
+                            </div>
+                            <div class="field-error" id="error-financial" style="text-align: center;"></div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="nextStep(3)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; height: 55px; border-radius: 15px; font-size: 1.1rem;">
+                        المتابعة للأمان <i class="fas fa-shield-alt" style="margin-right: 12px;"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 3: SECURITY & COMPLETE -->
+                <div id="step-3" class="onboarding-step" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 35px;">
+                        <button type="button" onclick="nextStep(2)" style="background: none; border: none; color: var(--secondary); font-size: 0.85rem; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-right: auto;">
+                            <i class="fas fa-chevron-right"></i> العودة للخلف
+                        </button>
+                        <h2 class="font-cairo" style="font-size: 1.85rem; color: #fff; margin-bottom: 10px; font-weight: 800;">تأمين حسابك</h2>
+                        <p style="color: rgba(255,255,255,0.6);">اختر كلمة مرور قوية لحماية حسابك</p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">كلمة المرور</label>
+                        <input type="password" name="password" id="reg-password" class="form-input-dark" placeholder="••••••••" required>
+                        <div class="field-error" id="error-password"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 35px;">
+                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">تأكيد كلمة المرور</label>
+                        <input type="password" name="confirmPassword" id="reg-confirmPassword" class="form-input-dark" placeholder="••••••••" required>
+                        <div class="field-error" id="error-confirmPassword"></div>
+                    </div>
+
+                    <button type="submit" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; height: 60px; border-radius: 18px; font-weight: 900; font-size: 1.25rem;">
+                        تأكيد الانضمام <i class="fas fa-check-circle" style="margin-right: 15px;"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div style="text-align: center; margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 25px;">
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">
+                    لديك حساب بالفعل؟ 
+                    <a href="/auth/login" style="color: var(--secondary); font-weight: 800; text-decoration: none; margin-right: 8px;">تسجيل الدخول</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .onboarding-step {
+        animation: slideIn 0.5s ease-out forwards;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .role-card {
+        padding: 25px 15px;
+        background: rgba(255,255,255,0.03);
+        border: 2px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .role-card:hover {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(226, 176, 100, 0.3);
+        transform: translateY(-5px);
+    }
+
+    .role-card.active {
+        background: rgba(226, 176, 100, 0.08);
+        border-color: var(--secondary);
+        box-shadow: 0 15px 35px rgba(226, 176, 100, 0.15);
+    }
+
+    .role-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+        color: var(--secondary);
+    }
+
+    .role-card.active .role-icon {
+        background: var(--secondary);
+        color: white;
+    }
+
+    .role-card h4 {
+        margin: 0 0 8px;
+        color: #fff;
+    }
+
+    .role-card p {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.5);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .form-input-dark {
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 12px;
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .form-input-dark:focus {
+        background: rgba(0,0,0,0.3);
+        border-color: var(--secondary);
+        box-shadow: 0 0 15px rgba(226, 176, 100, 0.1);
+        outline: none;
+    }
+
+    .field-error {
+        color: #fca5a5;
+        font-size: 0.75rem;
+        margin-top: 5px;
+        min-height: 1em;
+        transition: all 0.3s;
+    }
+
+    input.invalid {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
+    }
+
+    @media (max-width: 768px) {
+        .onboarding-card { border-radius: 0; min-height: 100vh; }
+        .onboarding-card > div { padding: 30px 20px !important; }
+        .onboarding-card h2 { font-size: 1.6rem !important; }
+        .onboarding-card .role-card-grid { grid-template-columns: 1fr !important; }
+        .role-card { padding: 20px 10px; }
+    }
+</style>
+
+<script>
+    function nextStep(step) {
+        if (step === 3) {
+            // Basic validation for step 2
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            if (!name || !email) {
+                Swal.fire({ icon: 'error', title: 'بيانات ناقصة', text: 'يرجى إكمال البيانات الأساسية قبل المتابعة' });
+                return;
+            }
+            if (document.querySelectorAll('#step-2 .invalid').length > 0) {
+                Swal.fire({ icon: 'error', title: 'خطأ في البيانات', text: 'يرجى تصحيح الأخطاء قبل المتابعة' });
+                return;
+            }
+        }
+        const next = Number(step);
+        document.querySelectorAll('.onboarding-step').forEach(s => s.style.display = 'none');
+        document.getElementById('step-' + next).style.display = 'block';
+        const progress = (next / 3) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectRole(role) {
+        document.getElementById('selected-role').value = role;
+        document.getElementById('card-donor').classList.remove('active');
+        document.getElementById('card-beneficiary').classList.remove('active');
+        document.getElementById('card-' + role).classList.add('active');
+        const text = role === 'donor' 
+            ? 'انضم لآلاف المتبرعين وكن سبباً في تغيير حياة إنسان اليوم.' 
+            : 'نحن هنا لنساندك.. سجل بياناتك لتبدأ رحلة الدعم والتمكين.';
+        startTypewriter(text);
+
+        // Toggle fields
+        const bFields = document.getElementById('beneficiary-fields');
+        const dFields = document.getElementById('donor-only-fields');
+        const phoneGrp = document.getElementById('phone-group');
+        const idInput = document.getElementById('reg-idNumber');
+        const phoneInput = document.getElementById('reg-phone');
+        const addrInput = document.getElementById('reg-address');
+        
+        if(role === 'beneficiary') {
+            bFields.style.display = 'block';
+            dFields.style.display = 'none';
+            phoneGrp.style.display = 'block';
+            phoneInput.setAttribute('required', 'true');
+            idInput.setAttribute('required', 'true');
+            if (addrInput) addrInput.setAttribute('required', 'true');
+        } else {
+            bFields.style.display = 'none';
+            dFields.style.display = 'block';
+            phoneGrp.style.display = 'none';
+            phoneInput.removeAttribute('required');
+            idInput.removeAttribute('required');
+            if (addrInput) addrInput.removeAttribute('required');
+        }
+    }
+
+    let i = 0;
+    let timer;
+    function startTypewriter(text) {
+        const speed = 40;
+        const target = document.getElementById("typewriter-text");
+        if (!target) return;
+        target.innerHTML = "";
+        i = 0;
+        if (timer) clearInterval(timer);
+        timer = setInterval(() => {
+            if (i < text.length) {
+                target.innerHTML += text.charAt(i);
+                i++;
+            } else {
+                clearInterval(timer);
+            }
+        }, speed);
+    }
+
+    window.onload = () => {
+        startTypewriter('اختر المسار الذي يناسبك لنتمكن من توجيهك بشكل صحيح.');
+        setupValidation();
+    };
+
+    function setupValidation() {
+        const msgIdTaken = `<%= __('flash_id_registered') %>`;
+        const fields = [
+            { id: 'reg-email', field: 'email', msg: 'هذا البريد الإلكتروني مستخدم بالفعل' },
+            { id: 'reg-phone', field: 'phone', msg: 'رقم الهاتف هذا مسجل مسبقاً' },
+            { id: 'reg-idNumber', field: 'idNumber', msg: msgIdTaken },
+            { id: 'reg-whatsapp', field: 'whatsapp', msg: 'رقم الواتساب هذا مسجل مسبقاً' }
+        ];
+
+        fields.forEach(f => {
+            const el = document.getElementById(f.id);
+            if (!el) return;
+            el.addEventListener('blur', async () => {
+                const val = el.value.trim();
+                if (!val) return;
+                
+                try {
+                    const res = await fetch(`/auth/check-exists?field=${f.field}&value=${val}`);
+                    const data = await res.json();
+                    if (data.exists) {
+                        showError(f.id, f.msg);
+                    } else {
+                        clearError(f.id);
+                    }
+                } catch (e) { console.error(e); }
+            });
+        });
+
+        // Password Validation
+        const passEl = document.getElementById('reg-password');
+        const confirmEl = document.getElementById('reg-confirmPassword');
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
+
+        passEl.addEventListener('input', () => {
+            if (!passRegex.test(passEl.value)) {
+                showError('reg-password', 'يجب أن تحتوي على 7 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص');
+            } else {
+                clearError('reg-password');
+            }
+        });
+
+        confirmEl.addEventListener('input', () => {
+            if (confirmEl.value !== passEl.value) {
+                showError('reg-confirmPassword', 'كلمة المرور غير متطابقة');
+            } else {
+                clearError('reg-confirmPassword');
+            }
+        });
+    }
+
+    function showError(id, msg) {
+        const el = document.getElementById(id);
+        const errEl = document.getElementById('error-' + id.replace('reg-', ''));
+        el.classList.add('invalid');
+        errEl.innerText = msg;
+    }
+
+    function clearError(id) {
+        const el = document.getElementById(id);
+        const errEl = document.getElementById('error-' + id.replace('reg-', ''));
+        el.classList.remove('invalid');
+        errEl.innerText = '';
+    }
+
+    // Length Validation Helper
+    function validateLength(id, expectedLength, errorMsg) {
+        const el = document.getElementById(id);
+        const val = el.value.trim();
+        if (val && val.length !== expectedLength) {
+            showError(id, errorMsg);
+            return false;
+        }
+        if (val) clearError(id);
+        return true;
+    }
+
+    // Final Form Guard
+    document.getElementById('registration-form').onsubmit = function(e) {
+        const role = document.getElementById('selected-role').value;
+        const phone = document.getElementById('reg-phone').value.trim();
+        const altPhone = document.getElementById('reg-altPhone').value.trim();
+        const whatsapp = document.getElementById('reg-whatsapp').value.trim();
+        const idNumber = document.getElementById('reg-idNumber').value.trim();
+        const address = document.getElementById('reg-address') ? document.getElementById('reg-address').value.trim() : '';
+        let valid = true;
+
+        if (role === 'beneficiary') {
+            if (!phone || phone.length !== 10) {
+                showError('reg-phone', '<%= __('register_phone_length_error') %>');
+                valid = false;
+            }
+            if (idNumber.length !== 9) {
+                showError('reg-idNumber', `<%= __('register_id_length_error') %>`);
+                valid = false;
+            }
+            if (!address) {
+                showError('reg-address', 'يرجى إدخال العنوان السكني');
+                valid = false;
+            }
+            if (altPhone && altPhone.length !== 10) {
+                showError('reg-altPhone', `<%= __('register_phone_length_error') %>`);
+                valid = false;
+            }
+        } else {
+            if (whatsapp && whatsapp.length !== 10) {
+                showError('reg-whatsapp', `<%= __('register_phone_length_error') %>`);
+                valid = false;
+            }
+        }
+
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0 || !valid) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'خطأ في البيانات',
+                text: 'يرجى تصحيح الأخطاء المشار إليها قبل المتابعة',
+                confirmButtonText: 'حسناً'
+            });
+            nextStep(2);
+            return false;
+        }
+
+        // Financial Validation for Beneficiaries
+        if (role === 'beneficiary') {
+            const iban = document.getElementById('reg-iban').value.trim();
+            const palpay = document.getElementById('reg-palpay').value.trim();
+            const jawwalpay = document.getElementById('reg-jawwalpay').value.trim();
+            
+            if (!iban && !palpay && !jawwalpay) {
+                e.preventDefault();
+                document.getElementById('error-financial').innerText = '<%= __('register_financial_one_required') %>';
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'بيانات مالية ناقصة',
+                    text: '<%= __('register_financial_one_required') %>',
+                    confirmButtonText: 'حسناً'
+                });
+                nextStep(2); // Go back to step 2 to fix
+                return false;
+            } else {
+                document.getElementById('error-financial').innerText = '';
+            }
+        }
+
+        return true;
+    };
+</script>
+
+<%- include('../../partials/footer-bottom') %>

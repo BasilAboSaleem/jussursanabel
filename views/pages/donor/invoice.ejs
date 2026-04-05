@@ -1,0 +1,112 @@
+<%- include('../../partials/donor-layout-top') %>
+
+<div class="container" style="padding: 40px 20px; max-width: 800px; margin: 0 auto;">
+    <div style="text-align: left; margin-bottom: 20px;">
+        <button onclick="window.print()" class="btn-lux btn-lux-navy btn-sm">
+            <i class="fas fa-print"></i> طباعة الفاتورة / تحميل PDF
+        </button>
+        <a href="/dashboard" class="btn-lux btn-lux-primary btn-sm" style="margin-right: 10px;">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        </a>
+    </div>
+
+    <div id="printable-invoice" class="luxury-card shadow-lg" style="padding: 50px; border-radius: 0; background: white; position: relative; border: 1px solid #eee;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px; border-bottom: 2px solid var(--primary); padding-bottom: 30px;">
+            <div>
+                <h1 class="font-cairo" style="color: var(--primary); margin: 0; font-weight: 900;">فاتورة مساهمة</h1>
+                <p style="color: var(--text-muted); margin: 5px 0 0 0;">رقم العملية: #<%= transaction._id.toString().slice(-8).toUpperCase() %></p>
+            </div>
+            <div style="text-align: left;">
+                <div class="logo-luxury" style="font-size: 1.5rem; color: var(--primary);">
+                    <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+                    <span class="font-cairo">جسور السنابل</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 5px 0 0 0;">بتاريخ: <%= transaction.createdAt.toLocaleDateString('ar-EG') %></p>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 50px;">
+            <div>
+                <h5 style="color: var(--text-muted); margin-bottom: 10px; font-size: 0.8rem; text-transform: uppercase;">المتبرع:</h5>
+                <strong style="font-size: 1.1rem; color: var(--primary);"><%= transaction.donor.name %></strong><br>
+                <span style="font-size: 0.9rem; color: var(--text-muted);"><%= transaction.donor.email %></span>
+            </div>
+            <div style="text-align: left;">
+                <h5 style="color: var(--text-muted); margin-bottom: 10px; font-size: 0.8rem; text-transform: uppercase;">الحالة المستفيدة:</h5>
+                <strong style="font-size: 1.1rem; color: var(--primary);"><%= transaction.case ? transaction.case.title : 'حالة مؤرشفة' %></strong><br>
+                <span style="font-size: 0.9rem; color: var(--text-muted);"><%= transaction.case ? transaction.case.location : '' %></span>
+            </div>
+        </div>
+
+        <!-- Details Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 50px;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <th style="padding: 15px; text-align: right;">الوصف</th>
+                    <th style="padding: 15px; text-align: left;">المبلغ ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 15px;">
+                        <div style="font-weight: 700;">مساهمة إنسانية - <%= transaction.type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر' %></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">تحويل مباشر لصالح الحالة المستفيدة</div>
+                    </td>
+                    <td style="padding: 15px; text-align: left; font-weight: 700;">$<%= transaction.amount.toFixed(2) %></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 15px;">
+                        <div style="font-weight: 700;">رسوم تشغيل إدارية (<%= transaction.operationPercentage %>%)</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">لدعم استدامة العمليات التقنية والإدارية للمنصة</div>
+                    </td>
+                    <td style="padding: 15px; text-align: left; font-weight: 700;">$<%= (transaction.operationFee || 0).toFixed(2) %></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div style="display: flex; justify-content: flex-end;">
+            <div style="width: 250px;">
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <span>المجموع الفرعي:</span>
+                    <strong>$<%= transaction.amount.toFixed(2) %></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 20px 0; font-size: 1.5rem; color: var(--secondary);">
+                    <span style="font-weight: 800;">الإجمالي:</span>
+                    <strong style="font-weight: 900;">$<%= (transaction.totalAmount || transaction.amount).toFixed(2) %></strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 80px; text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+                شكراً لمساهمتكم الكريمة. هذا المستند يعتبر وصلاً رسمياً لعملية التبرع عبر منصة جسور السنابل.<br>
+                <strong>عطاؤكم جسر للأمل.</strong>
+            </p>
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 30px; opacity: 0.5;">
+                <i class="fas fa-certificate"></i> موثّق
+                <i class="fas fa-shield-alt"></i> آمن
+                <i class="fas fa-heart"></i> إنساني
+            </div>
+        </div>
+
+        <!-- Status Watermark -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 10rem; color: rgba(16, 185, 129, 0.08); font-weight: 900; pointer-events: none; text-transform: uppercase;">
+            PAID
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        #printable-invoice, #printable-invoice * { visibility: visible; }
+        #printable-invoice { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; }
+        .btn-lux, .container > div:first-child { display: none !important; }
+    }
+</style>
+
+<%- include('../../partials/donor-layout-bottom') %>

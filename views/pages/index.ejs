@@ -1,0 +1,309 @@
+<%- include('../partials/header-top') %>
+
+<main style="overflow: hidden;">
+    <!-- 1. Enhanced Hero Section -->
+    <section class="hero-luxury" style="padding-top: 160px; padding-bottom: 120px;">
+        <div class="bg-mesh"></div>
+        
+        <!-- Floating Elements for depth -->
+        <div class="float-element" style="position: absolute; top: 15%; right: 10%; font-size: 3rem; color: var(--secondary); opacity: 0.2; filter: blur(1px);">
+            <i class="fas fa-heart"></i>
+        </div>
+        <div class="float-element" style="position: absolute; bottom: 20%; left: 8%; font-size: 4rem; color: var(--accent); opacity: 0.15; filter: blur(2px); animation-delay: -2s;">
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+
+        <div class="hero-content-luxury container">
+            <div class="hero-badge-luxury reveal-on-scroll">
+                <i class="fas fa-sparkles"></i> <%= __('hero_badge') %>
+            </div>
+            <h1 class="hero-title-luxury reveal-on-scroll" style="transition-delay: 0.2s;">
+                <%= __('hero_title') %><br>
+                <span class="shimmer-text"><%= __('hero_title_security') %></span> <%= __('hero_title_giving') %> <span class="shimmer-text">
+                      <%= __('hero_title_dignity') %>     </span> <%= __('hero_title_belonging') %>
+            </h1>
+            <p class="hero-desc-luxury reveal-on-scroll" style="transition-delay: 0.4s;">
+                <%= __('hero_desc') %>
+            </p>
+            <div class="hero-actions-luxury reveal-on-scroll" style="transition-delay: 0.6s;">
+                <a href="/cases" class="btn-lux btn-lux-primary btn-lg">
+                    <i class="fas fa-hand-holding-heart"></i> <%= __('btn_start_sponsorship') %>
+                </a>
+                <a href="/about" class="btn-lux btn-lux-dark btn-lg">
+                    <i class="fas fa-circle-play"></i> <%= __('btn_hope_stories') %>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Impact Counter Section -->
+    <section class="section-luxury" style="background: #fff; border-bottom: 1px solid #f1f5f9;">
+        <div class="container text-center">
+            <div class="grid-4">
+                <div class="reveal-on-scroll">
+                    <div class="impact-number" data-target="1400">0</div>
+                    <div style="font-weight: 800; color: var(--primary);"><%= __('stats_cases') %></div>
+                </div>
+                <div class="reveal-on-scroll" style="transition-delay: 0.1s;">
+                    <div class="impact-number" data-target="2500">0</div>
+                    <div style="font-weight: 800; color: var(--primary);"><%= __('stats_donations') %></div>
+                </div>
+                <div class="reveal-on-scroll" style="transition-delay: 0.2s;">
+                    <div class="impact-number" data-target="98">0</div>
+                    <div style="font-weight: 800; color: var(--primary);"><%= __('stats_transparency') %></div>
+                </div>
+                <div class="reveal-on-scroll" style="transition-delay: 0.3s;">
+                    <div class="impact-number" data-target="500">0</div>
+                    <div style="font-weight: 800; color: var(--primary);"><%= __('stats_volunteers') %></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. How it Works -->
+    <section class="section-luxury container">
+        <div class="section-header-luxury reveal-on-scroll">
+            <span class="section-badge"><i class="fas fa-road"></i> <%= __('index_how_it_works_badge') %></span>
+            <h2 class="section-title-luxury"><%= __('index_how_it_works_title') %></h2>
+            <p class="section-subtitle-luxury">
+                <%= __('index_how_it_works_subtitle') %>
+            </p>
+        </div>
+
+        <div class="grid-3">
+            <div class="glass-step-card reveal-on-scroll">
+                <div class="step-number">1</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('index_step_1_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('index_step_1_desc') %></p>
+            </div>
+            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.2s;">
+                <div class="step-number">2</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('index_step_2_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('index_step_2_desc') %></p>
+            </div>
+            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.4s;">
+                <div class="step-number">3</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('index_step_3_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('index_step_3_desc') %></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Latest Cases -->
+    <section class="section-luxury container">
+        <div class="section-header-luxury reveal-on-scroll">
+            <span class="section-badge"><i class="fas fa-bolt"></i> <%= __('index_urgent_cases_badge') %></span>
+            <h2 class="section-title-luxury"><%= __('index_urgent_cases_title') %></h2>
+        </div>
+
+        <div class="grid-3">
+            <% cases.forEach((item, index) => { %>
+                <div class="luxury-card reveal-on-scroll" style="transition-delay: <%= index * 0.1 %>s">
+                    <div style="height: 240px; margin: -32px -32px 24px; position: relative; overflow: hidden;">
+                        <img src="<%= item.image %>" alt="<%= item.title %>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="badge <%= item.type === 'orphan' ? 'badge-gold' : 'badge-teal' %>" style="position: absolute; top: 20px; <%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 20px; z-index: 2;">
+                            <i class="fas <%= item.type === 'orphan' ? 'fa-child' : 'fa-users' %>"></i>
+                            <%= item.type === 'orphan' ? __('index_case_type_orphan') : __('index_case_type_family') %>
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-cairo" style="font-size: 1.35rem; margin-bottom: 12px; font-weight: 800; color: var(--primary);">
+                        <%= item.title %>
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 25px; line-height: 1.7; height: 3.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">
+                        <%= item.description %>
+                    </p>
+
+                    <div style="margin-top: auto;">
+                        <div class="progress-track" style="margin-bottom: 12px;">
+                            <div class="progress-fill" style="width: <%= Math.min((item.raisedAmount / (item.targetAmount || 1) * 100), 100) %>%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 800; margin-bottom: 25px;">
+                            <span style="color: var(--secondary);"><%= __('index_case_raised') %> $<%= item.raisedAmount %></span>
+                            <span style="color: var(--text-muted);"><%= __('index_case_target') %> $<%= item.targetAmount %></span>
+                        </div>
+
+                        <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center;">
+                            <i class="fas fa-eye"></i> <%= __('index_case_details') %>
+                        </a>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div style="text-align: center; margin-top: 60px;">
+            <a href="/cases" class="btn-lux btn-lux-outline" style="padding: 14px 45px;">
+                <%= __('index_all_cases') %> <i class="fas fa-arrow-<%= locals.langDir === 'rtl' ? 'left' : 'right' %>"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- 5. Testimonials Section (Dynamic) -->
+    <section class="section-luxury reveal-on-scroll" style="background: #fdfdfd; overflow: hidden; position: relative;">
+        <div class="container">
+            <div class="section-header-luxury">
+                <span class="section-badge"><i class="fas fa-quote-<%= locals.langDir === 'rtl' ? 'right' : 'left' %>"></i> <%= __('index_testimonials_badge') %></span>
+                <h2 class="section-title-luxury"><%= __('index_testimonials_title') %></h2>
+            </div>
+        </div>
+
+        <div class="testimonial-carousel-container">
+            <div class="testimonial-track" id="testimonial-track">
+                <% testimonials.forEach(tm => { %>
+                    <div class="testimonial-item">
+                        <div class="luxury-card h-100" style="background: white; border: 1px solid #f1f5f9; text-align: center; margin: 10px;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: #f8fafc; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--secondary); border: 2px solid #fff; box-shadow: var(--shadow-sm); overflow: hidden;">
+                                <% if (tm.user && tm.user.avatar) { %>
+                                    <img src="<%= tm.user.avatar %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                <% } else { %>
+                                    <i class="fas fa-user"></i>
+                                <% } %>
+                            </div>
+                            <div style="color: #fbbf24; margin-bottom: 15px;">
+                                <% for(let i=0; i < (tm.rating || 5); i++) { %>
+                                    <i class="fas fa-star"></i>
+                                <% } %>
+                            </div>
+                            <p style="font-style: italic; color: var(--text-muted); margin-bottom: 20px; min-height: 4.5em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                "<%= tm.content %>"
+                            </p>
+                            <div style="font-weight: 800; color: var(--primary);"><%= tm.user ? tm.user.name : __('index_testimonials_anonymous') %></div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;"><%= tm.locationAr || __('index_testimonials_donor') %></div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .testimonial-carousel-container {
+            width: 100%;
+            padding: 40px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .testimonial-track {
+            display: flex;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .testimonial-item {
+            flex: 0 0 33.333%;
+            min-width: 33.333%;
+            padding: 0 15px;
+        }
+        @media (max-width: 992px) {
+            .testimonial-item { flex: 0 0 50%; min-width: 50%; }
+        }
+        @media (max-width: 600px) {
+            .testimonial-item { flex: 0 0 100%; min-width: 100%; }
+        }
+    </style>
+
+    <!-- 6. Transparency Section -->
+    <section class="section-luxury" style="background: var(--grad-hero); color: white;">
+        <div class="container">
+            <div class="grid-2 align-items-center">
+                <div class="reveal-on-scroll">
+                    <span class="section-badge" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff;">
+                        <i class="fas fa-fingerprint"></i> <%= __('index_features_badge') %>
+                    </span>
+                    <h2 class="section-title-luxury" style="color: #fff; margin-bottom: 25px;"><%= __('index_features_title') %></h2>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 20px; display: flex; gap: 15px;">
+                            <i class="fas fa-circle-check" style="color: var(--secondary); font-size: 1.2rem;"></i>
+                            <div>
+                                <h5 class="font-cairo" style="font-weight: 800; margin-bottom: 5px;"><%= __('index_feature_1_title') %></h5>
+                                <p style="font-size: 0.9rem; opacity: 0.7;"><%= __('index_feature_1_desc') %></p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 20px; display: flex; gap: 15px;">
+                            <i class="fas fa-circle-check" style="color: var(--secondary); font-size: 1.2rem;"></i>
+                            <div>
+                                <h5 class="font-cairo" style="font-weight: 800; margin-bottom: 5px;"><%= __('index_feature_2_title') %></h5>
+                                <p style="font-size: 0.9rem; opacity: 0.7;"><%= __('index_feature_2_desc') %></p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 20px; display: flex; gap: 15px;">
+                            <i class="fas fa-circle-check" style="color: var(--secondary); font-size: 1.2rem;"></i>
+                            <div>
+                                <h5 class="font-cairo" style="font-weight: 800; margin-bottom: 5px;"><%= __('index_feature_3_title') %></h5>
+                                <p style="font-size: 0.9rem; opacity: 0.7;"><%= __('index_feature_3_desc') %></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="reveal-on-scroll" style="position: relative; display: flex; justify-content: center;">
+                    <div style="width: 100%; max-width: 450px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 40px; text-align: center; backdrop-filter: blur(20px);">
+                        <i class="fas fa-shield-halved" style="font-size: 5rem; color: var(--secondary); margin-bottom: 20px; opacity: 0.5;"></i>
+                        <h3 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('index_vision_title') %></h3>
+                        <p style="opacity: 0.8; line-height: 1.8;"><%= __('index_vision_desc') %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // 1. Reveal on scroll logic
+    const observerOptions = {
+        threshold: 0.1
+    };
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+    // 2. Counter animation
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.getAttribute('data-target'));
+                animateValue(entry.target, 0, target, 2000);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString() + (end === 98 ? '%' : '+');
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    document.querySelectorAll('.impact-number').forEach(el => counterObserver.observe(el));
+
+    // 3. Testimonial Carousel Logic
+    const track = document.getElementById('testimonial-track');
+    const items = track.querySelectorAll('.testimonial-item');
+    let index = 0;
+    const itemsToShow = window.innerWidth > 992 ? 3 : (window.innerWidth > 600 ? 2 : 1);
+    
+    // Minimal logic for dynamic loop
+    if (items.length > itemsToShow) {
+        setInterval(() => {
+            index++;
+            if (index > items.length - itemsToShow) {
+                index = 0;
+            }
+            const offset = -(index * (100 / itemsToShow));
+            track.style.transform = `translateX(${offset}%)`;
+        }, 5000); // Auto-slide every 5 seconds
+    }
+</script>
+
+<%- include('../partials/footer-bottom') %>

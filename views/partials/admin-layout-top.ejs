@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" dir="<%= langDir %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> — <%= __('admin_title_suffix') %></title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="/assets/css/premium.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body class="admin-layout" data-user-id="<%= locals.user ? user._id : '' %>" data-user-role="<%= locals.user ? user.role : '' %>">
+    
+    <%- include('./admin-sidebar') %>
+
+    <main class="admin-main">
+        <header class="admin-top-bar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="sidebarToggle" class="btn-lux btn-lux-outline" style="padding: 8px 12px; display: none;">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __(title) || title %></h4>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                    <i class="far fa-calendar-alt"></i> <%= new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+                </div>
+                <div class="glass-panel" style="padding: 5px 15px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; color: var(--secondary);">
+                    <i class="fas fa-shield-alt"></i> <%= __('admin_active_mode') %>
+                </div>
+                <!-- Notifications -->
+                <%- include('./notifications-dropdown') %>
+            </div>
+            </div>
+        </header>
+
+        <div class="admin-page-content">

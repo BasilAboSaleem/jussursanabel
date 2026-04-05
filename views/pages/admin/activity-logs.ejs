@@ -1,0 +1,154 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--accent);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-file-signature"></i> <%= __('admin_activity_logs_title') %></h3>
+            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_activity_logs_desc') %></p>
+        </div>
+        <div style="background: rgba(0,0,0,0.03); padding: 10px 20px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-muted);"><%= __('admin_activity_logs_total_label') %></div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);"><%= logs.length %></div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filters -->
+<div class="luxury-card glass-panel" style="padding: 20px; margin-bottom: 30px; background: rgba(255,255,255,0.05);">
+    <form action="/admin/activity-logs" method="GET" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div style="flex: 2; min-width: 250px;">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_activity_logs_search_label') %></label>
+            <input type="text" name="search" class="form-input" placeholder="<%= __('admin_activity_logs_search_placeholder') %>" value="<%= query && query.search || '' %>">
+        </div>
+        
+        <div style="flex: 1; min-width: 150px;">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_activity_logs_type_label') %></label>
+            <select name="action" class="form-input">
+                <option value="all"><%= __('common_all') %></option>
+                <option value="login" <%= query.action === 'login' ? 'selected' : '' %>><%= __('admin_log_action_login') %></option>
+                <option value="case_create" <%= query.action === 'case_create' ? 'selected' : '' %>><%= __('admin_log_action_case_create') %></option>
+                <option value="case_update" <%= query.action === 'case_update' ? 'selected' : '' %>><%= __('admin_log_action_case_update') %></option>
+                <option value="transaction_create" <%= query.action === 'transaction_create' ? 'selected' : '' %>><%= __('admin_log_action_transaction_create') %></option>
+                <option value="transaction_verify" <%= query.action === 'transaction_verify' ? 'selected' : '' %>><%= __('admin_log_action_transaction_verify') %></option>
+                <option value="profile_update" <%= query.action === 'profile_update' ? 'selected' : '' %>><%= __('admin_log_action_profile_update') %></option>
+                <option value="user_moderate" <%= query.action === 'user_moderate' ? 'selected' : '' %>><%= __('admin_log_action_user_moderate') %></option>
+                <option value="user_activate" <%= query.action === 'user_activate' ? 'selected' : '' %>><%= __('admin_log_action_user_activate') %></option>
+                <option value="chat_request_create" <%= query.action === 'chat_request_create' ? 'selected' : '' %>><%= __('admin_log_action_chat_ticket_open') %></option>
+                <option value="impact_proof" <%= query.action === 'impact_proof' ? 'selected' : '' %>><%= __('admin_log_action_impact_proof') %></option>
+                <option value="escalation" <%= query.action === 'escalation' ? 'selected' : '' %>><%= __('admin_log_action_escalation') %></option>
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 200px; display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_from_date') %></label>
+                <input type="date" name="startDate" class="form-input" value="<%= query.startDate || '' %>">
+            </div>
+            <div style="flex: 1;">
+                <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_to_date') %></label>
+                <input type="date" name="endDate" class="form-input" value="<%= query.endDate || '' %>">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 25px;">
+            <i class="fas fa-filter"></i> <%= __('common_apply_filter') %>
+        </button>
+        <a href="/admin/activity-logs" class="btn-lux btn-lux-outline-white" style="padding: 12px 15px;">
+            <i class="fas fa-sync-alt"></i>
+        </a>
+    </form>
+</div>
+
+<!-- Logs Timeline/Table -->
+<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <tr>
+                <th style="padding: 20px;"><%= __('common_time_date') %></th>
+                <th style="padding: 20px;"><%= __('common_user_admin') %></th>
+                <th style="padding: 20px;"><%= __('common_action') %></th>
+                <th style="padding: 20px;"><%= __('common_full_details') %></th>
+                <th style="padding: 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_id') %></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (logs.length === 0) { %>
+                <tr>
+                    <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-ghost" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.2;"></i>
+                        <%= __('admin_activity_logs_empty') %>
+                    </td>
+                </tr>
+            <% } %>
+            <% logs.forEach(log => { %>
+                <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px;">
+                        <div style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">
+                            <%= new Date(log.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 600;">
+                            <%= new Date(log.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="<%= log.user ? log.user.avatar : 'https://ui-avatars.com/api/?name=System&background=020617&color=fff' %>" 
+                                style="width: 35px; height: 35px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.05); object-fit: cover;">
+                            <div style="overflow: hidden; max-width: 150px;">
+                                <div style="font-weight: 700; font-size: 0.9rem; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.name : __('common_system_auto') %></div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.email : 'system@jussur.org' %></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <% 
+                            let icon = 'fa-cog';
+                            let color = '#64748b';
+                            let actionLabel = log.action;
+                            
+                            if (log.action === 'login') { icon = 'fa-sign-in-alt'; color = '#6366f1'; actionLabel = __('admin_log_action_login'); }
+                            if (log.action === 'logout') { icon = 'fa-sign-out-alt'; color = '#94a3b8'; actionLabel = __('admin_log_action_logout'); }
+                            if (log.action === 'profile_update') { icon = 'fa-user-edit'; color = '#ec4899'; actionLabel = __('admin_log_action_profile_update'); }
+                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#f59e0b'; actionLabel = __('admin_log_action_case_create'); }
+                            if (log.action === 'case_update') { icon = 'fa-edit'; color = '#3b82f6'; actionLabel = __('admin_log_action_case_update'); }
+                            if (log.action === 'case_delete') { icon = 'fa-trash'; color = '#ef4444'; actionLabel = __('admin_log_action_case_delete'); }
+                            if (log.action === 'transaction_create') { icon = 'fa-hand-holding-heart'; color = '#10b981'; actionLabel = __('admin_log_action_transaction_create'); }
+                            if (log.action === 'transaction_verify') { icon = 'fa-check-double'; color = '#059669'; actionLabel = __('admin_log_action_transaction_verify'); }
+                            if (log.action === 'user_moderate') { icon = 'fa-user-shield'; color = '#dc2626'; actionLabel = __('admin_log_action_user_moderate'); }
+                            if (log.action === 'user_activate') { icon = 'fa-user-check'; color = '#0ea5e9'; actionLabel = __('admin_log_action_user_activate'); }
+                            if (log.action === 'chat_request_create') { icon = 'fa-comments'; color = '#8b5cf6'; actionLabel = __('admin_log_action_chat_open'); }
+                            if (log.action === 'chat_request_handle') { icon = 'fa-comment-dots'; color = '#6d28d9'; actionLabel = __('admin_log_action_chat_reply'); }
+                            if (log.action === 'case_update_submit') { icon = 'fa-file-invoice'; color = '#0ea5e9'; actionLabel = __('admin_log_action_impact_submit'); }
+                            if (log.action === 'impact_proof_approve') { icon = 'fa-file-shield'; color = '#10b981'; actionLabel = __('admin_log_action_impact_verify'); }
+                            if (log.action === 'impact_proof_reject') { icon = 'fa-file-circle-xmark'; color = '#ef4444'; actionLabel = __('admin_log_action_impact_reject'); }
+                        %>
+                        <div style="display: flex; align-items: center; gap: 8px; color: <%= color %>; font-weight: 700; font-size: 0.8rem; background: rgba(0,0,0,0.05); border: 1px solid <%= color %>40; padding: 6px 12px; border-radius: 8px; width: fit-content;">
+                            <i class="fas <%= icon %>"></i>
+                            <%= actionLabel %>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <div style="font-size: 0.9rem; color: var(--primary); line-height: 1.5; max-width: 450px;">
+                            <%= log.details %>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+                        <% if (log.targetId) { %>
+                            <code style="font-size: 0.7rem; background: #f1f5f9; padding: 4px 8px; border-radius: 5px; color: #64748b;">
+                                <%= log.targetId.toString().slice(-8).toUpperCase() %>
+                            </code>
+                        <% } else { %>
+                            <span style="color: #eee;">-</span>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
+</style>
+
+<%- include('../../partials/admin-layout-bottom') %>

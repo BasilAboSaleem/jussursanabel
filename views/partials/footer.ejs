@@ -1,0 +1,59 @@
+<footer class="premium-footer">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 60px; margin-bottom: 80px;">
+            <div>
+                <a href="/" class="logo-luxury" style="color: white; margin-bottom: 25px;">
+                    <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+                    <span class="font-cairo"><%= __('hero_title') %></span>
+                </a>
+                <p style="color: rgba(255,255,255,0.6); line-height: 1.8; font-size: 0.95rem;">
+                    <%= __('footer_desc') %>
+                </p>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-cairo" style="color: white; margin-bottom: 30px; font-size: 1.2rem;"><%= __('footer_links_title') %></h4>
+                <ul style="list-style: none; padding: 0; display: grid; gap: 15px;">
+                    <li><a href="/cases" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_all_cases') %></a></li>
+                    <li><a href="/cases?type=orphan" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_orphan_sponsorship') %></a></li>
+                    <li><a href="/cases?type=family" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_family_support') %></a></li>
+                    <li><a href="/about" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('about_us') %></a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-cairo" style="color: white; margin-bottom: 30px; font-size: 1.2rem;"><%= __('footer_contact_title') %></h4>
+                <div style="display: grid; gap: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: start;">
+                        <i class="fas fa-location-dot" style="color: var(--secondary); margin-top: 5px;"></i>
+                        <span style="color: rgba(255,255,255,0.7);"><%= __('footer_location') %></span>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: start;">
+                        <i class="fas fa-envelope" style="color: var(--secondary); margin-top: 5px;"></i>
+                        <span style="color: rgba(255,255,255,0.7);">info@sanabel.ps</span>
+                    </div>
+                    <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md); border-<%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 3px solid var(--secondary);">
+                        <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.5);"><%= __('footer_working_hours_title') %></p>
+                        <p style="margin: 5px 0 0; color: white;"><%= __('footer_working_hours_val') %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </div>
+</footer>
+
+<%- include('../partials/support-widget') %>
+

@@ -1,0 +1,104 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--primary);">
+    <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-user-shield"></i> <%= __('admin_users_manager_title') %></h3>
+    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_users_manager_desc') %></p>
+</div>
+
+    <div class="grid-2" style="gap: 40px; margin-bottom: 50px; grid-template-columns: 1fr 2fr;">
+        <!-- Add Admin Form -->
+        <div class="luxury-card glass-panel" style="padding: 40px;">
+            <h4 class="font-cairo" style="margin-bottom: 25px;"><i class="fas fa-user-plus"></i> <%= __('admin_users_manager_add_title') %></h4>
+            <form action="/admin/users/create" method="POST" class="premium-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label-luxury"><%= __('admin_users_manager_label_name') %></label>
+                    <input type="text" name="name" required class="form-input" placeholder="<%= __('admin_users_manager_placeholder_name') %>">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label-luxury"><%= __('admin_users_manager_label_email') %></label>
+                    <input type="email" name="email" required class="form-input" placeholder="email@jussur.org">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label-luxury"><%= __('admin_users_manager_label_password') %></label>
+                    <input type="password" name="password" required class="form-input" placeholder="••••••••">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label-luxury"><%= __('admin_users_manager_table_role') %></label>
+                    <select name="role" required class="form-input" style="background: var(--navy-900);">
+                        <option value="admin"><%= __('admin_role_admin') %></option>
+                        <option value="regulator"><%= __('admin_role_regulator') %></option>
+                        <option value="support"><%= __('admin_role_support') %></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 15px;"><%= __('admin_users_manager_btn_add') %></button>
+            </form>
+        </div>
+
+        <!-- Admins List -->
+        <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden;">
+            <div style="padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.01);">
+                <h4 class="font-cairo" style="margin: 0;"><%= __('admin_users_manager_list_title') %></h4>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                <thead style="background: rgba(0,0,0,0.02);">
+                    <tr>
+                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_admin') %></th>
+                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_role') %></th>
+                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_action') %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% admins.forEach(admin => { %>
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                            <td style="padding: 15px 20px;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <img src="<%= admin.avatar %>" style="width: 45px; height: 45px; border-radius: 12px; border: 2px solid var(--secondary); object-fit: cover; background: var(--grad-navy);">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--primary);"><%= admin.name %></div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><%= admin.email %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                <% 
+                                    let badgeType = 'badge-navy';
+                                    let icon = 'fa-user-shield';
+                                    let roleDesc = __('admin_role_admin_desc');
+                                    
+                                    if (admin.role === 'super_admin') {
+                                        badgeType = 'badge-gold';
+                                        icon = 'fa-crown';
+                                        roleDesc = __('admin_role_super_admin_desc');
+                                    } else if (admin.role === 'regulator') {
+                                        badgeType = 'badge-purple'; // Need to check if badge-purple exists
+                                        icon = 'fa-eye';
+                                        roleDesc = __('admin_role_regulator_desc');
+                                    } else if (admin.role === 'support') {
+                                        badgeType = 'badge-success';
+                                        icon = 'fa-headset';
+                                        roleDesc = __('admin_role_support_desc');
+                                    }
+                                %>
+                                <span class="badge <%= badgeType %>" style="font-size: 0.75rem;">
+                                    <i class="fas <%= icon %>" style="margin-<%= langDir === 'rtl' ? 'left' : 'right' %>: 5px;"></i>
+                                    <%= roleDesc %>
+                                </span>
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                <% if (admin.role !== 'super_admin') { %>
+                                    <form action="/admin/users/<%= admin._id %>/delete" method="POST" style="margin: 0;">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="btn-lux btn-lux-outline-white" style="padding: 6px 15px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); transition: all 0.3s;">
+                                            <i class="fas fa-user-minus"></i> <%= __('admin_users_manager_btn_delete') %>
+                                        </button>
+                                    </form>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<%- include('../../partials/admin-layout-bottom') %>

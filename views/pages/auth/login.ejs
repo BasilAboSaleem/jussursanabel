@@ -1,0 +1,99 @@
+<%- include('../../partials/header-top') %>
+
+<main style="min-height: 100vh; position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 100px 20px;">
+    <!-- Soft Atmospheric Background -->
+    <div style="position: absolute; inset: 0; background: 
+        radial-gradient(circle at 20% 20%, rgba(226, 176, 100, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
+    </div>
+    <div class="bg-mesh" style="opacity: 0.15;"></div>
+
+    <!-- Floating Elements (Back by Request) -->
+    <div class="float-element" style="position: absolute; top: 12%; left: 15%; font-size: 3.5rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
+        <i class="fas fa-star"></i>
+    </div>
+    <div class="float-element" style="position: absolute; bottom: 20%; right: 12%; font-size: 5rem; color: var(--accent); opacity: 0.12; filter: blur(2px); animation-delay: -4s;">
+        <i class="fas fa-hand-holding-heart"></i>
+    </div>
+    <div class="float-element" style="position: absolute; top: 70%; left: 8%; font-size: 2.5rem; color: var(--secondary); opacity: 0.08; filter: blur(1px); animation-delay: -2s;">
+        <i class="fas fa-sparkles"></i>
+    </div>
+
+    <!-- Soft Glass Login Card -->
+    <div class="luxury-card reveal-on-scroll active" style="width: 100%; max-width: 480px; padding: 50px; border-radius: 40px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="display: inline-block; width: 85px; height: 85px; background: var(--grad-gold); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(226, 176, 100, 0.25); transform: rotate(-5deg);">
+                <i class="fas fa-lock" style="font-size: 2.22rem; color: white;"></i>
+            </div>
+            <h2 class="font-cairo" style="font-size: 2.4rem; color: #ffffff; margin-bottom: 10px; font-weight: 800;">تسجيل الدخول</h2>
+            <p style="color: rgba(255,255,255,0.65); font-size: 1.05rem;">أهلاً بك مجدداً في جسور السنابل</p>
+        </div>
+
+        <% if (error && error.length > 0) { %>
+            <div style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 18px; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
+                <i class="fas fa-circle-exclamation" style="margin-left: 8px;"></i> <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/auth/login" method="POST" class="premium-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;">البريد الإلكتروني</label>
+                <div style="position: relative;">
+                    <i class="fas fa-envelope" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
+                    <input type="email" name="email" required class="form-input-soft" placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 35px;">
+                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;">كلمة المرور</label>
+                <div style="position: relative;">
+                    <i class="fas fa-key" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
+                    <input type="password" name="password" required class="form-input-soft" placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; height: 65px; border-radius: 22px; font-size: 1.2rem; font-weight: 900; box-shadow: 0 10px 30px rgba(217, 119, 6, 0.25);">
+                دخول للحساب <i class="fas fa-sign-in-alt" style="margin-right: 15px;"></i>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 45px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <p style="color: rgba(255,255,255,0.55); font-size: 1rem;">
+                ليس لديك حساب؟ 
+                <a href="/auth/register" style="color: var(--secondary); font-weight: 900; text-decoration: none; margin-right: 8px;">إنشاء حساب جديد</a>
+            </p>
+        </div>
+    </div>
+</main>
+
+<style>
+    .form-input-soft {
+        width: 100%;
+        padding: 18px 55px 18px 20px;
+        border-radius: 20px;
+        background: #ffffff;
+        border: 2px solid #f1f5f9;
+        font-family: inherit;
+        font-size: 1rem;
+        color: var(--primary);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        outline: none;
+    }
+
+    .form-input-soft:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 10px 25px rgba(226, 176, 100, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-input-soft::placeholder {
+        color: #94a3b8;
+    }
+    
+    body { background: #020617 !important; }
+</style>
+
+<%- include('../../partials/footer-bottom') %>

@@ -1,0 +1,82 @@
+<header class="premium-nav">
+    <a href="/" class="logo-luxury" style="flex-shrink: 0;">
+        <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+        <span class="font-cairo"><%= __('hero_title') %></span>
+    </a>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuBtn" style="margin-right: auto; order: 2;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <nav class="nav-links-luxury" id="navLinks">
+        <a href="/" class="nav-link-luxury"><%= __('home') %></a>
+        <a href="/cases" class="nav-link-luxury"><%= __('cases') %></a>
+        <a href="/about" class="nav-link-luxury"><%= __('about_us') %></a>
+        <a href="/transparency" class="nav-link-luxury"><%= __('navbar_transparency') %></a>
+        <a href="/contact" class="nav-link-luxury"><%= __('navbar_contact') %></a>
+        
+        <!-- Mobile Actions -->
+        <div class="mobile-only-actions" style="display: none; padding: 15px; border-top: 1px solid #eee; margin-top: 15px;">
+            <% if (user) { %>
+                <a href="/dashboard" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; margin-bottom: 10px;"><%= __('dashboard') %></a>
+                <a href="/auth/logout" class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center;"><%= __('navbar_logout') %></a>
+            <% } else { %>
+                <a href="/auth/login" class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; margin-bottom: 10px;"><%= __('navbar_login') %></a>
+                <a href="/auth/register" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center;"><%= __('navbar_register') %></a>
+            <% } %>
+        </div>
+    </nav>
+
+    <div class="nav-actions-luxury" style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
+        <% if (user) { %>
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.03); padding: 4px 12px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.05);">
+                <span style="font-size: 0.8rem; font-weight: 800; color: var(--primary); white-space: nowrap;"><%= user.name %></span>
+                <a href="/dashboard" class="btn-lux btn-lux-primary btn-sm" style="padding: 6px 15px; font-size: 0.8rem;">
+                    <i class="fas fa-user-circle"></i> <%= __('dashboard') %>
+                </a>
+            </div>
+            <a href="/auth/logout" style="color: var(--text-muted); font-size: 1.1rem; margin-right: 5px;" title="<%= __('navbar_logout') %>"><i class="fas fa-sign-out-alt"></i></a>
+        <% } else { %>
+            <a href="/auth/login" style="color: var(--primary); text-decoration: none; font-weight: 800; font-size: 0.9rem; margin-left: 5px;"><%= __('navbar_login') %></a>
+            <a href="/auth/register" class="btn-lux btn-lux-primary btn-sm">
+                <%= __('navbar_register') %> <i class="fas fa-arrow-<%= locals.langDir === 'ltr' ? 'right' : 'left' %>" style="font-size: 0.7rem; margin: 0 5px;"></i>
+            </a>
+        <% } %>
+
+        <!-- Language Switcher Dropdown -->
+        <div class="lang-dropdown-lux" style="position: relative; margin-inline-start: 10px; padding-inline-start: 15px; border-inline-start: 2px solid rgba(0,0,0,0.05);">
+            <button id="langToggleBtn" style="background: none; border: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; padding: 5px;" title="تغيير اللغة">
+                <i class="fas fa-globe"></i>
+            </button>
+            <div id="langMenu" class="shadow-sm" style="display: none; position: absolute; top: calc(100% + 15px); <%= locals.langDir === 'ltr' ? 'right' : 'left' %>: 0; background: white; border-radius: 10px; padding: 8px; min-width: 140px; z-index: 1000; border: 1px solid rgba(0,0,0,0.05);">
+                <a href="/lang/ar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; text-decoration: none; background: <%= locals.currentLocale === 'ar' ? 'var(--secondary)' : 'transparent' %>; color: <%= locals.currentLocale === 'ar' ? '#fff' : 'var(--primary)' %>; border-radius: 6px; font-size: 0.95rem; font-weight: 800; margin-bottom: 5px; transition: all 0.2s;">
+                    العربية <i class="fas fa-check" style="opacity: <%= locals.currentLocale === 'ar' ? '1' : '0' %>;"></i>
+                </a>
+                <a href="/lang/en" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; text-decoration: none; background: <%= locals.currentLocale === 'en' ? 'var(--secondary)' : 'transparent' %>; color: <%= locals.currentLocale === 'en' ? '#fff' : 'var(--primary)' %>; border-radius: 6px; font-size: 0.95rem; font-weight: 800; transition: all 0.2s;">
+                    English <i class="fas fa-check" style="opacity: <%= locals.currentLocale === 'en' ? '1' : '0' %>;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+        this.querySelector('i').classList.toggle('fa-bars');
+        this.querySelector('i').classList.toggle('fa-times');
+    });
+
+    // Language Dropdown Toggle Logic
+    const langToggleBtn = document.getElementById('langToggleBtn');
+    const langMenu = document.getElementById('langMenu');
+    if (langToggleBtn && langMenu) {
+        langToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', () => langMenu.style.display = 'none');
+        langMenu.addEventListener('click', (e) => e.stopPropagation());
+    }
+</script>

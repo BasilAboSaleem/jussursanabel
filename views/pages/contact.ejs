@@ -1,0 +1,306 @@
+<%- include('../partials/header-top') %>
+
+<main style="overflow: hidden; background: #fff;">
+    <!-- Premium Hero Section -->
+    <section class="hero-luxury" style="min-height: 50vh; padding: 160px 5% 80px;">
+        <div class="bg-mesh"></div>
+        
+        <!-- Floating Elements -->
+        <div class="float-element" style="position: absolute; top: 15%; right: 5%; font-size: 3rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <div class="float-element" style="position: absolute; bottom: 20%; left: 8%; font-size: 4rem; color: var(--accent); opacity: 0.15; filter: blur(2px); animation-delay: -3s;">
+            <i class="fas fa-headset"></i>
+        </div>
+
+        <div class="hero-content-luxury container">
+            <span class="hero-badge-luxury reveal-on-scroll">
+                <i class="fas fa-comments"></i> <%= __('contact_hero_badge') %>
+            </span>
+            <h1 class="hero-title-luxury reveal-on-scroll" style="transition-delay: 0.2s;">
+                <% 
+                    const contactHeroTitle = __('contact_hero_title');
+                    const contactHighlight = currentLocale === 'ar' ? 'بقلبك' : 'Heart';
+                    const contactShimmered = contactHeroTitle.includes(contactHighlight) ? contactHeroTitle.replace(contactHighlight, `<span class="shimmer-text">${contactHighlight}</span>`) : contactHeroTitle;
+                %>
+                <%- contactShimmered %>
+            </h1>
+            <p class="hero-desc-luxury reveal-on-scroll" style="transition-delay: 0.4s;">
+                <%= __('contact_hero_desc') %>
+            </p>
+        </div>
+    </section>
+
+    <!-- Contact Content Section -->
+    <section class="section-luxury container" style="margin-top: -60px; position: relative; z-index: 10;">
+        <div class="grid-2" style="gap: 60px;">
+            <!-- Contact Info Sidebar -->
+            <div class="reveal-on-scroll">
+                <span class="section-badge"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
+                <h2 class="section-title-luxury" style="margin-bottom: 30px;"><%= __('contact_channels_title').split(' ')[0] %> <%= __('contact_channels_title').split(' ')[1] %> <br><span style="color: var(--secondary);"><%= __('contact_channels_title').split(' ')[2] %></span></h2>
+                <p style="color: var(--text-muted); line-height: 1.8; margin-bottom: 40px; font-size: 1.1rem;">
+                    <%= __('contact_channels_desc') %>
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- WhatsApp Card -->
+                    <a href="https://wa.me/970599000000" target="_blank" class="luxury-card contact-info-card reveal-on-scroll" style="transition-delay: 0.1s;">
+                        <div class="contact-icon-wrapper" style="background: #eefdf3; color: #25d366;">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-text-wrapper">
+                            <h4 class="font-cairo"><%= __('contact_whatsapp_title') %></h4>
+                            <p><%= __('contact_whatsapp_desc') %></p>
+                        </div>
+                        <i class="fas fa-chevron-left arrow-indicator"></i>
+                    </a>
+
+                    <!-- Email Card -->
+                    <div class="luxury-card contact-info-card reveal-on-scroll" style="transition-delay: 0.2s;">
+                        <div class="contact-icon-wrapper" style="background: #f0f9ff; color: var(--accent);">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <div class="contact-text-wrapper">
+                            <h4 class="font-cairo"><%= __('contact_email_title') %></h4>
+                            <p>info@sanabel.ps</p>
+                        </div>
+                    </div>
+
+                    <!-- Location Card -->
+                    <div class="luxury-card contact-info-card reveal-on-scroll" style="transition-delay: 0.3s;">
+                        <div class="contact-icon-wrapper" style="background: #fff0f0; color: #ef4444;">
+                            <i class="fas fa-location-dot"></i>
+                        </div>
+                        <div class="contact-text-wrapper">
+                            <h4 class="font-cairo"><%= __('contact_office_title') %></h4>
+                            <p><%= __('contact_office_desc') %></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media Links -->
+                <div style="margin-top: 50px; display: flex; gap: 15px;">
+                    <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <!-- Enhanced Contact Form -->
+            <div class="reveal-on-scroll" style="transition-delay: 0.4s;">
+                <div class="luxury-card glass-panel form-container" style="padding: 50px; border: 1px solid #f1f5f9; background: white;">
+                    <h3 class="font-cairo" style="font-weight: 900; margin-bottom: 10px; color: var(--primary);"><%= __('contact_form_title') %></h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 35px;"><%= __('contact_form_desc') %></p>
+                    
+                    <form action="#" method="POST" class="premium-form">
+                        <div class="form-group-lux">
+                            <label class="form-label-lux"><%= __('contact_form_name') %></label>
+                            <div class="input-wrapper-lux">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" class="form-input-lux" placeholder="<%= __('contact_form_name_placeholder') %>" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group-lux">
+                            <label class="form-label-lux"><%= __('contact_email_title') %></label>
+                            <div class="input-wrapper-lux">
+                                <i class="fas fa-at input-icon"></i>
+                                <input type="email" class="form-input-lux" placeholder="example@mail.com" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group-lux">
+                            <label class="form-label-lux"><%= __('contact_form_subject') %></label>
+                            <div class="input-wrapper-lux">
+                                <i class="fas fa-tag input-icon"></i>
+                                <select class="form-input-lux" style="appearance: none;">
+                                    <option><%= __('contact_form_subject_donation') %></option>
+                                    <option><%= __('contact_form_subject_orphan') %></option>
+                                    <option><%= __('contact_form_subject_complaint') %></option>
+                                    <option><%= __('contact_form_subject_other') %></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group-lux">
+                            <label class="form-label-lux"><%= __('contact_form_message') %></label>
+                            <textarea class="form-input-lux" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-lux btn-lux-navy btn-lg" style="width: 100%; justify-content: center; margin-top: 10px; height: 60px; font-size: 1.15rem;">
+                            <i class="fas fa-paper-plane" style="margin-inline-end: 10px;"></i> <%= __('contact_form_submit') %> 
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Map Mockup Section -->
+    <section class="section-luxury container reveal-on-scroll">
+        <div style="height: 400px; border-radius: 40px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #e2e8f0;">
+            <!-- Placeholder for Map -->
+            <div style="position: absolute; inset: 0; opacity: 0.1; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
+            <div style="text-align: center; position: relative; z-index: 2; padding: 0 20px;">
+                <div style="font-size: 4rem; color: var(--primary); margin-bottom: 20px; opacity: 0.1;">
+                    <i class="fas fa-map-location-dot"></i>
+                </div>
+                <h3 class="font-cairo" style="font-weight: 800; color: var(--primary);"><%= __('contact_map_title') %></h3>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;"><%= __('contact_map_desc') %></p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+    /* Contact Info Card Styling */
+    .contact-info-card {
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid #f1f5f9 !important;
+        position: relative;
+    }
+
+    .contact-info-card:hover {
+        transform: translateX(-10px);
+        box-shadow: 0 15px 35px rgba(2, 6, 23, 0.08);
+        border-color: var(--secondary) !important;
+    }
+
+    .contact-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .contact-info-card:hover .contact-icon-wrapper {
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    .contact-text-wrapper h4 {
+        margin-bottom: 5px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .contact-text-wrapper p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .arrow-indicator {
+        margin-right: auto;
+        opacity: 0.3;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .contact-info-card:hover .arrow-indicator {
+        opacity: 1;
+        transform: translateX(-5px);
+        color: var(--secondary);
+    }
+
+    /* Social Buttons */
+    .social-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    .social-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-5px);
+    }
+
+    /* Premium Form Styling */
+    .form-group-lux {
+        margin-bottom: 25px;
+    }
+
+    .form-label-lux {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 800;
+        font-size: 0.92rem;
+        color: var(--primary);
+    }
+
+    .input-wrapper-lux {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 20px;
+        color: var(--text-muted);
+        pointer-events: none;
+        transition: color 0.3s ease;
+    }
+
+    .form-input-lux {
+        width: 100%;
+        padding: 16px 50px 16px 20px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 14px;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .form-input-lux:focus {
+        background: white;
+        border-color: var(--secondary);
+        box-shadow: 0 10px 25px rgba(226, 176, 100, 0.08);
+    }
+
+    .form-input-lux:focus + .input-icon {
+        color: var(--secondary);
+    }
+
+    textarea.form-input-lux {
+        padding: 20px;
+    }
+</style>
+
+<script>
+    // Reveal on scroll logic
+    const observerOptions = { threshold: 0.1 };
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+</script>
+
+<%- include('../partials/footer-bottom') %>

@@ -1,0 +1,146 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="admin-container-lux">
+    <div class="luxury-card glass-panel" style="margin-bottom: 30px; border-radius: 20px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <h2 class="font-cairo"><i class="fa-solid fa-shield-check"></i> <%= __('admin_impact_title') %></h2>
+        <p class="text-muted"><%= __('admin_impact_desc') %></p>
+    </div>
+
+    <% if (pendingProofs && pendingProofs.length > 0) { %>
+        <div class="proofs-grid">
+            <% pendingProofs.forEach(proof => { %>
+                <div class="luxury-card glass-panel proof-card" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                    <div class="proof-header">
+                        <span class="badge badge-navy"><%= proof.case ? proof.case.title : __('common_deleted_case') %></span>
+                        <span class="proof-date"><%= new Date(proof.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></span>
+                    </div>
+                    
+                    <div class="proof-body">
+                        <h4 class="font-cairo"><%= proof.title %></h4>
+                        <p><%= proof.content %></p>
+                        
+                        <% if (proof.images && proof.images.length > 0) { %>
+                            <div class="proof-gallery">
+                                <% proof.images.forEach(img => { %>
+                                    <a href="<%= img %>" target="_blank">
+                                        <img src="<%= img %>" class="proof-thumb" title="<%= __('common_view_full_size') %>">
+                                    </a>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <div class="proof-footer">
+                        <div class="guardian-info">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <div>
+                                <strong><%= proof.guardian.name %></strong>
+                                <span><%= __('admin_impact_beneficiary') %></span>
+                            </div>
+                        </div>
+                        
+                        <div class="proof-actions" style="flex-direction: <%= langDir === 'rtl' ? 'row' : 'row-reverse' %>;">
+                            <form action="/admin/impact-proofs/<%= proof._id %>/approve" method="POST" style="flex: 1;">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="submit" class="btn-lux btn-lux-primary" style="width: 100%;"><i class="fa-solid fa-check"></i> <%= __('common_approve_publish') %></button>
+                            </form>
+                            
+                            <button onclick="toggleRejectionForm('<%= proof._id %>')" class="btn-lux btn-lux-outline" style="flex: 1;"><i class="fa-solid fa-times"></i> <%= __('common_reject') %></button>
+                        </div>
+
+                        <!-- Reject Form (Hidden by default) -->
+                        <div id="reject-form-<%= proof._id %>" class="rejection-form-container" style="display: none; margin-top: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                            <form action="/admin/impact-proofs/<%= proof._id %>/reject" method="POST">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <textarea name="rejectionReason" required placeholder="<%= __('admin_impact_rejection_placeholder') %>" class="input-lux"></textarea>
+                                <button type="submit" class="btn-lux btn-lux-danger" style="width: 100%; margin-top: 10px;"><%= __('admin_impact_confirm_rejection') %></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="luxury-card glass-panel" style="text-align: center; padding: 100px 40px;">
+            <i class="fa-solid fa-clipboard-check" style="font-size: 4rem; opacity: 0.1; margin-bottom: 25px;"></i>
+            <h3><%= __('admin_impact_no_pending') %></h3>
+            <p class="text-muted"><%= __('admin_impact_no_pending_desc') %></p>
+        </div>
+    <% } %>
+</div>
+
+<style>
+    .proofs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+    }
+    .proof-card {
+        display: flex;
+        flex-direction: column;
+        padding: 25px !important;
+    }
+    .proof-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .proof-date { font-size: 0.8rem; color: #94a3b8; }
+    .proof-body { flex: 1; }
+    .proof-body h4 { color: var(--primary); margin-bottom: 10px; }
+    .proof-body p { font-size: 0.9rem; line-height: 1.6; color: #475569; margin-bottom: 15px; }
+    
+    .proof-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .proof-thumb {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s;
+    }
+    .proof-thumb:hover { transform: scale(1.05); }
+
+    .proof-footer {
+        padding-top: 15px;
+        border-top: 1px solid #f1f5f9;
+    }
+    .guardian-info {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .guardian-info i { font-size: 1.5rem; color: var(--secondary); opacity: 0.5; }
+    .guardian-info strong { display: block; font-size: 0.9rem; }
+    .guardian-info span { font-size: 0.75rem; color: #94a3b8; }
+
+    .proof-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .rejection-form-container textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid var(--danger);
+        font-size: 0.85rem;
+    }
+</style>
+
+<script>
+    function toggleRejectionForm(id) {
+        const form = document.getElementById(`reject-form-${id}`);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

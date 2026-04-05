@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="<%= locals.currentLocale || 'ar' %>" dir="<%= locals.langDir || 'rtl' %>">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO & Meta Tags -->
+    <meta name="description" content="<%= locals.metaDescription || 'جسور السنابل - منصة خيرية موثوقة للربط المباشر بين المتبرعين والمحتاجين في غزة بكل شفافية وكرامة.' %>">
+    <meta name="keywords" content="تبرع, غزة, صدقة, كفالة يتيم, مساعدة أسر, فلسطين, جسور السنابل, زكاة, عمل خيري">
+    <meta name="author" content="جسور السنابل">
+    <!-- Open Graph (Facebook, WhatsApp, etc.) -->
+    <meta property="og:title" content="<%= title %> — <%= __('hero_title') %>">
+    <meta property="og:description" content="<%= locals.metaDescription || __('hero_desc') %>">
+    <meta property="og:image" content="<%= locals.ogImage || '/assets/images/logo.png' %>">
+    <meta property="og:url" content="<%= locals.fullUrl || '' %>">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ar_AR">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title %> — <%= __('hero_title') %>">
+    <meta name="twitter:description" content="<%= locals.metaDescription || __('hero_desc') %>">
+    <meta name="twitter:image" content="<%= locals.ogImage || '/assets/images/logo.png' %>">
+
+    <title><%= title %> — <%= __('hero_title') %></title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker failed', err));
+            });
+        }
+    </script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="/assets/css/premium.css">
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #fbbf24;
+            --accent: #14b8a6;
+            --grad-navy: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #f8fafc;
+            color: var(--primary);
+            overflow-x: hidden;
+        }
+
+        .navbar-luxury {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-luxury {
+            background: var(--primary);
+            color: white;
+            padding: 80px 0 30px;
+        }
+        .d-none { display: none !important; }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>

@@ -1,0 +1,707 @@
+<%- include('../../partials/header-top') %>
+
+<main style="overflow: hidden; background: #fafafa;">
+    <!-- Case Explorer Hero -->
+    <section class="hero-luxury" style="min-height: 50vh; padding: 140px 5% 60px; display: flex; align-items: flex-end; text-align: right;">
+        <div class="bg-mesh"></div>
+        <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(2, 6, 23, 0.9), transparent); z-index: 1;"></div>
+        
+        <div class="container" style="position: relative; z-index: 2; width: 100%;">
+            <nav class="reveal-on-scroll" style="margin-bottom: 20px; font-weight: 700; font-size: 0.95rem;">
+                <a href="/cases" style="color: var(--secondary); text-decoration: none;"><%= __('case_details_breadcrumb_list') %></a> 
+                <span style="color: white; opacity: 0.6; margin: 0 10px;">/</span>
+                <span style="color: white;"><%= foundCase.title %></span>
+            </nav>
+            <h1 class="hero-title-luxury reveal-on-scroll" style="font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 10px; transition-delay: 0.2s;">
+                <%= foundCase.title %>
+            </h1>
+            <div class="reveal-on-scroll" style="display: flex; gap: 15px; flex-wrap: wrap; transition-delay: 0.3s;">
+                <span class="badge badge-gold" style="padding: 8px 20px;"><i class="fas fa-certificate"></i> <%= foundCase.type === 'orphan' ? __('cases_type_orphan') : __('cases_type_family') %></span>
+                <span class="badge" style="background: rgba(255,255,255,0.1); color: white; border: solid 1px rgba(255,255,255,0.2); padding: 8px 20px;"><i class="fas fa-location-dot"></i> <%= foundCase.location %></span>
+            </div>
+        </div>
+    </section>
+
+    <div class="container" style="padding-top: 60px; padding-bottom: 100px;">
+        <div class="case-main-grid" style="display: grid; grid-template-columns: 1.4fr 0.6fr; align-items: start; gap: 40px;">
+
+            <!-- Left: Case Detailed Information -->
+            <div class="reveal-on-scroll">
+                <div class="luxury-card" style="padding: 40px; background: white; border: 1px solid #f1f5f9; box-shadow: 0 10px 40px rgba(0,0,0,0.03);">
+                    <!-- Main Image with zoom effect -->
+                    <div style="border-radius: 20px; overflow: hidden; margin-bottom: 40px; box-shadow: var(--shadow-md); height: 500px;">
+                        <img src="<%= foundCase.image %>" alt="<%= foundCase.title %>" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <div style="line-height: 1.9; font-size: 1.15rem; color: var(--text-muted);">
+                        <h3 class="font-cairo" style="color: var(--primary); font-size: 1.7rem; margin-bottom: 25px; font-weight: 900; background: linear-gradient(to left, var(--secondary) 0%, transparent 100%); -webkit-background-clip: padding-box; background-clip: padding-box; border-right: 6px solid var(--secondary); padding-right: 18px;">
+                            <%= __('case_details_story_title') %>
+                        </h3>
+                        <div style="white-space: pre-line; background: #fdfdfd; padding: 30px; border-radius: 15px; border: 1px solid #f8fafc;">
+                            <%= foundCase.details.storyAr %>
+                        </div>
+                    </div>
+
+                    <!-- Family Structure Section -->
+                    <% if (foundCase.familyStructure) { %>
+                    <div style="margin-top: 40px; padding: 30px; background: #fffdf5; border-radius: 20px; border: 1px solid #fde68a;">
+                        <h3 class="font-cairo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 25px; font-weight: 900; border-right: 4px solid var(--secondary); padding-right: 15px;">
+                            <i class="fas fa-users-viewfinder"></i> <%= __('family_structure_title') %>
+                        </h3>
+
+                        <!-- Father -->
+                        <% if (foundCase.familyStructure.father && foundCase.familyStructure.father.name) { %>
+                        <div style="margin-bottom: 25px;">
+                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-user-tie" style="margin-left: 5px;"></i> <%= __('father_details') %></h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
+                                <div><strong style="color: var(--primary);"><%= __('father_name') %>:</strong> <%= foundCase.familyStructure.father.name %></div>
+                                <div><strong style="color: var(--primary);"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.father.deathDate ? new Date(foundCase.familyStructure.father.deathDate).toLocaleDateString() : '---' %></div>
+                                <div style="grid-column: 1 / -1;"><strong style="color: var(--primary);"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.father.deathReason || '---' %></div>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <!-- Mother -->
+                        <% if (foundCase.familyStructure.mother) { %>
+                        <div style="margin-bottom: 25px;">
+                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-person-breastfeeding" style="margin-left: 5px;"></i> <%= __('mother_details') %></h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
+                                <% if (foundCase.familyStructure.mother.isDeceased) { %>
+                                    <div><strong style="color: #ef4444;"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.mother.deathDate ? new Date(foundCase.familyStructure.mother.deathDate).toLocaleDateString() : '---' %></div>
+                                    <div><strong style="color: #ef4444;"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.mother.deathReason || '---' %></div>
+                                <% } else { %>
+                                    <div><strong style="color: var(--primary);"><%= __('mother_name') %>:</strong> <%= foundCase.familyStructure.mother.name || '---' %></div>
+                                    <div><strong style="color: var(--primary);"><%= __('age') %>:</strong> <%= foundCase.familyStructure.mother.age || '---' %></div>
+                                    <div><strong style="color: var(--primary);"><%= __('health_status') %>:</strong> <%= (foundCase.familyStructure.mother.healthStatus) ? __('health_' + foundCase.familyStructure.mother.healthStatus) : '---' %></div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <!-- Guardian -->
+                        <% if (foundCase.familyStructure.guardian) { %>
+                        <div style="margin-bottom: 25px;">
+                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-user-shield" style="margin-left: 5px;"></i> <%= __('guardian_details') %></h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
+                                <div><strong style="color: var(--primary);"><%= __('guardian_name') %>:</strong> <%= foundCase.familyStructure.guardian.name || '---' %></div>
+                                <div><strong style="color: var(--primary);"><%= __('birth_date') %>:</strong> <%= foundCase.familyStructure.guardian.birthDate ? new Date(foundCase.familyStructure.guardian.birthDate).toLocaleDateString() : '---' %></div>
+                                <div><strong style="color: var(--primary);"><%= __('family_size') %>:</strong> <%= foundCase.familyStructure.guardian.familySize || '---' %></div>
+                                <div><strong style="color: var(--primary);"><%= __('health_status') %>:</strong> <%= foundCase.familyStructure.guardian.healthStatus ? __('health_' + foundCase.familyStructure.guardian.healthStatus) : '---' %></div>
+                                <% 
+                                    const housingMap = { tent: 'tent', rent: 'rent', damaged_home: 'damaged', host_family: 'host' }; 
+                                    const hKey = foundCase.familyStructure.guardian.housingStatus ? housingMap[foundCase.familyStructure.guardian.housingStatus] : null; 
+                                %>
+                                <div><strong style="color: var(--primary);"><%= __('guardian_housing_status') %>:</strong> <%= hKey ? __('housing_' + hKey) : '---' %></div>
+                                <div><strong style="color: var(--primary);"><%= __('guardian_residency_status') %>:</strong> <%= foundCase.familyStructure.guardian.residencyStatus ? __('residency_' + foundCase.familyStructure.guardian.residencyStatus) : '---' %></div>
+                                
+                                <!-- Privacy Info (Admins only) -->
+                                <% if (typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'super_admin')) { %>
+                                    <div style="grid-column: 1 / -1; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.1); display: flex; gap: 20px;">
+                                        <div><strong style="color: #ef4444;"><i class="fas fa-id-card"></i> <%= __('common_id_number') %>:</strong> <span style="font-family: monospace; font-size: 1.1em; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px;"><%= foundCase.familyStructure.guardian.idNumber || '---' %></span></div>
+                                        <div><strong style="color: #ef4444;"><i class="fas fa-phone"></i> <%= __('common_phone') %>:</strong> <span style="font-family: monospace; font-size: 1.1em; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px;" dir="ltr"><%= foundCase.familyStructure.guardian.phone || '---' %></span></div>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <!-- Family Members / Orphans -->
+                        <% if (foundCase.familyStructure.orphans && foundCase.familyStructure.orphans.length > 0) { %>
+                        <div>
+                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 20px;"><i class="fas fa-children" style="margin-left: 5px;"></i> <%= foundCase.type === 'orphan' ? __('orphan_details') : __('family_members_details') %> (<%= foundCase.familyStructure.orphans.length %>)</h5>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <% foundCase.familyStructure.orphans.forEach((orphan, i) => { %>
+                                    <div style="background: white; padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; font-size: 0.9rem; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                                        <div><strong style="color: var(--primary); font-size: 1.05rem;"><i class="fas fa-child" style="color: var(--secondary);"></i> <%= orphan.name %></strong></div>
+                                        <div><i class="far fa-calendar-alt text-muted" style="margin-left: 5px;"></i> <%= orphan.birthDate ? new Date(orphan.birthDate).toLocaleDateString() : '---' %></div>
+                                        <div><i class="fas fa-heart-pulse text-muted" style="margin-left: 5px;"></i> <%= orphan.healthStatus ? __('health_' + orphan.healthStatus) : '---' %></div>
+                                        <div><i class="fas fa-graduation-cap text-muted" style="margin-left: 5px;"></i> <%= orphan.educationStage ? __('edu_' + orphan.educationStage) : '---' %></div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                    </div>
+                    <% } %>
+
+                    <!-- Verification Evidence Section -->
+                    <% if (foundCase.gallery && foundCase.gallery.length > 0) { %>
+                    <div style="margin-top: 60px; padding: 30px; background: rgba(16, 185, 129, 0.03); border-radius: 20px; border: 1px dashed #10b981;">
+                        <h4 class="font-cairo" style="color: #065f46; margin-bottom: 25px; font-weight: 800;">
+                            <i class="fas fa-file-shield"></i> <%= __('case_details_docs_title') %>
+                        </h4>
+                        <div class="grid-3" style="gap: 20px;">
+                            <% foundCase.gallery.forEach((img, idx) => { %>
+                                <div class="gallery-item-lux" style="height: 180px; border-radius: 15px; overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer; position: relative;">
+                                    <img src="<%= img %>" style="width: 100%; height: 100%; object-fit: cover; filter: blur(2px);">
+                                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #065f46; margin-top: 15px; font-weight: 600;"><%= __('case_details_docs_disclaimer') %></p>
+                    </div>
+                    <% } %>
+
+                    <!-- Updates Timeline -->
+                    <div style="margin-top: 60px;">
+                        <h4 class="font-cairo" style="color: var(--primary); margin-bottom: 40px; font-weight: 850; border-right: 6px solid var(--grad-navy); padding-right: 15px;">
+                            <i class="fas fa-timeline"></i> <%= __('case_details_updates_title') %>
+                        </h4>
+                        
+                        <% if (foundCase.updates && foundCase.updates.length > 0) { %>
+                            <div class="timeline-lux">
+                                <% foundCase.updates.forEach((update, idx) => { %>
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot"></div>
+                                        <div class="timeline-date"><%= new Date(update.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+                                        <div class="timeline-content">
+                                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                <h5 style="font-weight: 800; color: var(--primary); margin-bottom: 10px;">
+                                                    <i class="fa-solid fa-square-check" style="color: #10b981;"></i> <%= update.title %>
+                                                </h5>
+                                                <% if (update.postedBy === 'family') { %>
+                                                    <span style="font-size: 0.70rem; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 12px; font-weight: 800; border: 1px solid #bae6fd; display: inline-flex; align-items: center; gap: 5px;"><i class="fas fa-home"></i> <%= __('case_details_update_family') %></span>
+                                                <% } else { %>
+                                                    <span style="font-size: 0.70rem; background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 12px; font-weight: 800; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 5px;"><i class="fas fa-shield-check"></i> <%= __('case_details_update_admin') %></span>
+                                                <% } %>
+                                            </div>
+                                            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px;"><%= update.content %></p>
+                                            
+                                            <% if (update.images && update.images.length > 0) { %>
+                                                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                                                    <% update.images.forEach(img => { 
+                                                        const ext = img.split('.').pop().toLowerCase();
+                                                        const isVideo = ['mp4', 'webm', 'ogg'].includes(ext);
+                                                        const isDoc = ['pdf', 'doc', 'docx', 'txt'].includes(ext);
+                                                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                                                    %>
+                                                        <a href="<%= img %>" target="_blank" class="attachment-preview" style="width: 90px; height: 90px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; background: #f8fafc; position: relative; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.borderColor='var(--secondary)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                                            <% if (isImage) { %>
+                                                                <img src="<%= img %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                                                                    <i class="fas fa-expand-alt" style="color: white; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></i>
+                                                                </div>
+                                                            <% } else if (isVideo) { %>
+                                                                <i class="fas fa-file-video fa-2x" style="color: #3b82f6;"></i>
+                                                                <span style="position: absolute; bottom: 5px; font-size: 0.65rem; font-weight: 800; color: #1e3a8a; background: #dbeafe; padding: 2px 6px; border-radius: 6px;">فيديو</span>
+                                                            <% } else if (isDoc) { %>
+                                                                <i class="fas <%= ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-word' %> fa-2x" style="color: <%= ext === 'pdf' ? '#ef4444' : '#2563eb' %>;"></i>
+                                                                <span style="position: absolute; bottom: 5px; font-size: 0.65rem; font-weight: 800; color: <%= ext === 'pdf' ? '#7f1d1d' : '#1e3a8a' %>; background: <%= ext === 'pdf' ? '#fee2e2' : '#dbeafe' %>; padding: 2px 6px; border-radius: 6px;">ملف</span>
+                                                            <% } else { %>
+                                                                <i class="fas fa-file fa-2x" style="color: #64748b;"></i>
+                                                            <% } %>
+                                                        </a>
+                                                    <% }) %>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div style="padding: 40px; background: #f8fafc; border-radius: 15px; text-align: center; color: #94a3b8;">
+                                <i class="fas fa-hourglass-start fa-2x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                                <p><%= __('case_details_updates_empty') %></p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Donation Sidebar -->
+            <div class="sticky" style="top: 100px;">
+                <div class="luxury-card reveal-on-scroll" style="padding: 40px; background: white; border: 1px solid #eab308; box-shadow: var(--shadow-premium); transition-delay: 0.2s;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="display: flex; justify-content: center; margin-bottom: 15px; color: var(--secondary);">
+                            <i class="fas fa-hand-holding-heart fa-3x"></i>
+                        </div>
+                        <h3 class="font-cairo" style="font-weight: 900; font-size: 1.6rem;"><%= __('case_details_cta_title') %></h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem;"><%= __('case_details_cta_desc') %></p>
+                    </div>
+
+                    <div style="margin-bottom: 35px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 900; font-size: 1.15rem;">
+                            <span style="color: var(--secondary);"><%= __('cases_raised_text') %> $<%= foundCase.raisedAmount %></span>
+                            <span style="color: #94a3b8; font-size: 0.9rem;"><%= __('cases_target_text') %>: $<%= foundCase.targetAmount %></span>
+                        </div>
+                        <div class="progress-track" style="height: 14px; background: #f1f5f9; position: relative;">
+                            <% const progressPercent = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
+                            <div class="progress-fill" style="width: <%= progressPercent %>%"></div>
+                            
+                            <!-- Milestone Markers -->
+                            <div style="position: absolute; left: 25%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
+                            <div style="position: absolute; left: 50%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
+                            <div style="position: absolute; left: 75%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
+                            
+                            <% if (progressPercent >= 25) { %>
+                                <div title="وصلنا لـ 25%" style="position: absolute; left: 25%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-star"></i></div>
+                            <% } %>
+                            <% if (progressPercent >= 50) { %>
+                                <div title="وصلنا لـ 50%" style="position: absolute; left: 50%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-medal"></i></div>
+                            <% } %>
+                            <% if (progressPercent >= 75) { %>
+                                <div title="وصلنا لـ 75%" style="position: absolute; left: 75%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-crown"></i></div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Impact Metrics (Phase 2) -->
+                    <div style="margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 15px; border: 1px dashed #e2e8f0;">
+                        <h4 class="font-cairo" style="font-size: 0.9rem; color: var(--primary); margin-bottom: 15px; font-weight: 800;">
+                            <i class="fas fa-chart-line" style="color: var(--secondary);"></i> <%= __('case_details_impact_title') %>
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <% if (foundCase.impactMetrics && foundCase.impactMetrics.length > 0) { %>
+                                <% foundCase.impactMetrics.forEach(metric => { %>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                                        <span style="font-weight: 700; color: var(--secondary);">$<%= metric.amount %></span>
+                                        <span style="color: var(--text-muted);"><%= metric.descriptionAr %></span>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <!-- Default metrics if none defined -->
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                                    <span style="font-weight: 700; color: var(--secondary);">$20</span>
+                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_edu') %></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                                    <span style="font-weight: 700; color: var(--secondary);">$50</span>
+                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_food') %></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0;">
+                                    <span style="font-weight: 700; color: var(--secondary);">$100</span>
+                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_health') %></span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div style="padding: 25px; background: linear-gradient(to bottom right, #fffcf0, #fff); border: 2px dashed #fcd34d; border-radius: 20px; margin-bottom: 30px; text-align: center;">
+                        <h4 class="font-cairo" style="font-size: 0.95rem; color: #b45309; margin-bottom: 8px; font-weight: 800;">
+                            <i class="fas fa-crown"></i> <%= __('case_details_sponsorship_title') %>
+                        </h4>
+                        <p style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            $<%= foundCase.monthlySponsorshipAmount %> <span style="font-size: 1rem; font-weight: 700; color: #94a3b8;"><%= __('case_details_sponsorship_period') %></span>
+                        </p>
+                    </div>
+
+                    <% 
+                        const isSponsored = foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date();
+                    %>
+
+                    <% if (foundCase.isSatisfied) { %>
+                        <div style="background: #f8fafc; border: 2px solid var(--secondary); padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 30px;">
+                            <i class="fas fa-heart-circle-check fa-3x" style="color: var(--secondary); margin-bottom: 15px;"></i>
+                            <h4 class="font-cairo" style="font-weight: 900; color: var(--primary);"><%= __('case_details_satisfied_title') %></h4>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><%= __('case_details_satisfied_desc') %></p>
+                        </div>
+                    <% } else { %>
+                        <% if (isSponsored) { %>
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; justify-content: center;">
+                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                <span style="font-weight: 700; color: #065f46; font-size: 0.85rem;">
+                                    <%= __('case_details_sponsored_until') %> <%= new Date(foundCase.sponsorshipExpiryDate).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                                </span>
+                            </div>
+                        <% } %>
+
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px;">
+                                <i class="fas fa-donate"></i> <%= __('case_details_btn_direct') %>
+                            </a>
+
+                            <% if (isSponsored) { %>
+                                <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px; cursor: not-allowed; opacity: 0.7;" disabled title="<%= __('case_details_btn_sponsored_done') %>">
+                                    <i class="fas fa-lock"></i> <%= __('case_details_btn_sponsored_done') %>
+                                </button>
+                            <% } else { %>
+                                <a href="/donations/checkout?case=<%= foundCase._id %>&type=monthly" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px;">
+                                    <i class="fas fa-arrows-rotate"></i> <%= __('case_details_btn_monthly') %>
+                                </a>
+                            <% } %>
+
+                            <% if (typeof user !== 'undefined' && user && user.role === 'donor') { %>
+                                <div style="margin: 15px 0; text-align: center; position: relative;">
+                                    <span style="padding: 0 15px; background: white; position: relative; z-index: 1; color: #cbd5e1; font-size: 0.8rem; font-weight: 800;"><%= __('case_details_contact_divider') %></span>
+                                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #f1f5f9; z-index: 0;"></div>
+                                </div>
+                                
+                                <% if (chatRequest) { %>
+                                    <% if (chatRequest.status === 'pending') { %>
+                                        <div style="background: #fdf2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 15px; text-align: center;">
+                                            <i class="fas fa-hourglass-half" style="color: #991b1b; margin-bottom: 10px; font-size: 1.2rem;"></i>
+                                            <p style="color: #991b1b; font-weight: 800; font-size: 0.9rem; margin-bottom: 8px;"><%= __('case_details_chat_pending_title') %></p>
+                                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;"><%= __('case_details_chat_pending_desc') %></p>
+                                            <p style="font-size: 0.75rem; color: #b91c1c; margin-bottom: 0;"><%= __('case_details_chat_pending_delay') %> <a href="/support" style="text-decoration: underline; color: inherit; font-weight: 900;"><%= __('case_details_chat_support') %></a>.</p>
+                                        </div>
+                                    <% } else if (chatRequest.status === 'approved') { %>
+                                        <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux" style="width: 100%; justify-content: center; background: #10b981; color: white; border-radius: 15px; border: none; padding: 15px;">
+                                            <i class="fas fa-comments"></i> <%= __('case_details_chat_approved') %>
+                                        </a>
+                                    <% } else if (chatRequest.status === 'rejected') { %>
+                                        <div style="margin-bottom: 15px; text-align: center;">
+                                            <p style="color: #ef4444; font-size: 0.8rem; font-weight: 700;"><%= __('case_details_chat_rejected') %></p>
+                                            <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; border-color: var(--accent); color: var(--accent); border-radius: 15px; border-width: 2px;" onclick="requestCommunication('<%= foundCase._id %>')">
+                                                <i class="fas fa-redo"></i> <%= __('case_details_chat_retry') %>
+                                            </button>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; border-color: var(--accent); color: var(--accent); border-radius: 15px; border-width: 2px;" onclick="requestCommunication('<%= foundCase._id %>')">
+                                        <i class="fas fa-comments"></i> <%= __('case_details_chat_request') %>
+                                    </button>
+                                <% } %>
+                            <% } %>
+                        </div>
+
+                        <!-- Social Sharing Section -->
+                        <div style="margin-top: 35px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
+                            <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin-bottom: 20px; font-weight: 800; text-align: center;"><%= __('case_details_share_title') %></h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                                <a href="https://wa.me/?text=<%= encodeURIComponent('ساهم معنا في دعم حالة ' + foundCase.title + ' عبر منصة جسور السنابل') %>" target="_blank" class="btn-lux" style="background: #25D366; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="btn-lux" style="background: #1877F2; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="btn-lux" style="background: #0077B5; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <button onclick="copyCaseLink()" class="btn-lux" style="background: #f1f5f9; color: var(--primary); display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; cursor: pointer;">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Follow System (Phase 2) -->
+                        <% if (typeof user !== 'undefined' && user) { %>
+                        <div style="margin-top: 25px; text-align: center;">
+                            <% const isFollowing = foundCase.followers && foundCase.followers.includes(user._id); %>
+                            <button id="followBtn" onclick="toggleFollow('<%= foundCase._id %>')" class="btn-lux <%= isFollowing ? 'btn-lux-outline' : 'btn-lux-navy' %>" style="width: 100%; justify-content: center; border-radius: 12px; font-size: 0.9rem; padding: 12px;">
+                                <i class="fas <%= isFollowing ? 'fa-bell-slash' : 'fa-bell' %>"></i>
+                                <span id="followText"><%= isFollowing ? __('case_details_unfollow') : __('case_details_follow') %></span>
+                            </button>
+                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;"><%= __('case_details_follow_desc') %></p>
+                        </div>
+                        <% } %>
+
+                        <!-- Team Fundraising Section (Phase 3) -->
+                        <div style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                                <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin: 0; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-users-rays" style="color: var(--secondary);"></i> <%= __('case_details_teams_title') %>
+                                </h4>
+                                <% if (typeof user !== 'undefined' && user) { %>
+                                    <button onclick="openTeamModal()" class="btn-lux btn-sm btn-lux-outline" style="font-size: 0.75rem;"><i class="fas fa-plus"></i> <%= __('case_details_teams_create') %></button>
+                                <% } %>
+                            </div>
+
+                            <% if (typeof teams !== 'undefined' && teams && teams.length > 0) { %>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                    <% teams.forEach(team => { %>
+                                        <div class="glass-panel" style="padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
+                                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><%= team.name %></div>
+                                            <div style="color: var(--secondary); font-weight: 900; font-size: 1rem;">$<%= team.totalRaised %></div>
+                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px;"><%= team.donorCount %> <%= __('case_details_teams_donors') %></div>
+                                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct&team=<%= team._id %>" class="btn-lux btn-sm btn-lux-primary" style="font-size: 0.7rem; width: 100%; justify-content: center;"><%= __('case_details_teams_support') %></a>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 15px; border: 1px dashed #e2e8f0;">
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;"><%= __('case_details_teams_empty') %></p>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Donor Feed Section -->
+                        <% if (typeof recentDonors !== 'undefined' && recentDonors && recentDonors.length > 0) { %>
+                        <div style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
+                            <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-users" style="color: var(--secondary);"></i> <%= __('case_details_donors_title') %> (<%= recentDonors.length %>)
+                            </h4>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <% recentDonors.forEach(transaction => { %>
+                                    <div style="display: flex; gap: 15px; align-items: flex-start; padding-bottom: 20px; border-bottom: 1px solid #f8fafc;">
+                                        <div style="width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                            <% if (transaction.isAnonymous || !transaction.donor) { %>
+                                                <i class="fas fa-user-secret" style="color: #64748b; font-size: 1.2rem;"></i>
+                                            <% } else { %>
+                                                <img src="<%= transaction.donor.avatar || '/assets/images/placeholder-avatar.jpg' %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <% } %>
+                                        </div>
+                                        <div style="flex-grow: 1;">
+                                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                                                <span style="font-weight: 800; font-size: 0.9rem; color: var(--primary);">
+                                                    <%= (transaction.isAnonymous || !transaction.donor) ? __('case_details_donor_anonymous') : transaction.donor.name %>
+                                                </span>
+                                                <strong style="color: var(--secondary); font-size: 0.95rem;">$<%= transaction.amount %></strong>
+                                            </div>
+                                            <% if (transaction.encouragementMessage) { %>
+                                                <div style="font-size: 0.85rem; color: var(--text-muted); background: #fdfcf6; padding: 12px 15px; border-radius: 12px; border: 1px solid #fef3c7; position: relative; margin-top: 8px; line-height: 1.5; font-style: italic;">
+                                                    <i class="fas fa-quote-right" style="position: absolute; left: 10px; top: 8px; opacity: 0.05; font-size: 1.4rem;"></i>
+                                                    "<%= transaction.encouragementMessage %>"
+                                                </div>
+                                            <% } %>
+                                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px; font-weight: 700;">
+                                                <i class="far fa-clock"></i> <%= new Date(transaction.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                        <% } %>
+                    <% } %>
+
+                    <% if (typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'super_admin')) { %>
+                        <!-- Admin Control Center -->
+                        <div style="margin-top: 30px; padding: 25px; background: #fdf2f2; border: 2px solid #fecaca; border-radius: 20px;">
+                            <h4 class="font-cairo" style="font-size: 1rem; color: #991b1b; margin-bottom: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-user-shield"></i> <%= __('case_details_admin_title') %>
+                            </h4>
+                            
+                            <form action="/admin/cases/<%= foundCase._id %>/toggle-satisfaction" method="POST">
+                                <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                                <button type="submit" class="btn-lux <%= foundCase.isSatisfied ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="width: 100%; justify-content: center; border-color: #991b1b; color: #991b1b;">
+                                    <i class="fas <%= foundCase.isSatisfied ? 'fa-hand-holding-heart' : 'fa-check-double' %>"></i>
+                                    <%= foundCase.isSatisfied ? __('case_details_admin_resume') : __('case_details_admin_stop') %>
+                                </button>
+                            </form>
+                            
+                            <p style="font-size: 0.75rem; color: #b91c1c; margin-top: 10px; font-weight: 600; text-align: center;">
+                                <i class="fas fa-circle-info"></i> <%= __('case_details_admin_disclaimer') %>
+                            </p>
+                        </div>
+                    <% } %>
+
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-top: 30px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9;">
+                        <div style="width: 45px; height: 45px; border-radius: 50%; background: #ecfdf5; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.2rem;">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <span style="font-size: 0.82rem; color: #64748b; line-height: 1.5; font-weight: 600;"><%= __('case_details_trust_disclaimer') %></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+    // Reveal on scroll logic
+    const observerOptions = { threshold: 0.1 };
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .timeline-lux {
+            position: relative;
+            padding-right: 30px;
+            border-right: 2px solid #e2e8f0;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 40px;
+        }
+        .timeline-dot {
+            position: absolute;
+            right: -37px;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            background: var(--secondary);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        .timeline-date {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+        .timeline-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        .timeline-item:hover .timeline-content {
+            transform: translateX(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-color: var(--secondary);
+        }
+        .gallery-item-lux:hover img {
+            filter: blur(0) !important;
+            transform: scale(1.1);
+            transition: all 0.5s ease;
+        }
+        .gallery-item-lux:hover div {
+            opacity: 0;
+        }
+        @media (max-width: 992px) {
+            .case-main-grid {
+                grid-template-columns: 1fr !important;
+                gap: 30px !important;
+            }
+            .hero-luxury {
+                padding-top: 100px !important;
+            }
+            .hero-title-luxury {
+                font-size: 2.2rem !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    function copyCaseLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('<%= __('case_details_copy_success') %>');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+    async function requestCommunication(caseId) {
+        try {
+            const response = await fetch('/messages/request-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    caseId: caseId,
+                    _csrf: '<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || 'حدث خطأ أثناء إرسال الطلب.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ في الاتصال بالسيرفر.');
+        }
+    }
+
+    async function toggleFollow(caseId) {
+        const btn = document.getElementById('followBtn');
+        const text = document.getElementById('followText');
+        const icon = btn.querySelector('i');
+        
+        try {
+            const response = await fetch(`/cases/${caseId}/follow`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': '<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>'
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                if (data.isFollowing) {
+                    btn.classList.remove('btn-lux-navy');
+                    btn.classList.add('btn-lux-outline');
+                    icon.classList.remove('fa-bell');
+                    icon.classList.add('fa-bell-slash');
+                    text.innerText = 'إلغاء المتابعة';
+                } else {
+                    btn.classList.remove('btn-lux-outline');
+                    btn.classList.add('btn-lux-navy');
+                    icon.classList.remove('fa-bell-slash');
+                    icon.classList.add('fa-bell');
+                    text.innerText = 'تابع هذه الحالة';
+                }
+            } else {
+                alert(data.message || 'حدث خطأ ما');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('فشل الاتصال بالسيرفر');
+        }
+    }
+
+    /* Phase 3: Team Fundraising Modals */
+    function openTeamModal() {
+        document.getElementById('teamModal').style.display = 'flex';
+    }
+    
+    function closeTeamModal() {
+        document.getElementById('teamModal').style.display = 'none';
+    }
+
+    async function handleCreateTeam(event) {
+        event.preventDefault();
+        const name = document.getElementById('teamNameInput').value;
+        const description = document.getElementById('teamDescInput').value;
+        
+        try {
+            const response = await fetch('/cases/<%= foundCase._id %>/teams', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': '<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>'
+                },
+                body: JSON.stringify({ name, description })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('تهانينا! تم إنشاء فريقك بنجاح. سنقوم بتحديث الصفحة الآن.');
+                window.location.reload();
+            } else {
+                alert(data.message || 'حدث خطأ ما');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('فشل الاتصال بالسيرفر');
+        }
+    }
+</script>
+
+<!-- Team Modal -->
+<div id="teamModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="luxury-card" style="width: 100%; max-width: 500px; padding: 35px; background: white;">
+        <h3 class="font-cairo" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; color: var(--primary);">
+            <i class="fas fa-users-rays" style="color: var(--secondary);"></i> <%= __('case_details_modal_title') %>
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 25px;"><%= __('case_details_modal_desc') %></p>
+        
+        <form onsubmit="handleCreateTeam(event)">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label-luxury"><%= __('case_details_modal_label_name') %></label>
+                <input type="text" id="teamNameInput" class="form-input" placeholder="<%= __('case_details_modal_label_name') %>" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label-luxury"><%= __('case_details_modal_label_prompt') %></label>
+                <textarea id="teamDescInput" class="form-input" rows="3" placeholder="<%= __('case_details_modal_placeholder_prompt') %>"></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button type="submit" class="btn-lux btn-lux-primary" style="justify-content: center; padding: 12px;"><%= __('case_details_modal_btn_create') %></button>
+                <button type="button" onclick="closeTeamModal()" class="btn-lux btn-lux-outline" style="justify-content: center; padding: 12px; color: #666;"><%= __('case_details_modal_btn_cancel') %></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../../partials/footer-bottom') %>

@@ -1,0 +1,771 @@
+<% if (user && user.role === 'donor') { %>
+    <%- include('../../partials/donor-layout-top') %>
+<% } else { %>
+    <%- include('../../partials/family-layout-top') %>
+<% } %>
+
+<div class="chat-wrapper-lux">
+    <!-- Sidebar: Contacts List -->
+    <div class="chat-sidebar-lux">
+        <div class="sidebar-header-lux">
+            <h3 class="font-cairo"><i class="fas fa-comments"></i> مركز التواصل</h3>
+            <div class="search-box-lux">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="البحث عن محادثة..." id="contactSearch">
+            </div>
+        </div>
+        <div class="contacts-list-lux" id="contactsContainer">
+            <% if (contacts.length > 0) { %>
+                <% contacts.forEach(contact => { %>
+                    <div class="contact-item-lux <%= activeContact && String(activeContact._id) === String(contact.user._id) ? 'active' : '' %>" 
+                         onclick="switchContact('<%= contact.user._id %>')" 
+                         data-user-id="<%= contact.user._id %>"
+                         id="contact-<%= contact.user._id %>">
+                        <div class="avatar-wrapper">
+                            <img src="<%= contact.user.avatar || '/assets/images/default-avatar.png' %>" class="avatar-lux">
+                            <span class="online-indicator"></span>
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-header">
+                                <span class="contact-name">
+                                    <%= (contact.user.role === 'admin' || contact.user.role === 'super_admin') ? 'الدعم الفني' : contact.user.name %>
+                                </span>
+                                <span class="contact-time"><%= contact.time ? contact.time.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : '' %></span>
+                            </div>
+                            <p class="last-message"><%= contact.lastMessage %></p>
+                            <span class="typing-text-sidebar" id="typing-sidebar-<%= contact.user._id %>" style="display: none; color: #10b981; font-size: 0.75rem; font-weight: 700;">يكتب الآن...</span>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="empty-contacts">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>لا توجد محادثات نشطة</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Main Chat Window -->
+    <div class="chat-main-lux" id="chatMainArea">
+        <!-- Placeholder (Always present, toggled via JS) -->
+        <div id="chatPlaceholder" class="chat-placeholder-lux" style="display: block;">
+            <div class="placeholder-icon">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <h3 class="font-cairo">ابدأ حواراً آمناً</h3>
+            <p>اختر أحد جهات الاتصال المعتمدة على اليمين لبدء المحادثة.</p>
+        </div>
+
+        <!-- Chat Content (Always present, toggled via JS) -->
+        <div id="activeChatUI" style="display: none; flex-direction: column; height: 100%; overflow: hidden;">
+            <!-- Chat Header -->
+            <div class="chat-header-lux">
+                <div class="header-user-lux">
+                    <img src="<%= activeContact ? (activeContact.avatar || '/assets/images/default-avatar.png') : '/assets/images/default-avatar.png' %>" class="avatar-sm-lux" id="activeAvatar">
+                    <div>
+                        <h4 class="font-cairo" id="activeName">
+                            <%= activeContact ? ((activeContact.role === 'admin' || activeContact.role === 'super_admin') ? 'الدعم الفني' : activeContact.name) : '' %>
+                        </h4>
+                        <div class="user-meta-lux">
+                            <span class="status-lux" id="userStatus"><i class="fas fa-circle"></i> متصل الآن</span>
+                            <span class="support-badge" id="supportBadge"><i class="fas fa-shield-alt"></i> حساب موثق</span>
+                            <span class="typing-indicator-header" id="typingIndicator" style="display: none; color: #10b981; font-size: 0.75rem; font-weight: 700;">جارٍ الكتابة...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <i class="fas fa-phone-alt"></i>
+                    <i class="fas fa-video"></i>
+                    <i class="fas fa-info-circle"></i>
+                </div>
+            </div>
+
+            <!-- Monitoring Warning Bar -->
+            <div class="monitoring-notice">
+                <i class="fas fa-shield-halved"></i>
+                <span>تنبيه: هذه المحادثة مراقبة لضمان الجودة والشفافية. يُرجى مراجعة <a href="javascript:void(0)" onclick="showMonitoringModal()" style="color: var(--secondary); text-decoration: underline;">شروط الاستخدام</a>.</span>
+            </div>
+
+            <!-- Chat History Area -->
+            <div class="chat-history-lux" id="chatHistory">
+            </div>
+
+            <!-- Input Area (pinned to bottom) -->
+            <div class="chat-input-area-lux" id="inputArea" style="display: none; flex-shrink: 0;">
+                <form id="chat-form" enctype="multipart/form-data">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button type="button" class="btn-icon" onclick="document.getElementById('imageInput').click()" title="إرسال صورة"><i class="fas fa-camera"></i></button>
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+                    <button type="button" class="btn-icon emoji-trigger-btn" title="إيموجي"><i class="far fa-face-smile"></i></button>
+                    <button type="submit" class="btn-send-lux" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <!-- Simple Emoji Picker -->
+                <div id="emojiPicker" class="emoji-picker-panel" style="display:none;"></div>
+            </div>
+
+            <!-- Consent Required Area -->
+            <div id="consentRequiredArea" class="monitoring-consent-lock" style="display: none; flex-shrink: 0;">
+                <div class="lock-content">
+                    <i class="fas fa-lock"></i>
+                    <h4 class="font-cairo">يرجى الموافقة على شروط المراقبة لبدء التواصل</h4>
+                    <p id="consentStatusText">يجب الضغط على زر الموافقة لتفعيل إرسال الرسائل.</p>
+                    <button id="mainAgreeBtn" class="btn-lux btn-lux-primary" onclick="showMonitoringModal()" style="padding: 10px 25px; margin-top: 10px; border-radius: 12px; background: var(--primary); color: white; border: none; cursor: pointer;">قراءة وموافقة</button>
+                </div>
+            </div>
+
+            <!-- Chat Restricted Area (Day/Time Window) -->
+            <div id="chatRestrictedArea" class="chat-restricted-banner" style="display: none; flex-shrink: 0;">
+                <div class="restricted-content">
+                    <div class="restricted-icon"><i class="fas fa-calendar-times"></i></div>
+                    <div class="restricted-text">
+                        <h4 class="font-cairo">التواصل غير متاح حالياً</h4>
+                        <p id="restrictionReasonDisplay"></p>
+                        <div class="restricted-note">
+                            <span>يمكنك العودة لمراسلة هذا الطرف خلال الساعات المحددة فقط.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ban Policy Banner -->
+            <div id="banBanner" class="ban-policy-banner" style="display: none; flex-shrink: 0;">
+                <div class="ban-content">
+                    <div class="ban-icon"><i class="fas fa-hand-slashing"></i></div>
+                    <div class="ban-text">
+                        <h4 class="font-cairo">تم حظر التواصل بينكما بقرار إداري</h4>
+                        <p id="banReasonDisplay"></p>
+                        <div class="ban-appeal">
+                            <span>يمكنك تقديم اعتراض من خلال خيار "مركز الدعم" في القائمة الجانبية.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monitoring Consent Modal -->
+<div id="monitoringModal" class="modal-overlay-lux" style="display: none;">
+    <div class="luxury-card glass-panel modal-content-lux" style="max-width: 500px; padding: 40px; text-align: center; background: white; border-radius: 20px;">
+        <div class="modal-icon-lux" style="font-size: 3rem; color: var(--secondary); margin-bottom: 20px;"><i class="fas fa-user-shield"></i></div>
+        <h3 class="font-cairo">اتفاقية التواصل الآمن</h3>
+        <p style="margin: 20px 0; line-height: 1.7; color: var(--text-muted);">
+            بموجب سياسة الشفافية في مؤسسة السنابل، نقوم بمراقبة جميع الرسائل المتبادلة لضمان الخصوصية والالتزام بالمعايير الأخلاقية. 
+            <br><b>ملاحظة:</b> لن تتمكن من إرسال الرسائل حتى يوافق الطرفان على هذه الاتفاقية.
+        </p>
+        <button id="agreeBtn" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: bold;">أوافق وأرغب في المتابعة</button>
+    </div>
+</div>
+
+<style>
+    /* ===== WRAPPER & LAYOUT ===== */
+    .chat-wrapper-lux {
+        height: calc(100vh - 160px);
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        background: white;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .chat-sidebar-lux { background: #f8fafc; border-left: 1px solid #edf2f7; display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-header-lux { padding: 25px; border-bottom: 1px solid #edf2f7; flex-shrink: 0; }
+    .sidebar-header-lux h3 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary); }
+    .search-box-lux { position: relative; background: white; border-radius: 12px; padding: 8px 15px; display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; }
+    .search-box-lux input { border: none; outline: none; width: 100%; font-size: 0.85rem; }
+    .contacts-list-lux { flex: 1; overflow-y: auto; }
+    .contact-item-lux { display: flex; gap: 15px; padding: 18px 25px; text-decoration: none; border-bottom: 1px solid #edf2f7; transition: all 0.3s; cursor: pointer; }
+    .contact-item-lux:hover { background: #f1f5f9; }
+    .contact-item-lux.active { background: white; border-right: 4px solid var(--secondary); }
+    .avatar-lux { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+    .online-indicator { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: #10b981; border: 2px solid white; }
+    .contact-name { font-weight: 800; color: var(--primary); font-size: 0.95rem; }
+    .last-message { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ===== MAIN CHAT AREA ===== */
+    .chat-main-lux {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Critical: prevents the area from growing */
+        background: #fff url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+        background-blend-mode: overlay;
+        position: relative;
+    }
+
+    /* Placeholder shown when no chat is selected */
+    .chat-placeholder-lux {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 40px;
+    }
+    .chat-placeholder-lux .placeholder-icon { font-size: 5rem; color: #c7d2fe; margin-bottom: 20px; }
+    .chat-placeholder-lux h3 { font-size: 1.4rem; color: var(--primary); margin-bottom: 10px; }
+    .chat-placeholder-lux p { font-size: 0.95rem; }
+
+    /* Active chat: fills remaining height, with internal scroll on history */
+    #activeChatUI {
+        flex: 1;
+        display: none; /* toggled by JS */
+        flex-direction: column;
+        overflow: hidden; /* Critical */
+        min-height: 0; /* Required for flex children to shrink properly */
+    }
+
+    .chat-header-lux { padding: 15px 30px; background: white; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; z-index: 10; flex-shrink: 0; }
+    .avatar-sm-lux { width: 40px; height: 40px; border-radius: 50%; }
+    .monitoring-notice { background: rgba(226, 176, 100, 0.1); padding: 10px 20px; font-size: 0.8rem; color: var(--primary); border-bottom: 1px solid rgba(226, 176, 100, 0.2); flex-shrink: 0; }
+
+    /* Chat history: scrollable, fills remaining space */
+    .chat-history-lux {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0; /* Required */
+    }
+
+    /* Messages */
+    .msg-group { display: flex; width: 100%; }
+    .msg-group.sent { justify-content: flex-end; }
+    .msg-group.received { justify-content: flex-start; }
+    .msg-bubble { max-width: 65%; padding: 12px 18px; border-radius: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .sent .msg-bubble { background: var(--primary); color: white; border-bottom-left-radius: 4px; }
+    .received .msg-bubble { background: white; color: #1a202c; border-bottom-right-radius: 4px; border: 1px solid #edf2f7; }
+    .msg-bubble p { margin: 0 0 4px; line-height: 1.5; }
+    .msg-time { font-size: 0.72rem; opacity: 0.7; display: block; text-align: left; margin-top: 4px; }
+    .sent .msg-time { color: rgba(255,255,255,0.8); }
+    .chat-img-bubble { max-width: 100%; border-radius: 12px; margin-bottom: 8px; cursor: pointer; display: block; }
+
+    /* ===== INPUT AREA (pinned to bottom) ===== */
+    .chat-input-area-lux {
+        flex-shrink: 0; /* Never shrink */
+        padding: 15px 25px;
+        background: #f8fafc;
+        border-top: 1px solid #edf2f7;
+        position: relative;
+    }
+    .chat-input-area-lux form {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 8px 15px;
+        border-radius: 50px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .chat-input-area-lux input[type="text"] { flex: 1; border: none; outline: none; padding: 6px; font-size: 0.95rem; background: transparent; }
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        padding: 6px;
+        border-radius: 50%;
+        transition: color 0.2s, background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+    .btn-icon:hover { color: var(--primary); background: #f1f5f9; }
+    .btn-send-lux {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, background 0.2s;
+        flex-shrink: 0;
+    }
+    .btn-send-lux:hover { transform: scale(1.08); background: var(--secondary); }
+
+    /* Emoji Picker Panel */
+    .emoji-picker-panel {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 25px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        width: 280px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+    }
+    .emoji-picker-panel span {
+        font-size: 1.4rem;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: background 0.15s;
+        line-height: 1;
+    }
+    .emoji-picker-panel span:hover { background: #f1f5f9; }
+
+    /* ===== CONSENT LOCK AREA ===== */
+    .monitoring-consent-lock {
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(5px);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top: 1px solid #e2e8f0;
+    }
+    .lock-content { text-align: center; }
+    .lock-content i { font-size: 2rem; color: var(--secondary); margin-bottom: 10px; display: block; }
+    .lock-content h4 { margin: 5px 0; font-size: 1rem; color: var(--primary); }
+    .lock-content p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay-lux { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+
+    /* Header actions */
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+    .header-actions i { color: var(--text-muted); font-size: 1.1rem; cursor: pointer; transition: color 0.2s; }
+    .header-actions i:hover { color: var(--primary); }
+    .header-user-lux { display: flex; gap: 12px; align-items: center; }
+    .status-lux { font-size: 0.8rem; color: #10b981; }
+    .status-lux i { font-size: 0.5rem; margin-left: 3px; vertical-align: middle; }
+    .contact-header { display: flex; justify-content: space-between; align-items: center; }
+    .contact-time { font-size: 0.72rem; color: var(--text-muted); }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
+    .support-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-right: 8px;
+        display: none;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+    }
+    .user-meta-lux {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ===== BAN BANNER ===== */
+    .ban-policy-banner {
+        background: #fff1f2;
+        border-top: 2px solid #fda4af;
+        padding: 20px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .ban-content { display: flex; align-items: center; gap: 20px; max-width: 600px; }
+    .ban-icon { font-size: 2.5rem; color: #e11d48; }
+    .ban-text h4 { margin: 0 0 5px; color: #9f1239; font-weight: 800; }
+    .ban-text p { margin: 0 0 8px; color: #be123c; font-size: 0.9rem; line-height: 1.5; }
+    .ban-appeal { font-size: 0.8rem; color: #e11d48; font-weight: 600; }
+
+    /* ===== CHAT RESTRICTED BANNER ===== */
+    .chat-restricted-banner {
+        background: #fffbeb;
+        border-top: 2px solid #fcd34d;
+        padding: 20px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .restricted-content { display: flex; align-items: center; gap: 20px; max-width: 600px; }
+    .restricted-icon { font-size: 2.5rem; color: #d97706; }
+    .restricted-text h4 { margin: 0 0 5px; color: #92400e; font-weight: 800; }
+    .restricted-text p { margin: 0 0 8px; color: #b45309; font-size: 0.9rem; line-height: 1.5; }
+    .restricted-note { font-size: 0.8rem; color: #d97706; font-weight: 600; }
+</style>
+
+
+    <div id="supportConfig" data-initial-support="<%= (activeContact && (activeContact.role === 'admin' || activeContact.role === 'super_admin')) ? 'true' : 'false' %>" style="display: none;"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const currentUserId = "<%= user._id %>";
+    const currentUserRole = "<%= user.role %>";
+    let activeReceiverId = '';
+    let currentChatRequest = null;
+
+    const chatPlaceholder = document.getElementById('chatPlaceholder');
+    const activeChatUI = document.getElementById('activeChatUI');
+    const chatHistoryEl = document.getElementById('chatHistory');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const imageInput = document.getElementById('imageInput');
+    const modal = document.getElementById('monitoringModal');
+    const agreeBtn = document.getElementById('agreeBtn');
+    const inputArea = document.getElementById('inputArea');
+    const consentArea = document.getElementById('consentRequiredArea');
+    const consentText = document.getElementById('consentStatusText');
+    const mainAgreeBtn = document.getElementById('mainAgreeBtn');
+
+    socket.on('connect', () => {
+        console.log('🔌 Connected to chat server');
+        if (currentUserId) socket.emit('join', currentUserId);
+    });
+
+    socket.on('consentStatusChanged', (data) => {
+        console.log('📜 Consent status updated:', data);
+        if (currentChatRequest && String(data.chatRequestId) === String(currentChatRequest._id)) {
+            currentChatRequest.donorAgreed = data.donorAgreed;
+            currentChatRequest.familyAgreed = data.familyAgreed;
+            checkConsentUI();
+        }
+    });
+
+    async function switchContact(targetUserId) {
+        if (!targetUserId) return;
+        
+        // Prevent unnecessary re-fetching if clicking the currently active contact
+        if (String(targetUserId) === activeReceiverId && chatHistoryEl.children.length > 0) return;
+
+        window.history.pushState({}, '', `/messages/${targetUserId}`);
+        activeReceiverId = String(targetUserId);
+
+        document.querySelectorAll('.contact-item-lux').forEach(el => el.classList.remove('active'));
+        const activeItem = document.getElementById(`contact-${targetUserId}`);
+        if (activeItem) activeItem.classList.add('active');
+
+        // Clear and prepare
+        chatPlaceholder.style.display = 'none';
+        activeChatUI.style.display = 'flex';
+        chatHistoryEl.innerHTML = '<div class="loading-history" style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المحادثة...</div>';
+
+        // Clear deduplication set on switch
+        renderedMessages.clear();
+
+        try {
+            const response = await fetch(`/messages/data/${targetUserId}`);
+            const data = await response.json();
+            if (data.success) renderChat(data);
+        } catch (err) { console.error('Error switching contact:', err); }
+    }
+
+    function renderChat(data) {
+        currentChatRequest = data.chatRequest;
+        
+        // Use Support identity for admins
+        const isSupport = data.otherUser.role === 'admin' || data.otherUser.role === 'super_admin';
+        const displayName = isSupport ? 'الدعم الفني' : data.otherUser.name;
+        document.getElementById('activeName').innerText = displayName;
+        document.getElementById('activeAvatar').src = data.otherUser.avatar || '/assets/images/default-avatar.png';
+        
+        const supportBadge = document.getElementById('supportBadge');
+        if (supportBadge) supportBadge.style.display = isSupport ? 'inline-flex' : 'none';
+        
+        chatHistoryEl.innerHTML = '';
+        if (data.chatHistory) data.chatHistory.forEach(msg => appendMessage(msg));
+        chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+
+        // Ban Handling
+        const banBanner = document.getElementById('banBanner');
+        const banReasonDisplay = document.getElementById('banReasonDisplay');
+        if (data.isBlocked) {
+            banBanner.style.display = 'flex';
+            banReasonDisplay.innerText = data.blockReason || 'لا تتوفر تفاصيل إضافية عن سبب الحظر.';
+        } else {
+            banBanner.style.display = 'none';
+        }
+
+        // Chat Restriction (Day/Time) Handling
+        const restrictedArea = document.getElementById('chatRestrictedArea');
+        const restrictionReasonDisplay = document.getElementById('restrictionReasonDisplay');
+        if (data.isChatRestricted) {
+            restrictedArea.style.display = 'flex';
+            let reason = `التواصل في هذه المحادثة متاح فقط يوم ${data.chatDayName || 'المحدد من الإدارة'}`;
+            if (data.donorWindow && data.donorWindow.from && data.donorWindow.to) {
+                reason += ` من الساعة ${data.donorWindow.from} حتى الساعة ${data.donorWindow.to}.`;
+            } else {
+                reason += `. (لم يقم المتبرع بتحديد ساعاته بعد).`;
+            }
+            restrictionReasonDisplay.innerText = reason;
+        } else {
+            restrictedArea.style.display = 'none';
+        }
+
+        checkConsentUI(data.isBlocked, data.isChatRestricted);
+    }
+
+    // Populate renderedMessages from server-side messages
+    function initRenderedMessages() {
+        document.querySelectorAll('[data-msg-id]').forEach(el => {
+            renderedMessages.add(el.getAttribute('data-msg-id'));
+        });
+    }
+
+    function checkConsentUI(isBlockedByAdmin = false, isRestrictedByDay = false) {
+        if (!currentChatRequest || isBlockedByAdmin || isRestrictedByDay) {
+            inputArea.style.display = 'none';
+            consentArea.style.display = 'none';
+            return;
+        }
+
+        const hasMyConsent = (currentUserRole === 'donor') ? currentChatRequest.donorAgreed : currentChatRequest.familyAgreed;
+        const hasOtherConsent = (currentUserRole === 'donor') ? currentChatRequest.familyAgreed : currentChatRequest.donorAgreed;
+
+        if (hasMyConsent && hasOtherConsent) {
+            inputArea.style.display = 'flex';
+            consentArea.style.display = 'none';
+        } else if (hasMyConsent && !hasOtherConsent) {
+            inputArea.style.display = 'none';
+            consentArea.style.display = 'flex';
+            consentText.innerText = "تم تسجيل موافقتك. بانتظار موافقة الطرف الآخر لبدء تبادل الرسائل.";
+            mainAgreeBtn.style.display = 'none';
+        } else {
+            inputArea.style.display = 'none';
+            consentArea.style.display = 'flex';
+            consentText.innerText = "يجب الضغط على زر الموافقة لتفعيل إرسال الرسائل.";
+            mainAgreeBtn.style.display = 'inline-block';
+        }
+    }
+
+    const renderedMessages = new Set();
+
+    function appendMessage(msg) {
+        // Standardize Message ID for deduplication
+        const msgId = msg._id || `${msg.senderId}-${msg.createdAt}`;
+        if (renderedMessages.has(msgId)) return;
+        renderedMessages.add(msgId);
+
+        // Standardize IDs: Handle both populated sender object or raw ID
+        const senderVal = msg.senderId || msg.sender;
+        const senderId = (typeof senderVal === 'object' && senderVal._id) ? senderVal._id : senderVal;
+        
+        const isMe = String(senderId) === String(currentUserId);
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg-group ${isMe ? 'sent' : 'received'}`;
+        const time = new Date(msg.createdAt || Date.now()).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+        
+        msgDiv.innerHTML = `
+            <div class="msg-bubble">
+                ${msg.imageUrl ? `<img src="${msg.imageUrl}" class="chat-img-bubble" onclick="window.open(this.src)">` : ''}
+                ${msg.content ? `<p>${msg.content}</p>` : ''}
+                <span class="msg-time">${time}</span>
+            </div>
+        `;
+        chatHistoryEl.appendChild(msgDiv);
+        chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    }
+
+    function showMonitoringModal() { modal.style.display = 'flex'; }
+    
+    if (agreeBtn) {
+        agreeBtn.addEventListener('click', async () => {
+            if (!currentChatRequest) return;
+            try {
+                const response = await fetch('/messages/accept-monitoring', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '<%= csrfToken %>' 
+                    },
+                    body: JSON.stringify({ chatRequestId: currentChatRequest._id })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    currentChatRequest = result.chatRequest;
+                    modal.style.display = 'none';
+                    checkConsentUI();
+                }
+            } catch (err) { console.error('Consent error:', err); }
+        });
+    }
+
+    let typingTimeout;
+    if (messageInput) {
+        messageInput.addEventListener('input', () => {
+            if (activeReceiverId) {
+                socket.emit('typing', { senderId: currentUserId, receiverId: activeReceiverId });
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('stopTyping', { senderId: currentUserId, receiverId: activeReceiverId });
+                }, 2000);
+            }
+        });
+    }
+
+    socket.on('userTyping', (data) => {
+        const tid = String(data.userId);
+        if (tid === String(activeReceiverId)) {
+            const headerIndicator = document.getElementById('typingIndicator');
+            const userStatus = document.getElementById('userStatus');
+            if (headerIndicator) headerIndicator.style.display = 'inline';
+            if (userStatus) userStatus.style.display = 'none';
+        }
+        const sidebarIndicator = document.getElementById(`typing-sidebar-${tid}`);
+        const lastMsg = document.querySelector(`#contact-${tid} .last-message`);
+        if (sidebarIndicator) sidebarIndicator.style.display = 'block';
+        if (lastMsg) lastMsg.style.display = 'none';
+    });
+
+    socket.on('userStopTyping', (data) => {
+        const tid = String(data.userId);
+        if (tid === String(activeReceiverId)) {
+            const headerIndicator = document.getElementById('typingIndicator');
+            const userStatus = document.getElementById('userStatus');
+            if (headerIndicator) headerIndicator.style.display = 'none';
+            if (userStatus) userStatus.style.display = 'inline';
+        }
+        const sidebarIndicator = document.getElementById(`typing-sidebar-${tid}`);
+        const lastMsg = document.querySelector(`#contact-${tid} .last-message`);
+        if (sidebarIndicator) sidebarIndicator.style.display = 'none';
+        if (lastMsg) lastMsg.style.display = 'block';
+    });
+
+    async function sendMessage(formData) {
+        try {
+            const response = await fetch('/messages/send', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': '<%= csrfToken %>' },
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                messageInput.value = '';
+                imageInput.value = '';
+                socket.emit('stopTyping', { senderId: currentUserId, receiverId: activeReceiverId });
+            } else if (result.code === 'CONSENT_REQUIRED') {
+                showMonitoringModal();
+            } else {
+                alert(result.error || 'فشل إرسال الرسالة');
+            }
+        } catch (err) { console.error('Send error:', err); }
+    }
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const content = messageInput.value.trim();
+            if (!content && !imageInput.files[0]) return;
+            if (!activeReceiverId) return;
+
+            const formData = new FormData();
+            formData.append('receiverId', activeReceiverId);
+            formData.append('content', content);
+            if (imageInput.files[0]) formData.append('image', imageInput.files[0]);
+
+            sendMessage(formData);
+        });
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', () => {
+            if (imageInput.files[0] && activeReceiverId) {
+                const formData = new FormData();
+                formData.append('receiverId', activeReceiverId);
+                formData.append('image', imageInput.files[0]);
+                sendMessage(formData);
+            }
+        });
+    }
+
+    socket.on('newMessage', (data) => {
+        if (!chatHistoryEl) return;
+        // Ensure String comparison for IDs
+        const sId = String(data.senderId);
+        const rId = String(data.receiverId);
+        const activeId = String(activeReceiverId);
+        const meId = String(currentUserId);
+
+        // Show message if it belongs to the currently open conversation
+        const isInActiveChat = (sId === activeId && rId === meId) || (sId === meId && rId === activeId);
+        if (isInActiveChat) {
+            appendMessage(data);
+        }
+
+        const contactId = (sId === meId) ? rId : sId;
+        const contactEl = document.getElementById(`contact-${contactId}`);
+        if (contactEl) {
+            contactEl.querySelector('.last-message').innerText = data.imageUrl ? '📷 صورة' : data.content;
+            contactEl.querySelector('.contact-time').innerText = new Date(data.createdAt || Date.now()).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+        }
+    });
+
+    // ===== EMOJI PICKER =====
+    const EMOJIS = ['😊','😂','❤️','👍','🙏','😍','🎉','✨','🔥','💪','😢','😎','🤔','💯','👏','🌹','😘','🥰','😁','🤣','😅','😭','🙂','😇','🫶','💙','💚','💛','🧡','💜','😀','🥳','🫠','🤝','👋'];
+    const emojiPicker = document.getElementById('emojiPicker');
+    const emojiTrigger = document.querySelector('.emoji-trigger-btn');
+
+    if (emojiPicker && emojiTrigger) {
+        EMOJIS.forEach(em => {
+            const s = document.createElement('span');
+            s.textContent = em;
+            s.title = em;
+            s.addEventListener('click', () => {
+                if (messageInput) {
+                    messageInput.value += em;
+                    messageInput.focus();
+                }
+                emojiPicker.style.display = 'none';
+            });
+            emojiPicker.appendChild(s);
+        });
+        emojiTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
+        });
+        document.addEventListener('click', () => {
+            emojiPicker.style.display = 'none';
+        });
+    }
+
+    // Set initial visibility of support badge
+    const supportConfig = document.getElementById('supportConfig');
+    const initialIsSupport = supportConfig ? supportConfig.dataset.initialSupport === 'true' : false;
+    const initialSupportBadge = document.getElementById('supportBadge');
+    if (initialSupportBadge) initialSupportBadge.style.display = initialIsSupport ? 'inline-flex' : 'none';
+
+    window.addEventListener('load', () => {
+        // On initial page load, always show placeholder - no conversation selected
+        chatPlaceholder.style.display = 'flex';
+        activeChatUI.style.display = 'none';
+    });
+
+    const searchInput = document.getElementById('contactSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.contact-item-lux').forEach(c => {
+                const nameText = (c.querySelector('.contact-name').innerText === 'الدعم الفني') ? 'الدعم الفني technical support' : c.querySelector('.contact-name').innerText;
+                const name = nameText.toLowerCase();
+                c.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        });
+    }
+</script>
+
+<%- include('../../partials/family-layout-bottom') %>

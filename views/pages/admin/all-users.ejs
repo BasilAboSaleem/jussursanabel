@@ -1,0 +1,382 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-users"></i> <%= __('admin_all_users_title') %></h3>
+            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_all_users_desc') %></p>
+        </div>
+        <div style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+            <div style="font-size: 0.8rem; color: var(--text-muted);"><%= __('admin_all_users_total_count') %></div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= users.length %></div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="luxury-card glass-panel" style="padding: 20px; margin-bottom: 30px; background: rgba(255,255,255,0.05);">
+    <form action="/admin/all-users" method="GET" id="filterForm" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 150px;">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_role') %></label>
+            <select name="role" class="form-input" onchange="toggleFiltersVisibility(this.value)">
+                <option value="all" <%= filters.role === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                <option value="donor" <%= filters.role === 'donor' ? 'selected' : '' %>><%= __('common_donors') %></option>
+                <option value="beneficiary" <%= filters.role === 'beneficiary' ? 'selected' : '' %>><%= __('common_beneficiaries') %></option>
+                <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>><%= __('common_admins') %></option>
+            </select>
+        </div>
+
+        <div id="caseTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' ? '' : 'display: none;' %>">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_case_type') %></label>
+            <select name="caseType" class="form-input">
+                <option value="all" <%= filters.caseType === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                <option value="orphan" <%= filters.caseType === 'orphan' ? 'selected' : '' %>><%= __('common_orphans') %></option>
+                <option value="family" <%= filters.caseType === 'family' ? 'selected' : '' %>><%= __('common_families') %></option>
+            </select>
+        </div>
+
+        <div id="donorTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' || filters.role === 'admin' ? 'display: none;' : '' %>">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_donor_type') %></label>
+            <select name="donorType" class="form-input">
+                <option value="all" <%= filters.donorType === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                <option value="verified" <%= filters.donorType === 'verified' ? 'selected' : '' %>><%= __('common_verified_donor') %></option>
+                <option value="new" <%= filters.donorType === 'new' ? 'selected' : '' %>><%= __('common_new_donor') %></option>
+            </select>
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 150px;">
+            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_status') %></label>
+            <select name="status" class="form-input">
+                <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>><%= __('common_status_active') %></option>
+                <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>><%= __('common_status_pending') %></option>
+                <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>><%= __('common_status_suspended') %></option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 25px;">
+                <i class="fas fa-filter"></i> <%= __('common_filter') %>
+            </button>
+            <a href="/admin/all-users" class="btn-lux btn-lux-outline-white" style="padding: 12px 15px;">
+                <i class="fas fa-undo"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Users Table -->
+<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+    <table style="width: 100%; border-collapse: collapse; text-align: right;">
+        <thead style="background: rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <tr>
+                <th style="padding: 20px;"><%= __('common_user') %></th>
+                <th style="padding: 20px;"><%= __('common_role_category') %></th>
+                <th style="padding: 20px;"><%= __('common_attached_case') %></th>
+                <th style="padding: 20px;"><%= __('common_account_status') %></th>
+                <th style="padding: 20px;"><%= __('common_registration_date') %></th>
+                <th style="padding: 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_actions') %></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (users.length === 0) { %>
+                <tr>
+                    <td colspan="6" style="padding: 50px; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-search-minus" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
+                        <%= __('admin_all_users_empty') %>
+                    </td>
+                </tr>
+            <% } %>
+            <% users.forEach(u => { %>
+                <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="<%= u.avatar || '/assets/images/default-avatar.png' %>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
+                            <div>
+                                <div style="font-weight: 700; color: var(--primary);"><%= u.name %></div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);"><%= u.email %></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <% if (u.role === 'admin' || u.role === 'super_admin') { %>
+                            <span class="badge badge-gold" style="font-size: 0.7rem;"><%= __('common_admin_team') %></span>
+                        <% } else if (u.role === 'donor') { %>
+                            <span class="badge badge-teal" style="font-size: 0.7rem;"><%= __('common_donor') %></span>
+                            <% if (u.isVerifiedDonor) { %>
+                                <div style="font-size: 0.65rem; color: #10b981; margin-top: 3px; font-weight: 700;">
+                                    <i class="fas fa-check-circle"></i> <%= __('common_verified') %>
+                                </div>
+                            <% } else { %>
+                                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; font-weight: 700;">
+                                    <%= __('common_new') %>
+                                </div>
+                            <% } %>
+                        <% } else { %>
+                            <span class="badge badge-navy" style="font-size: 0.7rem;"><%= __('common_beneficiary') %></span>
+                            <% if (u.case) { %>
+                                <div style="font-size: 0.65rem; color: var(--secondary); margin-top: 3px; font-weight: 700;">
+                                    (<%= u.case.type === 'orphan' ? __('common_orphan') : __('common_family') %>)
+                                </div>
+                            <% } %>
+                        <% } %>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <% if (u.case) { %>
+                            <a href="/cases/<%= u.case._id %>" style="font-size: 0.85rem; color: var(--primary); text-decoration: underline; font-weight: 600;">
+                                <%= u.case.title.substring(0, 20) %>...
+                            </a>
+                        <% } else { %>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); opacity: 0.5;">-</span>
+                        <% } %>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <span class="badge <%= u.status === 'active' ? 'badge-teal' : (u.status === 'suspended' ? 'badge-danger' : 'badge-gold') %>" style="font-size: 0.7rem;">
+                            <%= u.status === 'active' ? __('common_status_active') : (u.status === 'suspended' ? __('common_status_suspended') : __('common_pending')) %>
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; font-size: 0.8rem; color: var(--text-muted);">
+                        <%= u.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: left;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="btn-lux btn-lux-danger btn-sm" style="padding: 5px 10px; font-size: 0.7rem;" onclick="openModDialog('<%= u._id %>', '<%= u.name %>')">
+                                    <i class="fas fa-gavel"></i> <%= __('admin_all_users_btn_mod') %>
+                                </button>
+                                <a href="/admin/users/<%= u._id %>/moderation" class="btn-lux btn-lux-navy btn-sm" style="padding: 5px 10px; font-size: 0.7rem; text-decoration: none;">
+                                    <i class="fas fa-shield-halved"></i> <%= __('admin_all_users_btn_full_mod') %>
+                                </a>
+                            </div>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<!-- Moderation Dialog -->
+<div id="moderationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="luxury-card" style="width: 450px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <h5 class="font-cairo" style="margin-bottom: 15px; font-weight: 800;"><%= __('admin_all_users_mod_modal_title') %></h5>
+        <div id="userInfoShort" style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 12px; font-size: 0.85rem; font-weight: 700;"></div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;"><%= __('admin_all_users_mod_label_action') %></label>
+            <select id="modAction" class="form-control" style="border-radius: 12px; height: 45px;" onchange="updateModUI()">
+                <option value="note"><%= __('admin_mod_action_note') %></option>
+                <option value="warning"><%= __('admin_mod_action_warning') %></option>
+                <option value="ban_user_specific" id="opt-ban-specific"><%= __('admin_mod_action_ban_specific') %></option>
+                <% if (user.role === 'super_admin') { %>
+                    <option value="ban_global_comm" class="full-mod"><%= __('admin_mod_action_ban_global') %></option>
+                    <option value="ban" class="full-mod"><%= __('admin_mod_action_suspend') %></option>
+                    <option value="soft_delete" class="full-mod"><%= __('admin_mod_action_soft_delete') %></option>
+                    <option value="hard_delete" class="full-mod"><%= __('admin_mod_action_hard_delete') %></option>
+                    <option value="undo_warning"><%= __('admin_mod_action_undo_warning') %></option>
+                    <option value="undo_ban_global_comm"><%= __('admin_mod_action_undo_ban_global') %></option>
+                    <option value="undo_soft_delete"><%= __('admin_mod_action_undo_soft_delete') %></option>
+                <% } %>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;" id="noteLabel"><%= __('common_details_reason') %></label>
+            <textarea id="modNote" rows="4" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; resize: none;" placeholder="<%= __('admin_all_users_mod_placeholder_note') %>"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-lux btn-lux-outline" onclick="closeModDialog()"><%= __('common_cancel') %></button>
+            <button class="btn-lux btn-lux-primary" id="confirmModBtn" onclick="submitModeration()"><%= __('common_confirm_action') %></button>
+        </div>
+
+        <% if (user.role !== 'super_admin') { %>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
+            <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; margin-bottom: 12px;"><%= __('admin_all_users_mod_super_admin_notice') %></div>
+            <button class="btn-lux btn-lux-danger" style="width: 100%; opacity: 0.8;" onclick="openEscalationForm()">
+                <i class="fas fa-tower-observation"></i> <%= __('admin_all_users_btn_escalate') %>
+            </button>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Escalation Request Modal (Admins only) -->
+<div id="escalationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1001; align-items:center; justify-content:center;">
+    <div class="luxury-card" style="width:500px; padding:30px; background:white; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.4); border-top: 4px solid #ef4444;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="width:50px;height:50px;background:#fee2e2;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:1.4rem;">
+                <i class="fas fa-tower-observation"></i>
+            </div>
+            <div>
+                <h5 class="font-cairo" style="margin:0;font-weight:800;color:#991b1b;"><%= __('admin_escalation_modal_title') %></h5>
+                <p style="margin:0;font-size:0.8rem;color:#94a3b8;"><%= __('admin_escalation_modal_desc') %></p>
+            </div>
+        </div>
+
+        <form action="/admin/escalations/submit" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="targetUser" id="escalationTargetUserId" value="">
+
+            <div class="form-group mb-3">
+                <label style="font-weight:800;color:var(--primary);display:block;margin-bottom:8px;"><%= __('admin_escalation_label_type') %></label>
+                <select name="type" class="form-input" required>
+                    <option value="hard_delete_user"><%= __('admin_escalation_type_hard_delete') %></option>
+                    <option value="change_role"><%= __('admin_escalation_type_role') %></option>
+                    <option value="other"><%= __('admin_escalation_type_other') %></option>
+                </select>
+            </div>
+
+            <div class="form-group mb-4">
+                <label style="font-weight:800;color:var(--primary);display:block;margin-bottom:8px;"><%= __('admin_escalation_label_reason') %> <span style="color:#ef4444;">*</span></label>
+                <textarea name="reason" rows="4" class="form-input" placeholder="<%= __('admin_escalation_placeholder_reason') %>" required></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="button" class="btn-lux btn-lux-outline" style="flex:1;" onclick="closeEscalationModal()"><%= __('common_cancel') %></button>
+                <button type="submit" class="btn-lux btn-lux-danger" style="flex:2;">
+                    <i class="fas fa-paper-plane"></i> <%= __('admin_escalation_btn_submit') %>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentModUserId = null;
+    let currentModUserName = null;
+
+    function toggleFiltersVisibility(role) {
+        const caseTypeContainer = document.getElementById('caseTypeContainer');
+        const donorTypeContainer = document.getElementById('donorTypeContainer');
+        
+        if (role === 'beneficiary') {
+            caseTypeContainer.style.display = 'block';
+            donorTypeContainer.style.display = 'none';
+            donorTypeContainer.querySelector('select').value = 'all';
+        } else if (role === 'donor') {
+            caseTypeContainer.style.display = 'none';
+            caseTypeContainer.querySelector('select').value = 'all';
+            donorTypeContainer.style.display = 'block';
+        } else if (role === 'admin') {
+            caseTypeContainer.style.display = 'none';
+            caseTypeContainer.querySelector('select').value = 'all';
+            donorTypeContainer.style.display = 'none';
+            donorTypeContainer.querySelector('select').value = 'all';
+        } else {
+            caseTypeContainer.style.display = 'none';
+            caseTypeContainer.querySelector('select').value = 'all';
+            donorTypeContainer.style.display = 'block';
+        }
+    }
+
+    function openModDialog(userId, userName) {
+        currentModUserId = userId;
+        currentModUserName = userName;
+        document.getElementById('userInfoShort').textContent = `<%= __("common_user_label") %>${userName}`;
+
+        // Update escalation hidden field
+        const targetInput = document.getElementById('escalationTargetUserId');
+        if(targetInput) targetInput.value = userId;
+
+        document.getElementById('moderationModal').style.display = 'flex';
+        updateModUI();
+    }
+
+    function openEscalationForm() {
+        closeModDialog();
+        document.getElementById('escalationModal').style.display = 'flex';
+    }
+
+    function closeEscalationModal() {
+        document.getElementById('escalationModal').style.display = 'none';
+    }
+
+    window.addEventListener('click', function(e) {
+        if (e.target === document.getElementById('escalationModal')) {
+            closeEscalationModal();
+        }
+    });
+
+    function updateModUI() {
+        const action = document.getElementById('modAction').value;
+        const confirmBtn = document.getElementById('confirmModBtn');
+        const warningText = document.getElementById('userInfoShort');
+        const noteLabel = document.getElementById('noteLabel');
+        
+        confirmBtn.className = 'btn-lux btn-lux-primary';
+        
+        if (action === 'ban') {
+            confirmBtn.className = 'btn-lux btn-lux-gold';
+            noteLabel.textContent = '<%= __("common_status_suspended") %>';
+        } else if (action === 'soft_delete') {
+            confirmBtn.className = 'btn-lux btn-lux-danger';
+            noteLabel.textContent = '<%= __("admin_mod_action_soft_delete") %>';
+        } else if (action === 'hard_delete') {
+            confirmBtn.className = 'btn-lux btn-lux-danger';
+            noteLabel.textContent = '<%= __("admin_mod_action_hard_delete") %>';
+            warningText.innerHTML += `<div id="hard-alert" style="color: #ef4444; margin-top: 10px; font-weight: 800;"><i class="fas fa-radiation"></i> <%= __("admin_mod_js_warning_hard_delete") %></div>`;
+        } else {
+            noteLabel.textContent = '<%= __("common_details_reason") %>';
+            const alert = document.getElementById('hard-alert');
+            if(alert) alert.remove();
+        }
+    }
+
+    function closeModDialog() {
+        document.getElementById('moderationModal').style.display = 'none';
+        document.getElementById('modNote').value = '';
+        document.getElementById('modAction').value = 'note';
+    }
+
+    async function submitModeration() {
+        const action = document.getElementById('modAction').value;
+        const note = document.getElementById('modNote').value;
+
+        if (!note && (action === 'soft_delete' || action === 'ban' || action === 'hard_delete')) {
+            alert('<%= __('admin_mod_js_reason_required') %>');
+            return;
+        }
+
+        const actionNames = {
+            'note': '<%= __("admin_mod_action_note") %>',
+            'warning': '<%= __("admin_mod_action_warning") %>',
+            'ban_global_comm': '<%= __("admin_mod_action_ban_global") %>',
+            'ban': '<%= __("admin_mod_action_suspend") %>',
+            'soft_delete': '<%= __("admin_mod_action_soft_delete") %>',
+            'hard_delete': '<%= __("admin_mod_action_hard_delete") %>',
+            'undo_warning': '<%= __("admin_mod_action_undo_warning") %>',
+            'undo_ban_global_comm': '<%= __("admin_mod_action_undo_ban_global") %>',
+            'undo_soft_delete': '<%= __("admin_mod_action_undo_soft_delete") %>'
+        };
+
+        let confirmMsg = '<%= __("admin_mod_js_confirm") %>';
+        confirmMsg = confirmMsg.replace('{action}', actionNames[action]);
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/admin/moderate-user', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                },
+                body: JSON.stringify({ userId: currentModUserId, action, note })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert(data.message || '<%= __('admin_mod_js_success') %>');
+                window.location.reload();
+            } else {
+                alert(data.error || '<%= __('admin_mod_js_error') %>');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('<%= __('admin_mod_js_conn_error') %>');
+        }
+    }
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

@@ -1,0 +1,73 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid #8b5cf6;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-chart-line"></i> <%= __('admin_fees_title') %></h3>
+            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_fees_desc') %></p>
+        </div>
+        <div class="glass-panel" style="padding: 15px 30px; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_fees_total_label') %></div>
+            <div style="font-size: 2rem; font-weight: 900; color: #8b5cf6;">$<%= totalFees.toFixed(2) %></div>
+        </div>
+    </div>
+</div>
+
+<div class="luxury-card" style="padding: 0; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <thead>
+            <tr style="background: var(--bg-subtle); border-bottom: 2px solid rgba(0,0,0,0.05);">
+                <th style="padding: 20px;"><%= __('common_date') %></th>
+                <th style="padding: 20px;"><%= __('common_donor') %></th>
+                <th style="padding: 20px;"><%= __('admin_fees_beneficiary') %></th>
+                <th style="padding: 20px;"><%= __('admin_fees_original_amount') %></th>
+                <th style="padding: 20px;"><%= __('admin_fees_percentage') %></th>
+                <th style="padding: 20px; color: #8b5cf6;"><%= __('admin_fees_op_fee') %></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (transactions.length === 0) { %>
+                <tr>
+                    <td colspan="6" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-receipt" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 15px;"></i>
+                        <%= __('admin_fees_no_data') %>
+                    </td>
+                </tr>
+            <% } %>
+            <% transactions.forEach(trans => { %>
+                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 20px; font-size: 0.9rem;">
+                        <%= trans.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);"><%= trans.createdAt.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                    </td>
+                    <td style="padding: 20px;">
+                        <div style="font-weight: 700; color: var(--primary);"><%= trans.donor ? trans.donor.name : __('common_anonymous_donor') %></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);"><%= trans.donor ? trans.donor.email : '' %></div>
+                    </td>
+                    <td style="padding: 20px;">
+                        <a href="/cases/<%= trans.case ? trans.case._id : '' %>" target="_blank" style="font-weight: 600; color: var(--accent); text-decoration: none;">
+                            <%= trans.case ? trans.case.title : __('common_deleted_case') %>
+                        </a>
+                    </td>
+                    <td style="padding: 20px; font-weight: 700;">$<%= trans.amount.toFixed(2) %></td>
+                    <td style="padding: 20px;">
+                        <span class="badge badge-navy" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.2);">
+                            <%= trans.operationPercentage %>%
+                        </span>
+                    </td>
+                    <td style="padding: 20px; font-weight: 900; color: #8b5cf6; font-size: 1.1rem;">
+                        $<%= trans.operationFee.toFixed(2) %>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 30px; text-align: center;">
+    <a href="/admin/dashboard" class="btn-lux btn-lux-outline">
+        <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i> <%= __('common_back_to_dashboard') %>
+    </a>
+</div>
+
+<%- include('../../partials/admin-layout-bottom') %>

@@ -1,0 +1,36 @@
+        </div><!-- end admin-page-content -->
+    </main><!-- end admin-main -->
+
+    <%- include('../partials/support-widget') %>
+    
+    <!-- Socket.io & Notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const userId = document.body.dataset.userId;
+        const userRole = document.body.dataset.userRole;
+        if (userId) {
+            socket.emit('join', { userId, role: userRole });
+        }
+    </script>
+    <%- include('../partials/realtime-notifications') %>
+    
+    <% if (locals.success && locals.success.length > 0) { %>
+        <script>
+            Swal.fire({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+                icon: 'success', title: '<%= locals.success[0] %>'
+            });
+        </script>
+    <% } %>
+    <% if (locals.error && locals.error.length > 0) { %>
+        <script>
+            Swal.fire({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 4500,
+                icon: 'error', title: '<%= locals.error[0] %>'
+            });
+        </script>
+    <% } %>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<%- include('../../partials/family-layout-top') %>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <span class="section-badge"><i class="fas fa-file-medical"></i> <%= __('register_case_badge') %></span>
+        <h2 class="section-title-luxury" style="margin-top: 15px; font-size: 2.2rem;"><%= __('register_case_title') %></h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto; line-height: 1.6;"><%= __('register_case_desc') %></p>
+    </div>
+
+    <div class="luxury-card glass-panel" style="padding: 40px; border-radius: 30px;">
+        <form action="/cases/register?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" class="premium-form" id="registerCaseForm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <!-- Type Selection Cards -->
+            <div style="margin-bottom: 35px;">
+                <label class="form-label-luxury"><%= __('register_case_type_label') %></label>
+                <div class="type-selection-grid">
+                    <label class="type-card" id="typeOrphanCard">
+                        <input type="radio" name="type" value="orphan" checked onchange="toggleFormFields('orphan')">
+                        <div class="card-content">
+                            <i class="fas fa-child"></i>
+                            <span><%= __('cases_type_orphan') %></span>
+                        </div>
+                    </label>
+                    <label class="type-card" id="typeFamilyCard">
+                        <input type="radio" name="type" value="family" onchange="toggleFormFields('family')">
+                        <div class="card-content">
+                            <i class="fas fa-people-roof"></i>
+                            <span><%= __('cases_type_family') %></span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 0: Father Deceased Check (Moved up) -->
+            <div id="fatherCheckSection" style="display: none; margin-bottom: 30px; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 4px solid var(--secondary);">
+                <label id="fatherCheckLabel" class="form-label-luxury"><%= __('is_father_deceased') %></label>
+                <div style="display: flex; gap: 20px; margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                        <input type="radio" name="isFatherDeceased" value="true" onclick="toggleFatherCheck(true)"> <%= __('yes') %>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                        <input type="radio" name="isFatherDeceased" value="false" checked onclick="toggleFatherCheck(false)"> <%= __('no') %>
+                    </label>
+                </div>
+                <div id="fatherAliveError" style="color: #ef4444; margin-top: 15px; font-weight: 700; font-size: 0.9rem; display: none;">
+                    <i class="fas fa-exclamation-triangle"></i> <%= __('father_deceased_error') %>
+                </div>
+            </div>
+
+            <!-- MAIN FORM FIELDS -->
+            <div id="mainFormFields">
+
+            <div class="grid-2" style="gap: 25px; margin-bottom: 25px;">
+                <div class="form-group">
+                    <label class="form-label-luxury"><%= __('register_case_label_title') %></label>
+                    <input type="text" name="title" class="form-input" required placeholder="<%= __('register_case_placeholder_title') %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label-luxury"><%= __('register_case_label_location') %></label>
+                    <input type="text" name="location" class="form-input" required placeholder="<%= __('register_case_placeholder_location') %>">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label-luxury"><%= __('register_case_label_desc') %></label>
+                <textarea name="description" class="form-input" required rows="2" placeholder="<%= __('register_case_placeholder_desc') %>"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label-luxury"><%= __('register_case_label_story') %></label>
+                <textarea name="storyAr" class="form-input" required rows="6" placeholder="<%= __('register_case_placeholder_story') %>"></textarea>
+            </div>
+
+            <div class="grid-2" style="gap: 25px; margin-bottom: 25px;">
+                <div class="form-group">
+                    <label class="form-label-luxury"><%= __('register_case_label_image') %></label>
+                    <input type="file" name="image" required class="form-input" style="padding: 10px;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label-luxury"><%= __('register_case_label_needs') %></label>
+                <div class="needs-selection-grid">
+                    <% if (typeof caseNeeds !== 'undefined' && caseNeeds.length > 0) { %>
+                        <% caseNeeds.forEach((need, index) => { %>
+                            <label class="need-pill">
+                                <input type="checkbox" name="needs[]" value="<%= need %>">
+                                <div class="need-pill-content">
+                                    <span><%= need %></span>
+                                </div>
+                            </label>
+                        <% }) %>
+                    <% } else { %>
+                        <!-- Fallback static needs -->
+                        <label class="need-pill">
+                            <input type="checkbox" name="needs[]" value="<%= __('register_case_need_financial') %>">
+                            <div class="need-pill-content">
+                                <span><%= __('register_case_need_financial') %></span>
+                            </div>
+                        </label>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="grid-2" style="gap: 25px; margin-bottom: 40px;">
+                <!-- Dynamic Field: Member Count -->
+                <div class="form-group">
+                    <label id="countLabel" class="form-label-luxury"><%= __('family_member_count_label') %></label>
+                    <input type="number" name="memberCount" id="memberCountInput" class="form-input" placeholder="0" min="1" required>
+                </div>
+                <div style="display: none;">
+                    <input type="number" name="orphanCount" id="orphanCountHidden">
+                    <input type="number" name="familyCount" id="familyCountHidden">
+                </div>
+            </div>
+
+            <!-- ADVANCED REGISTRATION FIELDS (FAMILY COMPOSITION) -->
+            <div id="advancedSection" style="display: none; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 30px; margin-top: 30px; margin-bottom: 30px;">
+                <h3 id="advancedSectionTitle" class="font-cairo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 25px; font-weight: 900; border-right: 4px solid var(--secondary); padding-right: 15px;">
+                    <i class="fas fa-users-viewfinder"></i> <%= __('family_structure_title') %>
+                </h3>
+
+                <div id="fullFormContent">
+                    
+                    <!-- FATHER -->
+                    <div id="fatherSection">
+                        <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 15px;"><%= __('father_details') %></h4>
+                        <div class="grid-2" style="gap: 20px; margin-bottom: 25px;">
+                            <div class="form-group">
+                                <label class="form-label-luxury"><%= __('father_name') %></label>
+                                <input type="text" name="father[name]" class="form-input comp-req">
+                            </div>
+                            <div id="fatherDeathDateGroup" class="form-group">
+                                <label class="form-label-luxury"><%= __('death_date') %></label>
+                                <input type="date" name="father[deathDate]" class="form-input comp-req">
+                            </div>
+                            <div id="fatherDeathReasonGroup" class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label-luxury"><%= __('death_reason') %></label>
+                                <input type="text" name="father[deathReason]" class="form-input comp-req">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MOTHER -->
+                    <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 15px;"><%= __('mother_details') %></h4>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label-luxury"><%= __('is_mother_deceased') %></label>
+                        <select name="mother[isDeceased]" class="form-input" onchange="toggleMotherStatus(this.value)">
+                            <option value="false"><%= __('no') %></option>
+                            <option value="true"><%= __('yes') %></option>
+                        </select>
+                    </div>
+                    
+                    <div id="motherAliveFields" class="grid-2" style="gap: 20px; margin-bottom: 25px;">
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('mother_name') %></label>
+                            <input type="text" name="mother[name]" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('age') %></label>
+                            <input type="number" name="mother[age]" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('health_status') %></label>
+                            <select name="mother[healthStatus]" class="form-input">
+                                <option value="healthy"><%= __('health_healthy') %></option>
+                                <option value="sick"><%= __('health_sick') %></option>
+                                <option value="disabled"><%= __('health_disabled') %></option>
+                                <option value="war_injury"><%= __('health_war_injury') %></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="motherDeadFields" class="grid-2" style="gap: 20px; margin-bottom: 25px; display: none;">
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('death_date') %></label>
+                            <input type="date" name="mother[deathDate]" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('death_reason') %></label>
+                            <input type="text" name="mother[deathReason]" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- GUARDIAN -->
+                    <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 15px;"><%= __('guardian_details') %></h4>
+                    <div class="grid-2" style="gap: 20px; margin-bottom: 25px;">
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('guardian_name') %></label>
+                            <input type="text" name="guardian[name]" class="form-input comp-req" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('guardian_birth_date') %></label>
+                            <input type="date" name="guardian[birthDate]" class="form-input comp-req" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('common_id_number') %></label>
+                            <input type="text" name="guardian[idNumber]" class="form-input comp-req" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('common_phone') %></label>
+                            <input type="text" name="guardian[phone]" class="form-input comp-req" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('family_size') %></label>
+                            <input type="number" name="guardian[familySize]" class="form-input comp-req" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('health_status') %></label>
+                            <select name="guardian[healthStatus]" class="form-input comp-req" required>
+                                <option value="healthy"><%= __('health_healthy') %></option>
+                                <option value="sick"><%= __('health_sick') %></option>
+                                <option value="disabled"><%= __('health_disabled') %></option>
+                                <option value="war_injury"><%= __('health_war_injury') %></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('guardian_housing_status') %></label>
+                            <select name="guardian[housingStatus]" class="form-input comp-req" required>
+                                <option value="tent"><%= __('housing_tent') %></option>
+                                <option value="rent"><%= __('housing_rent') %></option>
+                                <option value="damaged_home"><%= __('housing_damaged') %></option>
+                                <option value="host_family"><%= __('housing_host') %></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('guardian_residency_status') %></label>
+                            <select name="guardian[residencyStatus]" class="form-input comp-req" required>
+                                <option value="resident"><%= __('residency_resident') %></option>
+                                <option value="displaced"><%= __('residency_displaced') %></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- MEMBERS LIST -->
+                    <h4 id="memberListTitle" class="font-cairo" style="color: var(--secondary); margin-bottom: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 20px;"><%= __('orphan_details') %></h4>
+                    <div id="membersContainer"></div>
+                </div>
+            </div>
+
+            </div> <!-- END OF MAIN FORM FIELDS -->
+
+            <button type="submit" id="submitBtn" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px;">
+                <i class="fas fa-paper-plane"></i> <%= __('register_case_btn_submit') %>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleFatherCheck(isDeceased) {
+        const errorDiv = document.getElementById('fatherAliveError');
+        const mainFormFields = document.getElementById('mainFormFields');
+        const advancedSection = document.getElementById('advancedSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const deathDateGroup = document.getElementById('fatherDeathDateGroup');
+        const deathReasonGroup = document.getElementById('fatherDeathReasonGroup');
+        
+        const type = document.querySelector('input[name="type"]:checked').value;
+
+        if (isDeceased) {
+            errorDiv.style.display = 'none';
+            mainFormFields.style.display = 'block';
+            advancedSection.style.display = 'block';
+            submitBtn.style.display = 'flex';
+            deathDateGroup.style.display = 'block';
+            deathReasonGroup.style.display = 'block';
+            
+            // Set required
+            deathDateGroup.querySelector('input').required = true;
+            deathReasonGroup.querySelector('input').required = true;
+        } else {
+            if (type === 'orphan') {
+                errorDiv.style.display = 'block';
+                mainFormFields.style.display = 'none';
+                advancedSection.style.display = 'none';
+                submitBtn.style.display = 'none';
+            } else {
+                // For Family, it's NOT an error if father is alive
+                errorDiv.style.display = 'none';
+                mainFormFields.style.display = 'block';
+                advancedSection.style.display = 'block';
+                submitBtn.style.display = 'flex';
+                deathDateGroup.style.display = 'none';
+                deathReasonGroup.style.display = 'none';
+                
+                // Remove required
+                deathDateGroup.querySelector('input').required = false;
+                deathReasonGroup.querySelector('input').required = false;
+            }
+        }
+    }
+
+    function toggleMotherStatus(isDeceased) {
+        const aliveFields = document.getElementById('motherAliveFields');
+        const deadFields = document.getElementById('motherDeadFields');
+        if (isDeceased === 'true') {
+            aliveFields.style.display = 'none';
+            deadFields.style.display = 'grid'; // Grid display since it uses grid-2
+            aliveFields.querySelectorAll('input, select').forEach(el => el.required = false);
+            deadFields.querySelectorAll('input, select').forEach(el => el.required = true);
+        } else {
+            aliveFields.style.display = 'grid';
+            deadFields.style.display = 'none';
+            aliveFields.querySelectorAll('input, select').forEach(el => el.required = true);
+            deadFields.querySelectorAll('input, select').forEach(el => el.required = false);
+        }
+    }
+
+    function generateMemberFields(count) {
+        const container = document.getElementById('membersContainer');
+        container.innerHTML = '';
+        
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const labelBase = type === 'orphan' ? '<%= __('orphan_name') %>' : '<%= __('family_member_name') %>'; 
+
+        for(let i=0; i<count; i++) {
+            container.innerHTML += `
+                <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05);">
+                    <h5 style="margin-bottom: 20px; color: var(--primary); font-family: 'Cairo', sans-serif;"><i class="fas fa-child"></i> الفرد رقم ${i+1}</h5>
+                    <div class="grid-2" style="gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label-luxury">${labelBase}</label>
+                            <input type="text" name="orphans[${i}][name]" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('birth_date') %></label>
+                            <input type="date" name="orphans[${i}][birthDate]" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('health_status') %></label>
+                            <select name="orphans[${i}][healthStatus]" class="form-input" required>
+                                <option value="healthy"><%= __('health_healthy') %></option>
+                                <option value="sick"><%= __('health_sick') %></option>
+                                <option value="disabled"><%= __('health_disabled') %></option>
+                                <option value="war_injury"><%= __('health_war_injury') %></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('educational_stage') %></label>
+                            <select name="orphans[${i}][educationStage]" class="form-input" required>
+                                <option value="kindergarten"><%= __('edu_kindergarten') %></option>
+                                <option value="primary"><%= __('edu_primary') %></option>
+                                <option value="preparatory"><%= __('edu_preparatory') %></option>
+                                <option value="secondary"><%= __('edu_secondary') %></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function toggleFormFields(type) {
+        const fatherCheckSection = document.getElementById('fatherCheckSection');
+        const fatherCheckLabel = document.getElementById('fatherCheckLabel');
+        const advancedSection = document.getElementById('advancedSection');
+        const countLabel = document.getElementById('countLabel');
+        const memberListTitle = document.getElementById('memberListTitle');
+        const mainFormFields = document.getElementById('mainFormFields');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Reset father section visibility
+        fatherCheckSection.style.display = 'block';
+        advancedSection.style.display = 'block';
+
+        if (type === 'orphan') {
+            countLabel.innerText = "<%= __('register_case_label_orphan_count') %>";
+            memberListTitle.innerText = "<%= __('orphan_details') %>";
+            fatherCheckLabel.style.color = '#ef4444';
+            fatherCheckSection.style.background = '#fff5f5';
+        } else {
+            countLabel.innerText = "<%= __('family_member_count_label') %>";
+            memberListTitle.innerText = "<%= __('family_members_details') %>";
+            fatherCheckLabel.style.color = 'var(--primary)';
+            fatherCheckSection.style.background = '#f8fafc';
+        }
+
+        const selectedRadio = document.querySelector('input[name="isFatherDeceased"]:checked');
+        if (selectedRadio) {
+            toggleFatherCheck(selectedRadio.value === 'true');
+        }
+
+        // Sync hidden fields for backend sanity
+        document.getElementById('memberCountInput').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('orphanCountHidden').value = type === 'orphan' ? val : '';
+            document.getElementById('familyCountHidden').value = type === 'family' ? val : '';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const countInput = document.getElementById('memberCountInput');
+        if (countInput) {
+            countInput.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value) || 0;
+                if (val > 0 && val <= 20) {
+                    generateMemberFields(val);
+                } else {
+                    document.getElementById('membersContainer').innerHTML = '';
+                }
+            });
+        }
+        
+        // Initialize state
+        toggleFormFields('orphan');
+        toggleMotherStatus('false');
+    });
+</script>
+
+<style>
+    .type-selection-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 10px;
+    }
+
+    .type-card {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .type-card input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .type-card .card-content {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s var(--ease-smooth);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .type-card i {
+        font-size: 2rem;
+        color: var(--text-muted);
+        transition: all 0.3s;
+    }
+
+    .type-card span {
+        font-family: 'Cairo', sans-serif;
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    /* Active State */
+    .type-card input:checked + .card-content {
+        border-color: var(--secondary);
+        background: rgba(217, 119, 6, 0.03);
+        box-shadow: 0 10px 20px rgba(217, 119, 6, 0.1);
+        transform: translateY(-5px);
+    }
+
+    .type-card input:checked + .card-content i {
+        color: var(--secondary);
+        transform: scale(1.2);
+    }
+
+    /* Needs Selection Styles (Pills) */
+    .needs-selection-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .need-pill {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .need-pill input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .need-pill .need-pill-content {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 30px;
+        padding: 12px 25px;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s var(--ease-smooth);
+        color: var(--text-muted);
+        font-family: 'Cairo', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .need-pill:hover .need-pill-content {
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+        transform: translateY(-2px);
+    }
+
+    .need-pill input:checked + .need-pill-content {
+        border-color: var(--secondary);
+        background: var(--secondary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(226, 176, 100, 0.2);
+    }
+
+    .form-label-luxury { display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.9rem; color: var(--primary); font-family: 'Cairo', sans-serif; }
+    .premium-form .form-input { 
+        background: #fdfdfd; 
+        border: 1px solid #e2e8f0; 
+        padding: 14px 18px; 
+        font-family: 'Tajawal', sans-serif;
+        transition: all 0.3s;
+        border-radius: 12px;
+        width: 100%;
+    }
+    .premium-form .form-input:focus {
+        border-color: var(--secondary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(226, 176, 100, 0.05);
+    }
+</style>
+
+<%- include('../../partials/family-layout-bottom') %>

@@ -1,0 +1,534 @@
+<%- include('../../partials/header-top') %>
+
+<div class="container" style="padding-top: 120px; padding-bottom: 80px; max-width: 900px;">
+    <div class="section-header-luxury">
+        <span class="section-badge"><i class="fas fa-credit-card"></i> بوابة العطاء الآمنة</span>
+        <h2 class="section-title-luxury">تفاصيل مساهمتك الإنسانية</h2>
+        <p class="section-subtitle-luxury">عطاؤك يصنع فرقاً حقيقياً. اختر الطريقة التي تفضل بها دعم هذه الحالة.</p>
+    </div>
+
+    <div class="luxury-grid-checkout" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; align-items: start;">
+        <!-- Left Column: Settings -->
+        <div class="luxury-card glass-panel" style="padding: 35px;">
+            <form action="/donations/process" method="POST" id="payment-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="caseId" value="<%= foundCase._id %>">
+                <input type="hidden" name="amount" id="finalAmount" value="<%= amount %>">
+                <input type="hidden" name="type" id="finalType" value="<%= type %>">
+                <input type="hidden" name="teamId" value="<%= typeof teamId !== 'undefined' ? teamId : '' %>">
+
+                <!-- Donation Type Toggle -->
+                <div style="margin-bottom: 35px;">
+                    <label class="form-label-luxury">نوع المساهمة</label>
+                    <div class="type-selector-luxury">
+                        <div class="type-option <%= type === 'monthly' ? 'active' : '' %>" id="typeMonthly" onclick="setDonationType('monthly')">
+                            <i class="fas fa-calendar-check"></i>
+                            <div>
+                                <span class="type-title">كفالة شهرية</span>
+                                <span class="type-desc">دعم مستمر كل شهر</span>
+                            </div>
+                        </div>
+                        <div class="type-option <%= type !== 'monthly' ? 'active' : '' %>" id="typeDirect" onclick="setDonationType('direct')">
+                            <i class="fas fa-bolt"></i>
+                            <div>
+                                <span class="type-title">تبرع لمرة واحدة</span>
+                                <span class="type-desc">دعم فوري الآن</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amount Presets & Custom -->
+                <div style="margin-bottom: 35px;">
+                    <label class="form-label-luxury">حدد مبلغ المساهمة ($)</label>
+                    <div class="amount-presets" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+                        <div class="preset-btn" onclick="setAmount(10)">$10</div>
+                        <div class="preset-btn <%= amount == 50 ? 'active' : '' %>" onclick="setAmount(50)">$50</div>
+                        <div class="preset-btn <%= amount == 100 ? 'active' : '' %>" onclick="setAmount(100)">$100</div>
+                        <div class="preset-btn" onclick="focusCustom()">آخر</div>
+                    </div>
+                    <div class="custom-amount-group" id="customAmountGroup">
+                        <input type="number" id="customAmountInput" class="form-input" placeholder="أدخل مبلغاً مخصصاً..." value="<%= amount %>" oninput="updateAmountFromInput(this.value)">
+                        <span class="currency-label">$</span>
+                    </div>
+                </div>
+
+                <!-- Operation Fee Alert -->
+                <% if (operationPercentage > 0) { %>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(226, 176, 100, 0.1); border-radius: 12px; border: 1px dashed var(--secondary); display: flex; gap: 12px; align-items: flex-start;">
+                    <i class="fas fa-info-circle" style="color: var(--secondary); margin-top: 3px;"></i>
+                    <div style="font-size: 0.85rem; color: var(--primary); line-height: 1.5;">
+                        <strong class="font-cairo"><%= __('admin_settings_fee_label') %>:</strong>
+                        <%= __('checkout_fee_breakdown', operationPercentage, institutionPercentage, gatewayPercentage) %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Payment Details -->
+                <div style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px; margin-bottom: 30px;">
+                    <label class="form-label-luxury">إعدادات العطاء</label>
+                    <div style="display: flex; gap: 20px; flex-direction: column;">
+                        <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-user-secret" style="color: var(--primary); font-size: 1.2rem;"></i>
+                                <div>
+                                    <span style="display: block; font-weight: 800; font-size: 0.9rem;">إخفاء هويتي (تبرع مجهول)</span>
+                                    <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">لن يظهر اسمك في جدار الداعمين العلني</span>
+                                </div>
+                            </div>
+                            <label class="switch-lux">
+                                <input type="checkbox" name="isAnonymous" value="true">
+                                <span class="slider-lux"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label-luxury" style="font-size: 0.85rem;">كلمة تحفيز للأهل (اختياري)</label>
+                            <textarea name="encouragementMessage" class="form-input" style="height: 80px; resize: none; padding: 12px;" placeholder="اكتب كلمة طيبة تشجع بها اليتيم أو الأسرة..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
+                    <label class="form-label-luxury">معلومات الدفع</label>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <input type="text" name="cardHolder" class="form-input" placeholder="اسم صاحب البطاقة" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px; position: relative;">
+                        <input type="text" id="card-number" class="form-input" placeholder="رقم البطاقة" maxlength="19" required>
+                        <i class="fas fa-shield-halved" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); opacity: 0.5;"></i>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <input type="text" id="expiry" class="form-input" placeholder="MM / YY" maxlength="5" required>
+                        <input type="text" id="cvv" class="form-input" placeholder="CVV" maxlength="3" required>
+                    </div>
+
+                    <!-- Phase 3: Cover Fees Toggle -->
+                    <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="toggleCoverFees()">
+                        <div style="flex-shrink: 0; position: relative; width: 44px; height: 24px; background: var(--secondary); border-radius: 12px; transition: 0.3s;" id="feeToggleTrack">
+                            <div style="position: absolute; left: 22px; top: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s;" id="feeToggleCircle"></div>
+                        </div>
+                        <input type="checkbox" id="coverFeesCheckbox" name="isFeeCovered" value="true" checked style="display: none;">
+                        <div style="flex-grow: 1;">
+                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--primary);">تغطية رسوم المعاملة</div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.3;">أضف مبلغاً بسيطاً لضمان وصول 100% من تبرعك للحالة.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" onclick="showInvoicePreview(event)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 20px; margin-top: 35px; font-size: 1.15rem; gap: 12px; border-radius: 15px;">
+                    <i class="fas fa-heart"></i> تأكيد العطاء الإنساني
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Column: Summary Card -->
+        <div class="summary-column">
+            <div class="luxury-card glass-panel summary-sticky">
+                <img src="<%= foundCase.image || '/assets/images/placeholder-case.jpg' %>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 20px; margin-bottom: 20px;">
+                
+                <h4 class="font-cairo" style="margin-bottom: 15px; color: var(--primary);"><%= foundCase.title %></h4>
+                
+                <div class="summary-details">
+                    <div class="summary-row">
+                        <span>نوع الدعم:</span>
+                        <strong id="summaryTypeLabel"><%= type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر' %></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>قيمة المساهمة:</span>
+                        <strong id="summaryAmountLabel" style="color: var(--primary);">$<%= amount %></strong>
+                    </div>
+                    <div class="summary-row" style="color: var(--text-muted); font-size: 0.85rem;">
+                        <span><%= __('admin_settings_fee_label') %> (<%= operationPercentage %>%):</span>
+                        <strong id="summaryFeeAmount">$0.00</strong>
+                    </div>
+                    <div id="feeBreakdown" style="font-size: 0.75rem; color: var(--text-light); text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; margin-top: -8px; margin-bottom: 10px; opacity: 0.8;">
+                        (<%= institutionPercentage %>% <%= __('admin_settings_institution_fee_label').replace(' (%)', '') %> + <%= gatewayPercentage %>% <%= __('admin_settings_gateway_fee_label').replace(' (%)', '') %>)
+                    </div>
+                    <div class="summary-row" style="border-top: 2px solid rgba(0,0,0,0.05); padding-top: 10px; margin-top: 10px;">
+                        <span style="font-weight: 800; color: var(--primary);">الإجمالي المطلوب:</span>
+                        <strong id="summaryTotalAmount" style="color: var(--secondary); font-size: 1.4rem;">$<%= amount %></strong>
+                    </div>
+                    <% if (type === 'monthly') { %>
+                    <div class="summary-row" id="monthlyNote" style="font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed #eee; padding-top: 10px; margin-top: 10px;">
+                        <i class="fas fa-info-circle"></i> سيتم استقطاع هذا المبلغ شهرياً لدعم الحالة.
+                    </div>
+                    <% } %>
+                </div>
+
+                <div class="trust-badges" style="margin-top: 30px; text-align: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">
+                        <i class="fas fa-lock"></i> تشفير آمن 256-بت بمعايير PCI-DSS
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 15px; opacity: 0.6;">
+                        <i class="fab fa-cc-visa fa-lg"></i>
+                        <i class="fab fa-cc-mastercard fa-lg"></i>
+                        <i class="fab fa-cc-stripe fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label-luxury { 
+        display: block; 
+        margin-bottom: 12px; 
+        font-weight: 800; 
+        color: var(--primary); 
+        font-size: 0.95rem; 
+        font-family: 'Cairo', sans-serif;
+    }
+
+    .type-selector-luxury {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .type-option {
+        padding: 20px;
+        border-radius: 18px;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s var(--ease-smooth);
+    }
+
+    .type-option i {
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        transition: all 0.3s;
+    }
+
+    .type-option.active {
+        border-color: var(--secondary);
+        background: rgba(226, 176, 100, 0.05);
+        box-shadow: 0 5px 15px rgba(226, 176, 100, 0.1);
+    }
+
+    .type-option.active i {
+        color: var(--secondary);
+        transform: scale(1.1);
+    }
+
+    .type-title { display: block; font-weight: 800; color: var(--primary); font-size: 0.95rem; }
+    .type-desc { display: block; font-size: 0.75rem; color: var(--text-muted); }
+
+    .preset-btn {
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .preset-btn:hover, .preset-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .custom-amount-group {
+        position: relative;
+    }
+
+    .custom-amount-group .currency-label {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 800;
+        color: var(--secondary);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+
+    .summary-sticky {
+        position: sticky;
+        top: 100px;
+        padding: 25px;
+        border-radius: 25px;
+    }
+
+    .switch-lux {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+    .switch-lux input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider-lux {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #cbd5e1;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider-lux:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider-lux {
+        background-color: var(--secondary);
+    }
+
+    input:checked + .slider-lux:before {
+        transform: translateX(24px);
+    }
+
+    @media (max-width: 991px) {
+        .luxury-grid-checkout { grid-template-columns: 1fr; }
+        .summary-column { order: -1; }
+        .summary-sticky { position: static; margin-bottom: 30px; }
+    }
+
+    /* Modal Overlay Styles */
+    .modal-overlay-luxury {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.7);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+    }
+
+    .modal-content-luxury {
+        animation: modalSlideUp 0.4s var(--ease-smooth);
+    }
+
+    @keyframes modalSlideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+
+<!-- Invoice Confirmation Modal -->
+<div id="invoiceModal" class="modal-overlay-luxury" style="display: none;">
+    <div class="luxury-card modal-content-luxury" style="max-width: 500px; width: 90%; padding: 0; overflow: hidden;">
+        <div style="background: var(--grad-navy); padding: 30px; text-align: center; color: white;">
+            <i class="fas fa-file-invoice-dollar" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.8;"></i>
+            <h3 class="font-cairo" style="margin: 0; font-weight: 800;">فاتورة التبرع المبدئية</h3>
+            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.7;">يرجى مراجعة تفاصيل عطاءك قبل الإتمام</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <div style="margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">الحالة المستفيدة:</span>
+                    <strong style="color: var(--primary);"><%= foundCase.title %></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">نوع المساهمة:</span>
+                    <strong id="modalType" style="color: var(--primary);">تبرع مباشر</strong>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed #eee; margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1rem;">
+                    <span style="color: var(--text-muted);">مبلغ المساهمة:</span>
+                    <strong id="modalBaseAmount" style="color: var(--primary); font-weight: 800;">$0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);"><%= __('admin_settings_institution_fee_label') %> (<%= institutionPercentage %>%):</span>
+                    <strong id="modalInstFeeAmount" style="color: var(--primary);">$0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);"><%= __('admin_settings_gateway_fee_label') %> (<%= gatewayPercentage %>%):</span>
+                    <strong id="modalGateFeeAmount" style="color: var(--primary);">$0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; border-top: 1px solid #f1f5f9; pt-2;">
+                    <span style="color: var(--text-muted); font-weight: 700;"><%= __('admin_settings_fee_label') %> (<%= operationPercentage %>%):</span>
+                    <strong id="modalFeeAmount" style="color: var(--secondary); font-weight: 800;">$0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 15px; border-top: 2px solid #f8fafc; font-size: 1.3rem;">
+                    <span style="font-weight: 800; color: var(--primary);">الإجمالي كلياً:</span>
+                    <strong id="modalTotalAmount" style="color: var(--secondary); font-weight: 900;">$0.00</strong>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button onclick="closeInvoiceModal()" class="btn-lux btn-lux-navy" style="justify-content: center; padding: 12px;">إلغاء</button>
+                <button onclick="confirmDonation()" class="btn-lux btn-lux-primary" style="justify-content: center; padding: 12px;">تأكيد الدفع</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Safeguard for EJS variable rendering
+    let currentType = '<%= typeof type !== "undefined" ? type : "direct" %>';
+    let currentAmount = Number('<%= typeof amount !== "undefined" ? amount : 0 %>') || 0;
+    const jsInstPercentage = Number('<%= typeof institutionPercentage !== "undefined" ? institutionPercentage : 0 %>') || 0;
+    const jsGatePercentage = Number('<%= typeof gatewayPercentage !== "undefined" ? gatewayPercentage : 0 %>') || 0;
+    const jsOperationPercentage = jsInstPercentage + jsGatePercentage;
+
+    let isFeeCovered = true;
+
+    function toggleCoverFees() {
+        isFeeCovered = !isFeeCovered;
+        document.getElementById('coverFeesCheckbox').checked = isFeeCovered;
+        
+        // UI Toggle
+        const track = document.getElementById('feeToggleTrack');
+        const circle = document.getElementById('feeToggleCircle');
+        track.style.background = isFeeCovered ? 'var(--secondary)' : '#cbd5e1';
+        circle.style.left = isFeeCovered ? '22px' : '2px';
+        
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        const fee = (currentAmount * jsOperationPercentage) / 100;
+        let total;
+        
+        if (isFeeCovered) {
+            total = currentAmount + fee;
+            document.getElementById('summaryFeeAmount').innerText = '$' + fee.toFixed(2);
+            document.getElementById('summaryFeeAmount').style.color = 'var(--secondary)';
+        } else {
+            total = currentAmount;
+            document.getElementById('summaryFeeAmount').innerText = 'خصم من التبرع (-$' + fee.toFixed(2) + ')';
+            document.getElementById('summaryFeeAmount').style.color = '#ef4444';
+        }
+        
+        document.getElementById('summaryTotalAmount').innerText = '$' + total.toFixed(2);
+        document.getElementById('finalAmount').value = currentAmount;
+    }
+
+    function setDonationType(type) {
+        currentType = type;
+        document.getElementById('finalType').value = type;
+        
+        // Update UI
+        document.getElementById('typeMonthly').classList.toggle('active', type === 'monthly');
+        document.getElementById('typeDirect').classList.toggle('active', type === 'direct');
+        document.getElementById('summaryTypeLabel').innerText = (type === 'monthly') ? 'كفالة شهرية' : 'تبرع مباشر';
+        
+        // Manage note
+        const note = document.getElementById('monthlyNote');
+        if (type === 'monthly' && !note) {
+            const newNote = document.createElement('div');
+            newNote.id = 'monthlyNote';
+            newNote.className = 'summary-row';
+            newNote.style = 'font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed #eee; padding-top: 10px; margin-top: 10px;';
+            newNote.innerHTML = '<i class="fas fa-info-circle"></i> سيتم استقطاع هذا المبلغ شهرياً لدعم الحالة.';
+            document.querySelector('.summary-details').appendChild(newNote);
+        } else if (type === 'direct' && note) {
+            note.remove();
+        }
+        calculateTotal();
+    }
+
+    function setAmount(amount) {
+        currentAmount = amount;
+        document.getElementById('customAmountInput').value = amount;
+        document.getElementById('summaryAmountLabel').innerText = '$' + amount;
+        
+        // Update presets UI
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            if (btn.innerText === '$' + amount) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        calculateTotal();
+    }
+
+    function updateAmountFromInput(val) {
+        const amount = Number(val) || 0;
+        currentAmount = amount;
+        document.getElementById('summaryAmountLabel').innerText = '$' + amount;
+        
+        // Reset presets
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+        calculateTotal();
+    }
+
+    function focusCustom() {
+        document.getElementById('customAmountInput').focus();
+    }
+
+    // Invoice Modal Logic
+    function showInvoicePreview(e) {
+        e.preventDefault();
+        
+        if (currentAmount <= 0) {
+            alert('يرجى تحديد مبلغ التبرع');
+            return;
+        }
+
+        const instFee = (currentAmount * jsInstPercentage) / 100;
+        const gateFee = (currentAmount * jsGatePercentage) / 100;
+        const totalFee = instFee + gateFee;
+        let total;
+
+        if (isFeeCovered) {
+            total = currentAmount + totalFee;
+        } else {
+            total = currentAmount;
+        }
+
+        document.getElementById('modalBaseAmount').innerText = '$' + currentAmount.toFixed(2);
+        document.getElementById('modalInstFeeAmount').innerText = '$' + instFee.toFixed(2);
+        document.getElementById('modalGateFeeAmount').innerText = '$' + gateFee.toFixed(2);
+        document.getElementById('modalFeeAmount').innerText = '$' + totalFee.toFixed(2) + (isFeeCovered ? '' : ' (سيتم خصمها)');
+        document.getElementById('modalTotalAmount').innerText = '$' + total.toFixed(2);
+        document.getElementById('modalType').innerText = currentType === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر';
+        
+        console.log('Showing modal for amount:', currentAmount, 'Total:', total);
+        document.getElementById('invoiceModal').style.display = 'flex';
+    }
+
+    function closeInvoiceModal() {
+        document.getElementById('invoiceModal').style.display = 'none';
+    }
+
+    function confirmDonation() {
+        document.getElementById('payment-form').submit();
+    }
+
+    // Initial calculation
+    calculateTotal();
+
+    // Card formatting
+    document.getElementById('card-number').addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+    });
+
+    document.getElementById('expiry').addEventListener('input', function (e) {
+        let val = e.target.value.replace(/[^\d]/g, '');
+        if (val.length >= 2) val = val.substring(0,2) + ' / ' + val.substring(2);
+        e.target.value = val;
+    });
+</script>
+
+<%- include('../../partials/footer-bottom') %>

@@ -1,0 +1,10 @@
+{
+  "appId": "com.jussursanabel.app",
+  "appName": "Jussur Sanabel",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "http://localhost:3000",
+    "cleartext": true
+  }
+}

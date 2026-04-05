@@ -1,0 +1,195 @@
+<%- include('../partials/header-top') %>
+
+<main style="overflow: hidden; background: #fff;">
+    <!-- Premium Hero Section -->
+    <section class="hero-luxury" style="min-height: 50vh; padding: 160px 5% 80px;">
+        <div class="bg-mesh"></div>
+        
+        <!-- Floating Elements -->
+        <div class="float-element" style="position: absolute; top: 15%; right: 8%; font-size: 3rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
+            <i class="fas fa-file-shield"></i>
+        </div>
+        <div class="float-element" style="position: absolute; bottom: 20%; left: 5%; font-size: 4rem; color: var(--accent); opacity: 0.15; filter: blur(2px); animation-delay: -2s;">
+            <i class="fas fa-magnifying-glass-chart"></i>
+        </div>
+
+        <div class="hero-content-luxury container">
+            <span class="hero-badge-luxury reveal-on-scroll">
+                <i class="fas fa-handshake-angle"></i> <%= __('transparency_hero_badge') %>
+            </span>
+            <h1 class="hero-title-luxury reveal-on-scroll" style="transition-delay: 0.2s;">
+                <% 
+                    const transHeroSubTitle = __('transparency_hero_title');
+                    const transHighlight = currentLocale === 'ar' ? 'النزاهة' : 'Integrity';
+                    const transShimmered = transHeroSubTitle.includes(transHighlight) ? transHeroSubTitle.replace(transHighlight, `<span class="shimmer-text">${transHighlight}</span>`) : transHeroSubTitle;
+                %>
+                <%- transShimmered %>
+            </h1>
+            <p class="hero-desc-luxury reveal-on-scroll" style="transition-delay: 0.4s;">
+                <%= __('transparency_hero_desc') %>
+            </p>
+        </div>
+    </section>
+
+    <!-- Key Metrics Section -->
+    <section class="section-luxury container" style="margin-top: -60px; position: relative; z-index: 10;">
+        <div class="grid-4">
+            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9;">
+                <div class="impact-number" data-target="100" style="font-size: 2.5rem;">0</div>
+                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_1') %></div>
+            </div>
+            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.1s;">
+                <div class="impact-number" data-target="1400" style="font-size: 2.5rem;">0</div>
+                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_2') %></div>
+            </div>
+            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.2s;">
+                <div class="impact-number" data-target="24" style="font-size: 2.5rem;">0</div>
+                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_3') %></div>
+            </div>
+            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.3s;">
+                <div class="impact-number" data-target="98" style="font-size: 2.5rem;">0</div>
+                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_4') %></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Journey Section -->
+    <section class="section-luxury container">
+        <div class="section-header-luxury reveal-on-scroll">
+            <span class="section-badge"><i class="fas fa-route"></i> <%= __('transparency_journey_badge') %></span>
+            <h2 class="section-title-luxury"><%= __('transparency_journey_title') %></h2>
+            <p class="section-subtitle-luxury"><%= __('transparency_journey_desc') %></p>
+        </div>
+
+        <div class="grid-3">
+            <div class="glass-step-card reveal-on-scroll">
+                <div class="step-number">1</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_1_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_1_desc') %></p>
+            </div>
+            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.2s;">
+                <div class="step-number">2</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_2_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_2_desc') %></p>
+            </div>
+            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.4s;">
+                <div class="step-number">3</div>
+                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_3_title') %></h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_3_desc') %></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Document Reports Section -->
+    <section class="section-luxury" style="background: #f8fafc; border-top: 1px solid #f1f5f9;">
+        <div class="container">
+            <div class="section-header-luxury reveal-on-scroll">
+                <span class="section-badge"><i class="fas fa-file-invoice-dollar"></i> <%= __('transparency_reports_badge') %></span>
+                <h2 class="section-title-luxury"><%= __('transparency_reports_title') %></h2>
+            </div>
+
+            <div class="grid-3">
+                <!-- Report Card 1 -->
+                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #fffcf0; color: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_1_title') %></h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_1_desc') %></p>
+                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-download"></i> <%= __('transparency_report_btn_download') %>
+                    </a>
+                </div>
+
+                <!-- Report Card 2 -->
+                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center; transition-delay: 0.2s;">
+                    <div style="width: 80px; height: 80px; background: #f0f9ff; color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
+                        <i class="fas fa-chart-line-up"></i>
+                    </div>
+                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_2_title') %></h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_2_desc') %></p>
+                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-eye"></i> <%= __('transparency_report_btn_view') %>
+                    </a>
+                </div>
+
+                <!-- Report Card 3 -->
+                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center; transition-delay: 0.4s;">
+                    <div style="width: 80px; height: 80px; background: #fff0f0; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_3_title') %></h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_3_desc') %></p>
+                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-certificate"></i> <%= __('transparency_report_btn_preview') %>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ / Assurance -->
+    <section class="section-luxury container">
+        <div class="luxury-card" style="background: var(--grad-navy); color: white; padding: 60px; border-radius: 40px; display: flex; align-items: center; gap: 40px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;" class="reveal-on-scroll">
+                <h2 class="font-cairo" style="font-weight: 900; font-size: 2.25rem; margin-bottom: 20px;"><%= __('transparency_trust_title') %></h2>
+                <p style="opacity: 0.85; line-height: 1.8; font-size: 1.1rem; margin-bottom: 30px;">
+                    <%= __('transparency_trust_desc') %>
+                </p>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <i class="fas fa-user-shield fa-3x" style="color: var(--secondary); opacity: 0.5;"></i>
+                    <p style="font-weight: 700; margin: 0;"><%= __('transparency_trust_policy') %></p>
+                </div>
+            </div>
+            <div style="flex: 0 0 350px;" class="reveal-on-scroll">
+                <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 30px; border-radius: 30px; backdrop-filter: blur(20px);">
+                    <h4 class="font-cairo" style="margin-bottom: 15px;"><%= __('transparency_faq_title') %></h4>
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 20px;"><%= __('transparency_faq_desc') %></p>
+                    <a href="/contact" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center;"><%= __('about_cta_btn_contact') %></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // 1. Reveal on scroll logic
+    const observerOptions = { threshold: 0.1 };
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+    // 2. Counter animation
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.getAttribute('data-target'));
+                animateValue(entry.target, 0, target, 2000);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString() + (end === 100 || end === 98 ? '%' : '+');
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    document.querySelectorAll('.impact-number').forEach(el => counterObserver.observe(el));
+</script>
+
+<%- include('../partials/footer-bottom') %>

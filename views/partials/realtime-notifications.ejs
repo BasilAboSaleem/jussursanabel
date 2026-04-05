@@ -1,0 +1,50 @@
+<script>
+    if (typeof socket !== 'undefined') {
+        socket.on('newMessage', (data) => {
+            const currentUserId = '<%= locals.user ? locals.user._id : "" %>';
+            const chatWithId = '<%= locals.chatWithId || "" %>'; // Set this in chat page controller
+            
+            // 1. If we are the receiver
+            if (data.receiverId === currentUserId) {
+                // 2. Update Sidebar Badge
+                const countBadge = document.getElementById('sidebar-unread-count');
+                const activeStatus = document.getElementById('sidebar-active-status');
+                
+                if (countBadge) {
+                    let currentCount = parseInt(countBadge.innerText) || 0;
+                    countBadge.innerText = currentCount + 1;
+                    countBadge.style.display = 'inline-block';
+                }
+                if (activeStatus) {
+                    activeStatus.style.display = 'none';
+                }
+
+                // 3. Show Proactive Toast (only if not currently in this specific chat)
+                const isCurrentChat = window.location.pathname.includes(`/messages/${data.senderId}`) || chatWithId === data.senderId;
+                
+                if (!isCurrentChat && typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-start',
+                        icon: 'info',
+                        title: 'رسالة جديدة',
+                        text: `وصلتك رسالة جديدة من ${data.senderName || 'متواصل'} بانتظار ردك.`,
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true,
+                        didClick: () => {
+                            window.location.href = `/messages/${data.senderId}`;
+                        }
+                    });
+                }
+            }
+        });
+
+        socket.on('newNotification', (notif) => {
+            // This is already handled in notifications-dropdown.ejs but we ensure count update here if needed
+            if (typeof loadNotifications === 'function') {
+                loadNotifications();
+            }
+        });
+    }
+</script>

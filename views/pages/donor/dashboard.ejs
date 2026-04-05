@@ -1,0 +1,714 @@
+<%- include('../../partials/donor-layout-top') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div style="max-width: 1200px; margin: 0 auto;">
+
+    <!-- ===== WELCOME HEADER ===== -->
+    <div style="margin-bottom: 30px; background: white; padding: 25px 30px; border-radius: var(--radius-md); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <span class="section-badge" style="margin: 0 0 10px 0;">
+                <i class="fas fa-heart"></i> بوابة المتبرعين
+            </span>
+            <h2 class="font-cairo" style="margin: 0; font-weight: 800;">أهلاً بك، <%= user.name %></h2>
+            <p style="color: var(--text-muted); margin-top: 5px; font-size: 0.95rem;">
+                شكراً لعطائك المستمر الذي يُعيد الأمل إلى قلوب كثيرة. تبرعاتك تُحدث فارقاً حقيقياً.
+            </p>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="/cases" class="btn-lux btn-lux-primary btn-sm">
+                <i class="fas fa-search-heart"></i> استكشاف الحالات
+            </a>
+            <a href="/messages" class="btn-lux btn-lux-navy btn-sm">
+                <i class="fas fa-comments"></i> مركز التواصل
+            </a>
+        </div>
+    </div>
+    <!-- ACHIEVEMENTS RIBBON REMOVED PER USER REQUEST -->
+
+    <!-- ===== STATS GRID ===== -->
+    <div class="grid-3" style="margin-bottom: 35px;">
+
+        <!-- Stat 1: Total Donated -->
+        <div class="luxury-card glass-panel" style="padding: 28px; text-align: center; border-bottom: 4px solid var(--secondary); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 6rem; opacity: 0.04; color: var(--secondary);">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 12px; position: relative;">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;">إجمالي العطاء الموثّق</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--primary);">$<%= totalDonated %></div>
+        </div>
+
+        <!-- Stat 2: Active Sponsorships -->
+        <div class="luxury-card glass-panel" style="padding: 28px; text-align: center; border-bottom: 4px solid var(--accent); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 6rem; opacity: 0.04; color: var(--accent);">
+                <i class="fas fa-child"></i>
+            </div>
+            <div style="font-size: 2.2rem; color: var(--accent); margin-bottom: 12px; position: relative;">
+                <i class="fas fa-child"></i>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;">الكفالات الشهرية النشطة</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--primary);"><%= activeSponsorshipCounts %></div>
+        </div>
+
+        <!-- Stat 3: Total Transactions -->
+        <div class="luxury-card glass-panel" style="padding: 28px; text-align: center; border-bottom: 4px solid #10b981; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 6rem; opacity: 0.04; color: #10b981;">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div style="font-size: 2.2rem; color: #10b981; margin-bottom: 12px; position: relative;">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;">إجمالي العمليات المسجّلة</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--primary);"><%= transactions.length %></div>
+        </div>
+    </div>
+
+    <!-- ===== NAVIGATION TABS ===== -->
+    <div style="display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9;">
+        <button onclick="switchTab('activity')" id="tab-activity" class="tab-btn active">سجل النشاط والنمو</button>
+        <button onclick="switchTab('sponsorships')" id="tab-sponsorships" class="tab-btn">مركز الكفالات (<%= activeSponsorshipCounts %>)</button>
+        <button onclick="switchTab('teams')" id="tab-teams" class="tab-btn">فرقي التطوعية (<%= myTeams.length %>)</button>
+        <button onclick="switchTab('testimonial')" id="tab-testimonial" class="tab-btn">ماذا تقول عنا؟</button>
+    </div>
+
+    <!-- ===== MAIN CONTENT SECTIONS ===== -->
+    <div id="section-activity" class="dashboard-section active grid-2" style="gap: 30px; grid-template-columns: 1.8fr 1.2fr;">
+
+        <!-- LEFT: Donations History Table -->
+        <div>
+            <!-- Premium Chart Card -->
+            <div class="luxury-card glass-panel" style="margin-bottom: 30px; padding: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h4 class="font-cairo fw-bold m-0" style="font-size: 1.1rem; color: var(--primary);">
+                        <i class="fa-solid fa-chart-line me-2 text-secondary"></i> نمو عطاؤك (آخر 6 أشهر)
+                    </h4>
+                    <span class="badge badge-soft-primary">معدل العطاء: $<%= (totalDonated / (donationTrends.length || 1)).toFixed(0) %> / شهر</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                    <canvas id="donationChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section-header-luxury" style="margin-bottom: 20px; text-align: right;">
+                <h3 class="font-cairo" style="font-size: 1.35rem; margin: 0;">
+                    <i class="fas fa-list-ul"></i> المحفظة والسجل الأخير
+                </h3>
+            </div>
+
+            <% if (transactions.length > 0) { %>
+                <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                            <thead style="background: rgba(0,0,0,0.015); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <tr>
+                                    <th style="padding: 15px 20px;">الحالة المستفيدة</th>
+                                    <th style="padding: 15px 20px;">المبلغ</th>
+                                    <th style="padding: 15px 20px;">الرسوم</th>
+                                    <th style="padding: 15px 20px;">الإجمالي</th>
+                                    <th style="padding: 15px 20px;">الحالة</th>
+                                    <th style="padding: 15px 20px;">الفاتورة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% transactions.slice(0, 10).forEach(trans => { %>
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.015)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding: 15px 20px;">
+                                            <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">
+                                                <%= trans.case ? trans.case.title : 'حالة مؤرشفة' %>
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                                <%= trans.createdAt.toLocaleDateString('ar-EG') %>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <span style="font-weight: 600; color: var(--primary); font-size: 0.9rem;">$<%= trans.amount %></span>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <span style="font-size: 0.85rem; color: var(--text-muted);">$<%= (trans.operationFee || 0).toFixed(2) %></span>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <span style="font-weight: 900; color: var(--secondary); font-size: 1rem;">$<%= (trans.totalAmount || trans.amount).toFixed(2) %></span>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <span class="badge <%= trans.status === 'verified' ? 'badge-teal' : (trans.status === 'pending' ? 'badge-gold' : 'badge-danger') %>" style="font-size: 0.72rem;">
+                                                <%= trans.status === 'verified' ? 'مقبول' : (trans.status === 'pending' ? 'قيد المراجعة' : 'مرفوض') %>
+                                            </span>
+                                        </td>
+                                        <td style="padding: 15px 20px;">
+                                            <a href="/dashboard/invoice/<%= trans._id %>" class="btn-lux btn-lux-navy btn-sm" style="padding: 5px 12px; font-size: 0.75rem; gap: 5px;">
+                                                <i class="fas fa-file-invoice"></i> عرض
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% if (transactions.length > 6) { %>
+                        <div style="padding: 14px 20px; text-align: center; background: rgba(0,0,0,0.01); border-top: 1px solid rgba(0,0,0,0.04);">
+                            <a href="#history" style="font-size: 0.85rem; color: var(--primary); font-weight: 700;">
+                                عرض السجل الكامل (<%= transactions.length %>) <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+
+            <% } else { %>
+                <div class="luxury-card glass-panel" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-heart-crack" style="font-size: 3.5rem; opacity: 0.15; margin-bottom: 20px; display: block; color: var(--secondary);"></i>
+                    <p style="font-size: 1rem; margin-bottom: 20px;">لم تقم بأي تبرعات بعد.</p>
+                    <a href="/cases" class="btn-lux btn-lux-primary" style="justify-content: center;">
+                        <i class="fas fa-search-heart"></i> ابدأ بالتبرع الآن
+                    </a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- RIGHT: Sidebar Panels -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- Approved Chats Panel -->
+            <div>
+                <div class="section-header-luxury" style="margin-bottom: 15px; text-align: right;">
+                    <h3 class="font-cairo" style="font-size: 1.2rem; margin: 0;">
+                        <i class="fas fa-comments"></i> طلبات التواصل المعتمدة
+                    </h3>
+                </div>
+                <div class="luxury-card glass-panel" style="padding: 20px;">
+                    <% if (approvedChats && approvedChats.length > 0) { %>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <% approvedChats.forEach(chat => { %>
+                                <div style="background: rgba(0,0,0,0.02); padding: 14px; border-radius: 14px; border: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                    <div style="min-width: 0;">
+                                        <div style="font-weight: 700; color: var(--primary); font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <%= chat.case ? chat.case.title : 'حالة' %>
+                                        </div>
+                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                            <i class="fas fa-user"></i> <%= chat.family ? chat.family.name : '' %>
+                                        </div>
+                                    </div>
+                                    <a href="/messages/<%= chat.family ? chat.family._id : '' %>" class="btn-lux btn-lux-primary btn-sm" style="padding: 7px 14px; font-size: 0.78rem; flex-shrink: 0;">
+                                        <i class="fas fa-paper-plane"></i> تواصل
+                                    </a>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                            لا توجد طلبات تواصل معتمدة حالياً. يمكنك طلب التواصل من صفحة تفاصيل أي حالة.
+                        </p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Impact Stats Panel -->
+            <div>
+                <div class="section-header-luxury" style="margin-bottom: 15px; text-align: right;">
+                    <h3 class="font-cairo" style="font-size: 1.2rem; margin: 0;">
+                        <i class="fas fa-chart-pie"></i> أثر تبرعاتك
+                    </h3>
+                </div>
+                <div class="luxury-card glass-panel" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(217,119,6,0.05); border-radius: 12px; border-right: 3px solid var(--secondary);">
+                            <i class="fas fa-users" style="color: var(--secondary); font-size: 1.3rem; width: 20px; text-align: center;"></i>
+                            <div>
+                                <div style="font-weight: 800; color: var(--primary); font-size: 0.95rem;"><%= transactions.filter(t => t.status === 'verified').length %> حالة</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">دعمت مستفيدين موثّقين</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(20,184,166,0.05); border-radius: 12px; border-right: 3px solid var(--accent);">
+                            <i class="fas fa-redo" style="color: var(--accent); font-size: 1.3rem; width: 20px; text-align: center;"></i>
+                            <div>
+                                <div style="font-weight: 800; color: var(--primary); font-size: 0.95rem;"><%= activeSponsorshipCounts %> كفالة</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">شهرية مستمرة نشطة</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(16,185,129,0.05); border-radius: 12px; border-right: 3px solid #10b981;">
+                            <i class="fas fa-star" style="color: #10b981; font-size: 1.3rem; width: 20px; text-align: center;"></i>
+                            <div>
+                                <div style="font-weight: 800; color: var(--primary); font-size: 0.95rem;">متبرع متميز</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">شريك في رسالة الخير</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMART COMMUNICATION COUNTDOWN -->
+            <div>
+                <div class="section-header-luxury" style="margin-bottom: 15px; text-align: right;">
+                    <h3 class="font-cairo" style="font-size: 1.2rem; margin: 0;">
+                        <i class="fas fa-clock"></i> نافذتك الزمنية ومركز التواصل
+                    </h3>
+                </div>
+                <div class="luxury-card glass-panel" style="padding: 20px; border-right: 4px solid #6366f1;">
+                    <div id="commCountdown" style="margin-bottom: 15px;">
+                        <div style="background: #f1f5f9; padding: 15px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 5px;">يوم التواصل القادم: <%= chatDay === 'Monday' ? 'الإثنين' : 'الأحد' %> (في منطقتك)</div>
+                            <div id="commTimer" class="font-cairo fw-bold" style="font-size: 1.2rem; color: var(--primary);">جارٍ حساب الوقت...</div>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6;">
+                        حدد الساعات التي ستكون فيها متاحاً للتواصل. ستُبلَّغ الأسر المعنية تلقائياً لضمان وقتك وراحتك.
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <input type="time" id="chatFrom" value="<%= user.chatWindow && user.chatWindow.from ? user.chatWindow.from : '09:00' %>" class="form-input" style="padding: 10px; font-size: 0.9rem;">
+                        </div>
+                        <div>
+                            <input type="time" id="chatTo" value="<%= user.chatWindow && user.chatWindow.to ? user.chatWindow.to : '17:00' %>" class="form-input" style="padding: 10px; font-size: 0.9rem;">
+                        </div>
+                    </div>
+                    <button onclick="saveChatWindow()" class="btn-lux btn-lux-navy btn-sm" style="width: 100%; justify-content: center; border-radius: 12px;">
+                        <i class="fas fa-save"></i> تحديث جدول التواجد
+                    </button>
+                </div>
+            </div>
+
+            <!-- SHAREABLE IMPACT CARD (DIGITAL CERTIFICATE) -->
+            <div class="luxury-card-dark" style="padding: 25px; border-radius: 20px; background: linear-gradient(135deg, #020617 0%, #1e1b4b 100%); position: relative; overflow: hidden;">
+                <div style="position: absolute; bottom: -20px; right: -20px; font-size: 8rem; opacity: 0.1; color: white;">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h5 class="font-cairo fw-bold" style="color: #fbbf24; margin-bottom: 10px;">بطاقة الأثر الرقمية</h5>
+                <p style="font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-bottom: 20px; line-height: 1.6;">
+                    قم بتوليد بطاقة تقديرية تلخص خيرك وعطاؤك لمشاركتها مع من تحب.
+                </p>
+                <button onclick="generateImpactCard()" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.2);">
+                    <i class="fa-solid fa-id-card"></i> استخراج البطاقة
+                </button>
+            </div>
+
+            <!-- CTA Panel -->
+            <div style="background: var(--grad-navy); padding: 25px; border-radius: 20px; color: white; text-align: center;">
+                <i class="fas fa-search-heart" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.6;"></i>
+                <h5 style="margin-bottom: 8px; font-size: 1rem;">هل تبحث عن حالة جديدة؟</h5>
+                <p style="font-size: 0.82rem; margin-bottom: 18px; opacity: 0.75; line-height: 1.6;">
+                    تفضّل بزيارة صفحة الحالات للتعرّف على أسر تنتظر عطاءكم.
+                </p>
+                <a href="/cases" class="btn-lux btn-lux-primary btn-sm" style="width: 100%; justify-content: center; box-shadow: none;">
+                    <i class="fas fa-heart"></i> تصفّح الحالات
+                </a>
+            </div>
+
+        </div>
+    </div> <!-- End Section Activity -->
+
+
+    <!-- Section: Sponsorship Hub (Phase 3) -->
+    <div id="section-sponsorships" class="dashboard-section">
+        <div class="section-header-luxury" style="margin-bottom: 25px;">
+            <h3 class="font-cairo"><i class="fas fa-hand-holding-heart"></i> كفالاتك النشطة والتقارير</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">تابع أثر كفالاتك المستمرة وشاهد آخر التحديثات من الحالات التي تدعمها.</p>
+        </div>
+
+        <% if (activeSponsorships && activeSponsorships.length > 0) { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px;">
+                <% activeSponsorships.forEach(sp => { %>
+                    <div class="luxury-card glass-panel" style="padding: 25px;">
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                            <img src="<%= sp.case.image %>" style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover;">
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.1rem; color: var(--primary);"><%= sp.case.title %></h4>
+                                <div style="font-size: 0.8rem; color: var(--secondary); font-weight: 700;">كفالة شهرية: $<%= sp.amount %></div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">آخر تجديد: <%= sp.createdAt.toLocaleDateString('ar-EG') %></div>
+                            </div>
+                        </div>
+
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 15px;">
+                            <h5 style="font-size: 0.85rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                                <i class="fas fa-bullhorn" style="color: var(--accent);"></i> آخر تقرير أثر / تحديث
+                            </h5>
+                            <% if (sp.case.updates && sp.case.updates.length > 0) { %>
+                                <% const lastUpdate = sp.case.updates[sp.case.updates.length - 1]; %>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);"><%= lastUpdate.title %></div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">
+                                    <%= lastUpdate.content.length > 100 ? lastUpdate.content.substring(0, 100) + '...' : lastUpdate.content %>
+                                </div>
+                                <div style="font-size: 0.7rem; color: var(--secondary); margin-top: 8px;">
+                                    <i class="fas fa-clock"></i> <%= lastUpdate.createdAt.toLocaleDateString('ar-EG') %>
+                                </div>
+                            <% } else { %>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">لا توجد تحديثات جديدة لهذه الحالة حالياً.</p>
+                            <% } %>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <a href="/cases/<%= sp.case._id %>" class="btn-lux btn-sm btn-lux-outline" style="flex: 1; justify-content: center;">عرض الحالة</a>
+                            <button class="btn-lux btn-sm btn-lux-navy" style="flex: 1; justify-content: center; opacity: 0.6;" title="قريباً">إدارة الدفع</button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 20px; border: 1px dashed #cbd5e1;">
+                <i class="fas fa-child" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 20px;"></i>
+                <p style="color: var(--text-muted);">ليس لديك كفالات شهرية نشطة حالياً.</p>
+                <a href="/cases" class="btn-lux btn-lux-primary" style="display: inline-flex; margin-top: 15px;">كفالة يتيم الآن</a>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Section: My Teams (Phase 3) -->
+    <div id="section-teams" class="dashboard-section">
+        <div class="section-header-luxury" style="margin-bottom: 25px;">
+            <h3 class="font-cairo"><i class="fas fa-users-rays"></i> حملات مساهمتك (فرقي التطوعية)</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">تابع أداء الفرق التي أنشأتها وتأثيرك الاجتماعي في حشد الدعم.</p>
+        </div>
+
+        <% if (myTeams && myTeams.length > 0) { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                <% myTeams.forEach(team => { %>
+                    <div class="luxury-card glass-panel" style="padding: 25px; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <div>
+                                <h4 style="margin: 0; color: var(--primary);"><%= team.name %></h4>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);"><%= team.case.title %></div>
+                            </div>
+                            <div style="background: var(--bg-subtle); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; color: var(--secondary);">
+                                $<%= team.totalRaised %>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                            <div style="text-align: center; flex: 1;">
+                                <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary);"><%= team.donorCount %></div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">متبرع</div>
+                            </div>
+                            <div style="text-align: center; flex: 1; border-right: 1px solid #f1f5f9;">
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-top: 8px;">مساهم متميز</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <button onclick="copyTeamLink('<%= team._id %>', '<%= team.case._id %>')" class="btn-lux btn-sm btn-lux-primary" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-share-nodes"></i> مشاركة رابط الفريق
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div style="text-align: center; padding: 60px 20px;">
+                <p style="color: var(--text-muted);">لم تقم بإنشاء أي فرق دعم بعد.</p>
+                <p style="font-size: 0.85rem;">يمكنك إنشاء فريق جديد من صفحة أي حالة إنسانية.</p>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Section: Testimonial submission -->
+    <div id="section-testimonial" class="dashboard-section">
+        <div class="section-header-luxury" style="margin-bottom: 25px;">
+            <h3 class="font-cairo"><i class="fas fa-quote-right"></i> ماذا تقول عن جسور السنابل؟</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">كلماتك تشجع الآخرين على العطاء وتنقل صورة حقيقية عن أثر المنصة.</p>
+        </div>
+
+        <div class="luxury-card glass-panel" style="max-width: 700px; margin: 0 auto; padding: 40px;">
+            <form action="/dashboard/testimonial" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label class="form-label-luxury" style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--primary);">رسالتك للجمهور</label>
+                    <textarea name="content" class="form-input-dark" style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-family: inherit; resize: none;" placeholder="شاركنا تجربتك مع المنصة، كيف شعرت؟ ما هو الانطباع الذي تركه عطاؤك؟" required><%= myTestimonial ? myTestimonial.content : '' %></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label class="form-label-luxury" style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--primary);">مكان الإقامة (اختياري)</label>
+                    <input type="text" name="locationAr" class="form-input-dark" style="width: 100%; padding: 12px 15px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;" placeholder="مثال: متبرع من الأردن، فاعل خير من قطر..." value="<%= myTestimonial ? myTestimonial.locationAr : '' %>">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label class="form-label-luxury" style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--primary);">التقييم</label>
+                    <div style="display: flex; gap: 15px; font-size: 1.5rem; color: #fbbf24;">
+                        <input type="hidden" name="rating" id="testimonial-rating" value="<%= myTestimonial ? myTestimonial.rating : 5 %>">
+                        <% for(let i=1; i<=5; i++) { %>
+                            <i class="fas fa-star rating-star" data-value="<%= i %>" style="cursor: pointer; opacity: <%= (myTestimonial && myTestimonial.rating >= i) || (!myTestimonial && i <= 5) ? '1' : '0.3' %>"></i>
+                        <% } %>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; height: 55px; border-radius: 15px; font-weight: 900;">
+                    <i class="fas fa-paper-plane"></i> <%= myTestimonial ? 'تحديث المشاركة' : 'نشر المشاركة' %>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabName) {
+        // Hide all sections
+        document.querySelectorAll('.dashboard-section').forEach(sec => {
+            sec.classList.remove('active');
+        });
+        // Deactivate all buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // Show selected section
+        const targetSection = document.getElementById('section-' + tabName);
+        targetSection.classList.add('active');
+        
+        // Activate selected button
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function copyTeamLink(teamId, caseId) {
+        const url = window.location.origin + '/donations/checkout?case=' + caseId + '&type=direct&team=' + teamId;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('تم نسخ رابط الفريق بنجاح! شاركه الآن مع الأصدقاء.');
+        });
+    }
+
+    async function saveChatWindow() {
+        const from = document.getElementById('chatFrom').value;
+        const to   = document.getElementById('chatTo').value;
+        if (!from || !to) { alert('يرجى تحديد وقت البداية والنهاية.'); return; }
+        try {
+            const res = await fetch('/profile/chat-window', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<%= csrfToken %>'
+                },
+                body: JSON.stringify({ from, to })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'تم الحفظ!', text: data.message, confirmButtonText: 'ممتاز' })
+                    .then(() => location.reload());
+            } else {
+                alert(data.error || 'حدث خطأ ما.');
+            }
+        } catch(e) { console.error(e); alert('فشل الاتصال بالخادم.'); }
+    }
+
+    // Rating logic
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.addEventListener('click', function() {
+            const val = this.getAttribute('data-value');
+            document.getElementById('testimonial-rating').value = val;
+            document.querySelectorAll('.rating-star').forEach(s => {
+                s.style.opacity = s.getAttribute('data-value') <= val ? '1' : '0.3';
+            });
+        });
+    });
+
+    // 1. Donation Chart Logic
+    const ctx = document.getElementById('donationChart');
+    if (ctx) {
+        const trendData = <%- JSON.stringify(donationTrends) %>;
+        const labels = trendData.map(d => {
+            const date = new Date();
+            date.setMonth(d._id.month - 1);
+            return date.toLocaleDateString('ar-EG', { month: 'short' });
+        });
+        const values = trendData.map(d => d.total);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'قيمة التبرعات ($)',
+                    data: values,
+                    borderColor: '#d97706',
+                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#d97706',
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 2. Communication Countdown Logic
+    function updateCommCountdown() {
+        const chatDayArr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const targetDayIdx = chatDayArr.indexOf('<%= chatDay %>');
+        const now = new Date();
+        const currentDayIdx = now.getDay();
+        
+        let daysUntil = (targetDayIdx - currentDayIdx + 7) % 7;
+        if (daysUntil === 0 && now.getHours() >= 20) daysUntil = 7; // Assuming it ends by 8pm
+
+        const targetDate = new Date();
+        targetDate.setDate(now.getDate() + daysUntil);
+        targetDate.setHours(9, 0, 0, 0); // Open at 9am
+
+        const diff = targetDate - now;
+        const timerEl = document.getElementById('commTimer');
+        
+        if (!timerEl) return;
+
+        if (diff <= 0 && daysUntil === 0) {
+            timerEl.innerHTML = '<span style="color: #10b981;"><i class="fa-solid fa-circle-dot animate-pulse"></i> الباب مفتوح الآن للتواصل</span>';
+        } else {
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            timerEl.innerText = `متبقي: ${d} يوم، ${h} ساعة، ${m} دقيقة`;
+        }
+    }
+    setInterval(updateCommCountdown, 60000);
+    updateCommCountdown();
+
+    // 3. Impact Card Generator (Multilingual)
+    async function generateImpactCard() {
+        const { value: lang } = await Swal.fire({
+            title: 'اختر لغة البطاقة / Choose Language',
+            input: 'radio',
+            inputOptions: { 'ar': 'اللغة العربية', 'en': 'English' },
+            inputValue: 'ar',
+            confirmButtonText: 'متابعة / Continue',
+            confirmButtonColor: '#d97706'
+        });
+
+        if (!lang) return;
+
+        const total = '<%= totalDonated %>';
+        const casesCount = '<%= transactions.filter(t => t.status === "verified").length %>';
+        const sponsors = '<%= activeSponsorshipCounts %>';
+        const userName = '<%= user.name %>';
+        const dateStr = new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US');
+        const refId = 'JS-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        let certHtml = '';
+        
+        if (lang === 'ar') {
+            certHtml = `
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border-radius: 20px; text-align: right; color: white; font-family: 'Cairo', sans-serif; direction: rtl;">
+                    <div style="border: 2px solid rgba(226, 176, 100, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: #fbbf24; margin-bottom: 15px;"></i>
+                            <h3 style="font-weight: 900; margin: 0; color: #fbbf24; font-size: 1.8rem;">شهادة أثر وعطاء</h3>
+                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">جسور السنابل - بذرة خير تثمر أملاً</div>
+                        </div>
+                        <div style="margin-bottom: 35px; text-align: center;">
+                            <div style="font-size: 1.1rem; color: #cbd5e1;">نُشهد بأن المتبرع الكريم</div>
+                            <div style="font-size: 2rem; font-weight: 900; color: #fff; margin: 15px 0;">${userName}</div>
+                            <div style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">قد ساهم في صناعة الأثر وإغاثة الملهوف، فكان عطاؤه بلسماً ويداُ بيضاء تمتد للمحتاجين.</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center; margin-bottom: 30px;">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">$${total}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">إجمالي العطاء</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">${casesCount}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">حالات مدعومة</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">${sponsors}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">كفالات نشطة</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; color: #64748b;">
+                            تاريخ الإصدار: ${dateStr} | كود التحقق: ${refId}
+                        </div>
+                    </div>
+                </div>`;
+        } else {
+            certHtml = `
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border-radius: 20px; text-align: left; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr;">
+                    <div style="border: 2px solid rgba(226, 176, 100, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: #fbbf24; margin-bottom: 15px;"></i>
+                            <h3 style="font-weight: 900; margin: 0; color: #fbbf24; font-size: 1.8rem; text-transform: uppercase;">Impact Certificate</h3>
+                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">Jussur Sanabel - Sowing Seeds of Hope</div>
+                        </div>
+                        <div style="margin-bottom: 35px; text-align: center;">
+                            <div style="font-size: 1.1rem; color: #cbd5e1;">We proudly recognize the contributions of</div>
+                            <div style="font-size: 2.2rem; font-weight: 900; color: #fff; margin: 15px 0;">${userName}</div>
+                            <div style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">Your generosity has created a lasting impact, providing hope and support to those who need it most.</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center; margin-bottom: 30px;">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">$${total}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Total Impact</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">${casesCount}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Cases Supported</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(251, 191, 36, 0.1);">
+                                <div style="font-size: 1.4rem; font-weight: 900; color: #fbbf24;">${sponsors}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Active Sponsors</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; color: #64748b;">
+                            Issue Date: ${dateStr} | Verification ID: ${refId}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        Swal.fire({
+            width: 700,
+            html: certHtml,
+            showCancelButton: true,
+            cancelButtonText: lang === 'ar' ? 'إغلاق' : 'Close',
+            confirmButtonText: lang === 'ar' ? '<i class="fa-solid fa-print"></i> طباعة / حفظ' : '<i class="fa-solid fa-print"></i> Print / Save',
+            confirmButtonColor: '#d97706',
+            customClass: { popup: 'impact-modal-lux' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write('<html><head><title>Impact Certificate</title>');
+                printWindow.document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">');
+                printWindow.document.write('<style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f8fafc;} #impactCertificate{width:800px; transform: scale(1.1);}</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(document.getElementById('impactCertificate').outerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                setTimeout(() => printWindow.print(), 500);
+            }
+        });
+    }
+</script>
+
+<style>
+    .tab-btn {
+        background: none; border: none; padding: 12px 20px;
+        font-family: 'Cairo', sans-serif; font-weight: 700;
+        color: var(--text-muted); cursor: pointer; transition: 0.3s;
+        border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active {
+        color: var(--primary); border-bottom-color: var(--secondary);
+        background: rgba(226, 176, 100, 0.05);
+    }
+    .tab-btn:hover:not(.active) { color: var(--primary); background: rgba(0,0,0,0.02); }
+    
+    /* Achievement Badge Styles REMOVED */
+
+    .dashboard-section { display: none !important; }
+    .dashboard-section.active { display: block !important; }
+    #section-activity.active { display: grid !important; }
+    
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+    .impact-modal-lux { border-radius: 30px !important; padding: 0 !important; width: 500px !important; }
+
+    @media (max-width: 992px) {
+        #section-activity.active { grid-template-columns: 1fr !important; gap: 20px; }
+    }
+</style>
+
+<%- include('../../partials/donor-layout-bottom') %>
