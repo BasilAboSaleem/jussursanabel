@@ -4,10 +4,29 @@
         <span class="font-cairo" style="margin-inline-start: 10px; font-weight: 900; letter-spacing: -0.5px; font-size: 1.5rem;"><%= __('hero_title') %></span>
     </a>
 
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuBtn" style="margin-right: auto; order: 2;">
-        <i class="fas fa-bars"></i>
-    </button>
+    <!-- Mobile Menu Toggle & Lang Switcher -->
+    <div style="display: flex; align-items: center; gap: 15px; margin-right: auto; order: 2;">
+        <style>
+            .mobile-lang-wrapper { display: none; }
+            @media (max-width: 992px) { .mobile-lang-wrapper { display: block; } }
+        </style>
+        <div class="lang-dropdown-lux mobile-lang-wrapper" style="position: relative;">
+            <button id="mobileLangToggleBtn" style="background: none; border: none; font-size: 1.3rem; color: var(--primary); cursor: pointer; padding: 5px;">
+                <i class="fas fa-globe"></i>
+            </button>
+            <div id="mobileLangMenu" class="shadow-sm" style="display: none; position: absolute; top: calc(100% + 15px); <%= locals.langDir === 'ltr' ? 'left' : 'right' %>: -10px; background: white; border-radius: 10px; padding: 8px; min-width: 140px; z-index: 1000; border: 1px solid rgba(0,0,0,0.05);">
+                <a href="/lang/ar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; text-decoration: none; background: <%= locals.currentLocale === 'ar' ? 'var(--secondary)' : 'transparent' %>; color: <%= locals.currentLocale === 'ar' ? '#fff' : 'var(--primary)' %>; border-radius: 6px; font-size: 0.95rem; font-weight: 800; margin-bottom: 5px;">
+                    العربية <i class="fas fa-check" style="opacity: <%= locals.currentLocale === 'ar' ? '1' : '0' %>;"></i>
+                </a>
+                <a href="/lang/en" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; text-decoration: none; background: <%= locals.currentLocale === 'en' ? 'var(--secondary)' : 'transparent' %>; color: <%= locals.currentLocale === 'en' ? '#fff' : 'var(--primary)' %>; border-radius: 6px; font-size: 0.95rem; font-weight: 800;">
+                    English <i class="fas fa-check" style="opacity: <%= locals.currentLocale === 'en' ? '1' : '0' %>;"></i>
+                </a>
+            </div>
+        </div>
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" style="margin-right: 0;">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
 
     <nav class="nav-links-luxury" id="navLinks">
         <a href="/" class="nav-link-luxury"><%= __('home') %></a>
@@ -76,7 +95,17 @@
             e.stopPropagation();
             langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
         });
-        document.addEventListener('click', () => langMenu.style.display = 'none');
         langMenu.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    const mobileLangToggleBtn = document.getElementById('mobileLangToggleBtn');
+    const mobileLangMenu = document.getElementById('mobileLangMenu');
+    if (mobileLangToggleBtn && mobileLangMenu) {
+        mobileLangToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileLangMenu.style.display = mobileLangMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', () => mobileLangMenu.style.display = 'none');
+        mobileLangMenu.addEventListener('click', (e) => e.stopPropagation());
     }
 </script>
