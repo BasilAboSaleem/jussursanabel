@@ -1,5 +1,6 @@
 const Case = require('../models/Case');
 const Testimonial = require('../models/Testimonial');
+const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
 
 exports.getHomepage = async (req, res) => {
     try {
@@ -37,9 +38,17 @@ exports.getHomepage = async (req, res) => {
             .populate('user', 'name avatar')
             .sort({ createdAt: -1 });
 
+        const preparedCases = demoCases.map((item) => {
+            const plain = typeof item.toObject === 'function' ? item.toObject() : item;
+            return {
+                ...plain,
+                storyVideoPlayable: getPlayableStoryVideoUrl(plain.storyVideo || '')
+            };
+        });
+
         res.render('pages/index', {
             title: res.__('home'),
-            cases: demoCases,
+            cases: preparedCases,
             testimonials: testimonials.length > 0 ? testimonials : [
                 {
                     content: 'أجمل ما في رواف هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
@@ -92,16 +101,26 @@ exports.getTransparency = (req, res) => {
 exports.getStoriesHub = async (req, res) => {
     try {
         // Fetch ALL approved cases with storyVideo sorted newest first
-        const stories = await Case.find({ 
+        const stories = await Case.find({
             status: 'approved', 
             isHidden: { $ne: true },
             isStoryHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
         }).sort({ createdAt: -1 });
 
+        const preparedStories = stories
+            .map((story) => {
+                const plain = story.toObject();
+                return {
+                    ...plain,
+                    storyVideoPlayable: getPlayableStoryVideoUrl(plain.storyVideo || '')
+                };
+            })
+            .filter((story) => Boolean(story.storyVideoPlayable));
+
         res.render('pages/stories', {
             title: 'قصص سنابل - Stories',
-            stories,
+            stories: preparedStories,
             fullUrl: `${req.protocol}://${req.get('host')}/stories`
         });
     } catch (err) {

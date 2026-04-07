@@ -126,23 +126,25 @@
                                 <% 
                                     let isYoutube = false;
                                     let embedUrl = "";
-                                    if (item.storyVideo) {
-                                        if (item.storyVideo.includes('youtube.com/shorts/')) {
+                                    if (item.storyVideoPlayable) {
+                                        if (item.storyVideoPlayable.includes('youtube.com/shorts/')) {
                                             isYoutube = true;
-                                            const id = item.storyVideo.split('shorts/')[1].split('?')[0];
+                                            const id = item.storyVideoPlayable.split('shorts/')[1].split('?')[0];
                                             embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&mute=1&controls=0&loop=1&playlist=${id}`;
-                                        } else if (item.storyVideo.includes('youtu.be/')) {
+                                        } else if (item.storyVideoPlayable.includes('youtu.be/')) {
                                             isYoutube = true;
-                                            const id = item.storyVideo.split('youtu.be/')[1].split('?')[0];
+                                            const id = item.storyVideoPlayable.split('youtu.be/')[1].split('?')[0];
                                             embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&mute=1&controls=0&loop=1&playlist=${id}`;
                                         }
                                     }
                                 %>
-                                <% if (item.storyVideo) { %>
+                                <% if (item.storyVideoPlayable) { %>
                                     <% if (isYoutube) { %>
                                         <iframe class="story-hover-video yt-iframe" src="<%= embedUrl %>" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: none; opacity: 0; transform: scale(1.05); transition: opacity 0.4s ease, transform 6s ease-out; pointer-events: none;" allow="autoplay; encrypted-media" title="YouTube video player"></iframe>
                                     <% } else { %>
-                                        <video class="story-hover-video html5-video" src="<%= item.storyVideo %>" muted loop playsinline preload="none" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.05); transition: opacity 0.4s ease, transform 6s ease-out;"></video>
+                                        <video class="story-hover-video html5-video" src="<%= item.storyVideoPlayable %>" muted loop playsinline preload="metadata" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.05); transition: opacity 0.4s ease, transform 6s ease-out;">
+                                            <source src="<%= item.storyVideoPlayable %>" type="video/mp4">
+                                        </video>
                                     <% } %>
                                     
                                     <div class="story-video-controls" style="position: absolute; top: 15px; left: 15px; z-index: 10; display: flex; gap: 8px;">

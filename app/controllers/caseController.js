@@ -5,6 +5,7 @@ const ChatRequest = require('../models/ChatRequest');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
 const { logActivity } = require('../utils/logger');
+const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
 
 exports.getRegisterCase = async (req, res) => {
     try {
@@ -73,13 +74,19 @@ exports.createCase = async (req, res) => {
             return res.redirect('back');
         }
 
+        const normalizedStoryVideo = storyVideo ? getPlayableStoryVideoUrl(storyVideo.trim()) : undefined;
+        if (storyVideo && !normalizedStoryVideo) {
+            req.flash('error', 'رابط فيديو القصة غير مدعوم. استخدم رابط YouTube Shorts أو رابط فيديو مباشر (MP4/WebM) أو رابط Cloudinary.');
+            return res.redirect('back');
+        }
+
         const newCase = new Case({
             title,
             type,
             description,
             needs: Array.isArray(needs) ? needs : [needs],
             location,
-            storyVideo: storyVideo ? storyVideo.trim() : undefined,
+            storyVideo: normalizedStoryVideo,
             guardian: req.user._id,
             details: {
                 storyAr,

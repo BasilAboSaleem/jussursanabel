@@ -389,18 +389,18 @@
     <%
         let isYT = false;
         let embedUrl = '';
-        if (story.storyVideo) {
-            if (story.storyVideo.includes('youtube.com/shorts/')) {
+        if (story.storyVideoPlayable) {
+            if (story.storyVideoPlayable.includes('youtube.com/shorts/')) {
                 isYT = true;
-                const vid = story.storyVideo.split('shorts/')[1].split('?')[0];
+                const vid = story.storyVideoPlayable.split('shorts/')[1].split('?')[0];
                 embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
-            } else if (story.storyVideo.includes('youtu.be/')) {
+            } else if (story.storyVideoPlayable.includes('youtu.be/')) {
                 isYT = true;
-                const vid = story.storyVideo.split('youtu.be/')[1].split('?')[0];
+                const vid = story.storyVideoPlayable.split('youtu.be/')[1].split('?')[0];
                 embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
-            } else if (story.storyVideo.includes('youtube.com/watch')) {
+            } else if (story.storyVideoPlayable.includes('youtube.com/watch')) {
                 isYT = true;
-                const vUrl = new URL(story.storyVideo);
+                const vUrl = new URL(story.storyVideoPlayable);
                 const vid = vUrl.searchParams.get('v');
                 embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
             }
@@ -440,14 +440,15 @@
                 allowfullscreen
                 title="<%= story.title %>">
             </iframe>
-        <% } else if (story.storyVideo) { %>
+        <% } else if (story.storyVideoPlayable) { %>
             <video
                 class="story-media html5-vid"
                 id="media-<%= index %>"
-                src="<%= story.storyVideo %>"
-                data-src="<%= story.storyVideo %>"
+                src="<%= story.storyVideoPlayable %>"
+                data-src="<%= story.storyVideoPlayable %>"
                 controlsList="nodownload"
-                loop playsinline webkit-playsinline muted preload="none">
+                loop playsinline webkit-playsinline muted preload="metadata">
+                <source src="<%= story.storyVideoPlayable %>" type="video/mp4">
             </video>
         <% } %>
 
