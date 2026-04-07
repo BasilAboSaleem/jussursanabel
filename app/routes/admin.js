@@ -30,6 +30,10 @@ router.post('/users/:id/delete', restrictTo('super_admin'), adminController.dele
 router.post('/cases/:id/status', adminController.updateCase);
 router.post('/cases/:id/toggle-satisfaction', adminController.toggleCaseSatisfaction);
 router.post('/cases/:id/updates', upload.array('attachments', 10), adminController.addCaseUpdate);
+router.post('/cases/:id/hard-delete', restrictTo('super_admin'), adminController.hardDeleteCase);
+router.post('/cases/:id/toggle-visibility', restrictTo('super_admin'), adminController.toggleCaseVisibility);
+router.post('/cases/:id/story-hard-delete', restrictTo('super_admin'), adminController.hardDeleteStory);
+router.post('/cases/:id/toggle-story-visibility', restrictTo('super_admin'), adminController.toggleStoryVisibility);
 router.post('/transactions/:id/status', adminController.updateTransactionStatus);
 router.get('/cases-manager', adminController.getCasesManager);
 router.get('/cases/:id/field-report', adminController.getFieldReportPdf);

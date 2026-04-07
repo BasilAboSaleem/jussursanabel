@@ -133,7 +133,7 @@ exports.createCase = async (req, res) => {
 
 exports.getAllCases = async (req, res) => {
     try {
-        const cases = await Case.find({ status: 'approved' }).sort({ createdAt: -1 });
+        const cases = await Case.find({ status: 'approved', isHidden: { $ne: true } }).sort({ createdAt: -1 });
         res.render('pages/cases/all-cases', { title: res.__('cases_list'), cases });
     } catch (err) {
         console.error(err);
@@ -144,7 +144,7 @@ exports.getAllCases = async (req, res) => {
 exports.getCaseDetails = async (req, res) => {
     try {
         const foundCase = await Case.findById(req.params.id).populate('guardian');
-        if (!foundCase) {
+        if (!foundCase || foundCase.isHidden) {
             return res.status(404).render('errors/error', { title: '404', message: res.__('flash_case_not_found'), error: {} });
         }
 

@@ -82,6 +82,8 @@ const caseSchema = new mongoose.Schema({
         descriptionAr: { type: String, required: true }
     }],
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    isHidden: { type: Boolean, default: false },
+    isStoryHidden: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     referenceNumber: { type: String, unique: true, sparse: true }
 });

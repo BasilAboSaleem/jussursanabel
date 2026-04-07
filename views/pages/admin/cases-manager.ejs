@@ -101,6 +101,40 @@
                                     <a href="/cases/<%= item._id %>" target="_blank" class="dropdown-item">
                                         <i class="fas fa-eye"></i> <%= __('admin_cases_manager_action_view_form') || 'عرض نموذج الحالة' %>
                                     </a>
+
+                                    <% if (locals.user && locals.user.role === 'super_admin') { %>
+                                        <div style="height: 1px; background: rgba(0,0,0,0.05); margin: 5px 0;"></div>
+                                        
+                                        <form action="/admin/cases/<%= item._id %>/toggle-visibility" method="POST" style="margin: 0; padding: 0;">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #f59e0b;">
+                                                <i class="fas <%= item.isHidden ? 'fa-eye' : 'fa-eye-slash' %>"></i> <%= item.isHidden ? 'إظهار الحالة للعامة' : 'إخفاء الحالة عن العامة' %>
+                                            </button>
+                                        </form>
+
+                                        <form action="/admin/cases/<%= item._id %>/hard-delete" method="POST" style="margin: 0; padding: 0;" onsubmit="return confirm('هل أنت متأكد من حذف هذه الحالة وكل بياناتها نهائياً؟ هذا الإجراء لا يمكن التراجع عنه!');">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #ef4444;">
+                                                <i class="fas fa-trash-alt"></i> حذف الحالة نهائياً
+                                            </button>
+                                        </form>
+
+                                        <% if (item.storyVideo) { %>
+                                            <form action="/admin/cases/<%= item._id %>/toggle-story-visibility" method="POST" style="margin: 0; padding: 0;">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #8b5cf6;">
+                                                    <i class="fas <%= item.isStoryHidden ? 'fa-video' : 'fa-video-slash' %>"></i> <%= item.isStoryHidden ? 'إظهار الستوري' : 'إخفاء الستوري' %>
+                                                </button>
+                                            </form>
+                                            
+                                            <form action="/admin/cases/<%= item._id %>/story-hard-delete" method="POST" style="margin: 0; padding: 0;" onsubmit="return confirm('هل أنت متأكد من حذف ستوري الحالة نهائياً؟');">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #ef4444;">
+                                                    <i class="fas fa-file-video"></i> حذف ستوري الحالة
+                                                </button>
+                                            </form>
+                                        <% } %>
+                                    <% } %>
                                     
                                     <% if (['field_verification', 'approved', 'fully_sponsored'].includes(item.status)) { %>
                                         <div style="height: 1px; background: rgba(0,0,0,0.05); margin: 5px 0;"></div>

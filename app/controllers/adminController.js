@@ -312,6 +312,97 @@ exports.updateUserStatus = async (req, res) => {
 };
 
 
+exports.hardDeleteCase = async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ error: 'غير مصرح للقيام بهذا الإجراء' });
+        }
+        await Transaction.deleteMany({ case: req.params.id });
+        await ChatRequest.deleteMany({ case: req.params.id });
+        await Case.findByIdAndDelete(req.params.id);
+        
+        await logActivity(req.user._id, 'case_hard_delete', 'Case', req.params.id, 'تم حذف الحالة بشكل كامل نهائياً من النظام');
+        req.flash('success', 'تم حذف الحالة بشكل كامل نهائياً من النظام');
+        res.redirect('/admin/cases-manager');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', res.__('error_server'));
+        res.redirect('/admin/cases-manager');
+    }
+};
+
+exports.toggleCaseVisibility = async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ error: 'غير مصرح للقيام بهذا الإجراء' });
+        }
+        const foundCase = await Case.findById(req.params.id);
+        if (!foundCase) {
+            req.flash('error', 'الحالة غير موجودة');
+            return res.redirect('/admin/cases-manager');
+        }
+        foundCase.isHidden = !foundCase.isHidden;
+        await foundCase.save();
+        
+        const actDesc = foundCase.isHidden ? 'تم إخفاء الحالة عن العامة' : 'تم إظهار الحالة للعامة';
+        await logActivity(req.user._id, 'case_visibility_toggle', 'Case', req.params.id, actDesc);
+        req.flash('success', actDesc);
+        res.redirect('/admin/cases-manager');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', res.__('error_server'));
+        res.redirect('/admin/cases-manager');
+    }
+};
+
+exports.hardDeleteStory = async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ error: 'غير مصرح للقيام بهذا الإجراء' });
+        }
+        const foundCase = await Case.findById(req.params.id);
+        if (!foundCase) {
+            req.flash('error', 'الحالة غير موجودة');
+            return res.redirect('/admin/cases-manager');
+        }
+        foundCase.storyVideo = undefined;
+        foundCase.isStoryHidden = false; // reset
+        await foundCase.save();
+        
+        await logActivity(req.user._id, 'story_hard_delete', 'Case', req.params.id, 'تم حذف الفديو/الستوري التابع للحالة نهائياً');
+        req.flash('success', 'تم حذف ستوري الحالة بنجاح');
+        res.redirect('/admin/cases-manager');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', res.__('error_server'));
+        res.redirect('/admin/cases-manager');
+    }
+};
+
+exports.toggleStoryVisibility = async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ error: 'غير مصرح للقيام بهذا الإجراء' });
+        }
+        const foundCase = await Case.findById(req.params.id);
+        if (!foundCase || !foundCase.storyVideo) {
+            req.flash('error', 'الستوري غير موجود أو الحالة محذوفة');
+            return res.redirect('/admin/cases-manager');
+        }
+        foundCase.isStoryHidden = !foundCase.isStoryHidden;
+        await foundCase.save();
+        
+        const actDesc = foundCase.isStoryHidden ? 'تم منع الستوري من الظهور للعامة' : 'تم إظهار الستوري للعامة';
+        await logActivity(req.user._id, 'story_visibility_toggle', 'Case', req.params.id, actDesc);
+        req.flash('success', actDesc);
+        res.redirect('/admin/cases-manager');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', res.__('error_server'));
+        res.redirect('/admin/cases-manager');
+    }
+};
+
 exports.getCasesManager = async (req, res) => {
     try {
         const { status } = req.query;

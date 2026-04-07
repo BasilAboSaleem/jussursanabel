@@ -478,7 +478,8 @@
                 class="story-media html5-vid"
                 id="media-<%= index %>"
                 src="<%= story.storyVideo %>"
-                loop playsinline preload="none">
+                controlsList="nodownload"
+                loop playsinline webkit-playsinline muted preload="metadata">
             </video>
         <% } %>
 

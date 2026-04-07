@@ -6,6 +6,7 @@ exports.getHomepage = async (req, res) => {
         // Fetch featured or recent cases that have a video story attached
         const cases = await Case.find({ 
             status: 'approved', 
+            isHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
         }).limit(3).sort({ createdAt: -1 });
         
@@ -93,6 +94,8 @@ exports.getStoriesHub = async (req, res) => {
         // Fetch ALL approved cases with storyVideo sorted newest first
         const stories = await Case.find({ 
             status: 'approved', 
+            isHidden: { $ne: true },
+            isStoryHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
         }).sort({ createdAt: -1 });
 
