@@ -1,78 +1,159 @@
 <%- include('../../partials/header-top') %>
 
-<main style="overflow: hidden; background: #fafafa;">
-    <!-- Case Explorer Hero -->
-    <section class="hero-luxury" style="min-height: 50vh; padding: 140px 5% 60px; display: flex; align-items: flex-end; text-align: right;">
+<main class="case-details-page">
+    <!-- Hero -->
+    <section class="hero-luxury case-hero" style="min-height: 55vh;">
+        <div class="case-hero-bg" style="background-image: url('<%= foundCase.image %>');"></div>
         <div class="bg-mesh"></div>
-        <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(2, 6, 23, 0.9), transparent); z-index: 1;"></div>
-        
-        <div class="container" style="position: relative; z-index: 2; width: 100%;">
-            <nav class="reveal-on-scroll" style="margin-bottom: 20px; font-weight: 700; font-size: 0.95rem;">
-                <a href="/cases" style="color: var(--secondary); text-decoration: none;"><%= __('case_details_breadcrumb_list') %></a> 
-                <span style="color: white; opacity: 0.6; margin: 0 10px;">/</span>
-                <span style="color: white;"><%= foundCase.title %></span>
-            </nav>
-            <h1 class="hero-title-luxury reveal-on-scroll" style="font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 10px; transition-delay: 0.2s;">
-                <%= foundCase.title %>
-            </h1>
-            <div class="reveal-on-scroll" style="display: flex; gap: 15px; flex-wrap: wrap; transition-delay: 0.3s;">
-                <span class="badge badge-gold" style="padding: 8px 20px;"><i class="fas fa-certificate"></i> <%= foundCase.type === 'orphan' ? __('cases_type_orphan') : __('cases_type_family') %></span>
-                <span class="badge" style="background: rgba(255,255,255,0.1); color: white; border: solid 1px rgba(255,255,255,0.2); padding: 8px 20px;"><i class="fas fa-location-dot"></i> <%= foundCase.location %></span>
+        <div class="case-hero-overlay"></div>
+
+        <div class="container case-hero-content">
+            <div class="case-hero-grid">
+                <div class="case-hero-info">
+                    <nav class="reveal-on-scroll case-breadcrumb">
+                        <a href="/cases" class="case-breadcrumb-link"><%= __('case_details_breadcrumb_list') %></a>
+                        <span class="case-breadcrumb-sep">/</span>
+                        <span class="case-breadcrumb-current"><%= foundCase.title %></span>
+                    </nav>
+
+                    <h1 class="hero-title-luxury reveal-on-scroll case-hero-title">
+                        <%= foundCase.title %>
+                    </h1>
+
+                    <div class="reveal-on-scroll case-hero-badges">
+                        <span class="badge badge-gold case-hero-badge">
+                            <i class="fas fa-certificate"></i>
+                            <%= foundCase.type === 'orphan' ? __('cases_type_orphan') : __('cases_type_family') %>
+                        </span>
+                        <span class="badge badge-navy case-hero-badge case-hero-badge-dark">
+                            <i class="fas fa-location-dot"></i> <%= foundCase.location %>
+                        </span>
+                        <% if (foundCase.storyVideo) { %>
+                        <a href="/stories?caseId=<%= foundCase._id %>" class="badge badge-gold case-hero-badge" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; border: none; text-decoration: none; animation: pulse 2s infinite;">
+                            <i class="fas fa-play-circle"></i> شاهد القصة
+                        </a>
+                        <style>
+                            @keyframes pulse {
+                                0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                                70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                                100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                            }
+                        </style>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <div class="case-hero-action reveal-on-scroll" style="transition-delay: 0.4s;">
+                    <div style="margin-bottom: 20px; font-family: 'Cairo', sans-serif;">
+                        <span style="display: block; font-size: 0.85rem; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">كن جزءاً من الأمل</span>
+                        <h3 style="color: #fff; font-weight: 800; font-size: 1.4rem; margin: 0;">
+                            ساهم في التغيير الإيجابي <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+                        </h3>
+                    </div>
+                    
+                    <div class="quick-donate-stats">
+                        <div class="stat">
+                            <span class="label"><%= __('cases_raised_text') %></span>
+                            <span class="value" style="color: var(--secondary);">$<%= foundCase.raisedAmount %></span>
+                        </div>
+                        <div class="stat text-start" dir="ltr">
+                            <span class="label text-end" dir="rtl"><%= __('cases_target_text') %></span>
+                            <span class="value">$<%= foundCase.targetAmount %></span>
+                        </div>
+                    </div>
+                    
+                    <% const heroProgress = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
+                    <div class="case-hero-progress-track">
+                        <div class="case-hero-progress-fill" style="width: <%= heroProgress %>%;"></div>
+                    </div>
+                    
+                    <% if (foundCase.isSatisfied) { %>
+                        <div class="case-hero-satisfied-badge">
+                            <div class="satisfied-glow"></div>
+                            <i class="fas fa-heart-circle-check"></i>
+                            <div class="satisfied-text">
+                                <span class="satisfied-main"><%= __('case_details_satisfied_title') %></span>
+                                <span class="satisfied-sub">بفضل الله وكرمه تم الاكتفاء</span>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct" class="hero-donate-btn w-100 d-flex justify-content-center align-items-center gap-2">
+                            <i class="fas fa-donate"></i> تبرع الآن
+                        </a>
+                    <% } %>
+                </div>
             </div>
         </div>
+
+        <div class="case-hero-fade"></div>
     </section>
 
-    <div class="container" style="padding-top: 60px; padding-bottom: 100px;">
-        <div class="case-main-grid" style="display: grid; grid-template-columns: 1.4fr 0.6fr; align-items: start; gap: 40px;">
+    <!-- Content -->
+    <section class="container case-details-section">
+        <div class="layout-split case-details-layout">
 
             <!-- Left: Case Detailed Information -->
-            <div class="reveal-on-scroll">
-                <div class="luxury-card" style="padding: 40px; background: white; border: 1px solid #f1f5f9; box-shadow: 0 10px 40px rgba(0,0,0,0.03);">
-                    <!-- Main Image with zoom effect -->
-                    <div style="border-radius: 20px; overflow: hidden; margin-bottom: 40px; box-shadow: var(--shadow-md); height: 500px;">
-                        <img src="<%= foundCase.image %>" alt="<%= foundCase.title %>" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+            <div class="reveal-on-scroll case-details-main">
+                <div class="case-main-stack">
+                    <!-- Panel 1: Cinematic Story Spotlight -->
+                    <div class="luxury-card case-card-main case-panel case-panel-story">
+                        <div class="case-panel-rail"></div>
+                        <div class="case-panel-head">
+                            <div class="case-panel-kicker">
+                                <span class="badge badge-gold"><i class="fas fa-sparkles"></i> <%= __('case_details_story_title') %></span>
+                                <span class="badge badge-navy"><i class="fas fa-location-dot"></i> <%= foundCase.location %></span>
+                            </div>
+                        </div>
 
-                    <div style="line-height: 1.9; font-size: 1.15rem; color: var(--text-muted);">
-                        <h3 class="font-cairo" style="color: var(--primary); font-size: 1.7rem; margin-bottom: 25px; font-weight: 900; background: linear-gradient(to left, var(--secondary) 0%, transparent 100%); -webkit-background-clip: padding-box; background-clip: padding-box; border-right: 6px solid var(--secondary); padding-right: 18px;">
-                            <%= __('case_details_story_title') %>
-                        </h3>
-                        <div style="white-space: pre-line; background: #fdfdfd; padding: 30px; border-radius: 15px; border: 1px solid #f8fafc;">
-                            <%= foundCase.details.storyAr %>
+                        <div class="case-story-grid">
+                            <div class="media-frame case-cover case-cover-compact">
+                                <img src="<%= foundCase.image %>" alt="<%= foundCase.title %>">
+                                <div class="media-overlay-brand"></div>
+                            </div>
+
+                            <div class="case-story-side">
+                                <h3 class="font-cairo case-section-title case-section-title-story">
+                                    <%= __('case_details_story_title') %>
+                                </h3>
+                                <div class="case-story">
+                                    <%= foundCase.details.storyAr %>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Family Structure Section -->
+                    <!-- Panel 2: Family Structure -->
                     <% if (foundCase.familyStructure) { %>
-                    <div style="margin-top: 40px; padding: 30px; background: #fffdf5; border-radius: 20px; border: 1px solid #fde68a;">
-                        <h3 class="font-cairo" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 25px; font-weight: 900; border-right: 4px solid var(--secondary); padding-right: 15px;">
+                    <div class="luxury-card case-panel case-panel-family">
+                        <div class="case-panel-rail"></div>
+                        <h3 class="font-cairo case-section-title case-section-title-sm">
                             <i class="fas fa-users-viewfinder"></i> <%= __('family_structure_title') %>
                         </h3>
 
                         <!-- Father -->
                         <% if (foundCase.familyStructure.father && foundCase.familyStructure.father.name) { %>
-                        <div style="margin-bottom: 25px;">
-                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-user-tie" style="margin-left: 5px;"></i> <%= __('father_details') %></h5>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
-                                <div><strong style="color: var(--primary);"><%= __('father_name') %>:</strong> <%= foundCase.familyStructure.father.name %></div>
-                                <div><strong style="color: var(--primary);"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.father.deathDate ? new Date(foundCase.familyStructure.father.deathDate).toLocaleDateString() : '---' %></div>
-                                <div style="grid-column: 1 / -1;"><strong style="color: var(--primary);"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.father.deathReason || '---' %></div>
+                        <div class="case-subblock">
+                            <h5 class="case-subtitle"><i class="fas fa-user-tie"></i> <%= __('father_details') %></h5>
+                            <div class="case-kv-grid">
+                                <div><strong class="case-kv-key"><%= __('father_name') %>:</strong> <%= foundCase.familyStructure.father.name %></div>
+                                <div><strong class="case-kv-key"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.father.deathDate ? new Date(foundCase.familyStructure.father.deathDate).toLocaleDateString() : '---' %></div>
+                                <div class="case-kv-span"><strong class="case-kv-key"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.father.deathReason || '---' %></div>
                             </div>
                         </div>
                         <% } %>
 
                         <!-- Mother -->
                         <% if (foundCase.familyStructure.mother) { %>
-                        <div style="margin-bottom: 25px;">
-                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-person-breastfeeding" style="margin-left: 5px;"></i> <%= __('mother_details') %></h5>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
+                        <div class="case-subblock">
+                            <h5 class="case-subtitle"><i class="fas fa-person-breastfeeding"></i> <%= __('mother_details') %></h5>
+                            <div class="case-kv-grid">
                                 <% if (foundCase.familyStructure.mother.isDeceased) { %>
-                                    <div><strong style="color: #ef4444;"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.mother.deathDate ? new Date(foundCase.familyStructure.mother.deathDate).toLocaleDateString() : '---' %></div>
-                                    <div><strong style="color: #ef4444;"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.mother.deathReason || '---' %></div>
+                                    <div><strong class="case-kv-key case-kv-key-danger"><%= __('death_date') %>:</strong> <%= foundCase.familyStructure.mother.deathDate ? new Date(foundCase.familyStructure.mother.deathDate).toLocaleDateString() : '---' %></div>
+                                    <div><strong class="case-kv-key case-kv-key-danger"><%= __('death_reason') %>:</strong> <%= foundCase.familyStructure.mother.deathReason || '---' %></div>
                                 <% } else { %>
-                                    <div><strong style="color: var(--primary);"><%= __('mother_name') %>:</strong> <%= foundCase.familyStructure.mother.name || '---' %></div>
-                                    <div><strong style="color: var(--primary);"><%= __('age') %>:</strong> <%= foundCase.familyStructure.mother.age || '---' %></div>
-                                    <div><strong style="color: var(--primary);"><%= __('health_status') %>:</strong> <%= (foundCase.familyStructure.mother.healthStatus) ? __('health_' + foundCase.familyStructure.mother.healthStatus) : '---' %></div>
+                                    <div><strong class="case-kv-key"><%= __('mother_name') %>:</strong> <%= foundCase.familyStructure.mother.name || '---' %></div>
+                                    <div><strong class="case-kv-key"><%= __('age') %>:</strong> <%= foundCase.familyStructure.mother.age || '---' %></div>
+                                    <div><strong class="case-kv-key"><%= __('health_status') %>:</strong> <%= (foundCase.familyStructure.mother.healthStatus) ? __('health_' + foundCase.familyStructure.mother.healthStatus) : '---' %></div>
                                 <% } %>
                             </div>
                         </div>
@@ -80,25 +161,31 @@
 
                         <!-- Guardian -->
                         <% if (foundCase.familyStructure.guardian) { %>
-                        <div style="margin-bottom: 25px;">
-                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-user-shield" style="margin-left: 5px;"></i> <%= __('guardian_details') %></h5>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.03);">
-                                <div><strong style="color: var(--primary);"><%= __('guardian_name') %>:</strong> <%= foundCase.familyStructure.guardian.name || '---' %></div>
-                                <div><strong style="color: var(--primary);"><%= __('birth_date') %>:</strong> <%= foundCase.familyStructure.guardian.birthDate ? new Date(foundCase.familyStructure.guardian.birthDate).toLocaleDateString() : '---' %></div>
-                                <div><strong style="color: var(--primary);"><%= __('family_size') %>:</strong> <%= foundCase.familyStructure.guardian.familySize || '---' %></div>
-                                <div><strong style="color: var(--primary);"><%= __('health_status') %>:</strong> <%= foundCase.familyStructure.guardian.healthStatus ? __('health_' + foundCase.familyStructure.guardian.healthStatus) : '---' %></div>
+                        <div class="case-subblock">
+                            <h5 class="case-subtitle"><i class="fas fa-user-shield"></i> <%= __('guardian_details') %></h5>
+                            <div class="case-kv-grid">
+                                <div><strong class="case-kv-key"><%= __('guardian_name') %>:</strong> <%= foundCase.familyStructure.guardian.name || '---' %></div>
+                                <div><strong class="case-kv-key"><%= __('birth_date') %>:</strong> <%= foundCase.familyStructure.guardian.birthDate ? new Date(foundCase.familyStructure.guardian.birthDate).toLocaleDateString() : '---' %></div>
+                                <div><strong class="case-kv-key"><%= __('family_size') %>:</strong> <%= foundCase.familyStructure.guardian.familySize || '---' %></div>
+                                <div><strong class="case-kv-key"><%= __('health_status') %>:</strong> <%= foundCase.familyStructure.guardian.healthStatus ? __('health_' + foundCase.familyStructure.guardian.healthStatus) : '---' %></div>
                                 <% 
                                     const housingMap = { tent: 'tent', rent: 'rent', damaged_home: 'damaged', host_family: 'host' }; 
                                     const hKey = foundCase.familyStructure.guardian.housingStatus ? housingMap[foundCase.familyStructure.guardian.housingStatus] : null; 
                                 %>
-                                <div><strong style="color: var(--primary);"><%= __('guardian_housing_status') %>:</strong> <%= hKey ? __('housing_' + hKey) : '---' %></div>
-                                <div><strong style="color: var(--primary);"><%= __('guardian_residency_status') %>:</strong> <%= foundCase.familyStructure.guardian.residencyStatus ? __('residency_' + foundCase.familyStructure.guardian.residencyStatus) : '---' %></div>
+                                <div><strong class="case-kv-key"><%= __('guardian_housing_status') %>:</strong> <%= hKey ? __('housing_' + hKey) : '---' %></div>
+                                <div><strong class="case-kv-key"><%= __('guardian_residency_status') %>:</strong> <%= foundCase.familyStructure.guardian.residencyStatus ? __('residency_' + foundCase.familyStructure.guardian.residencyStatus) : '---' %></div>
                                 
                                 <!-- Privacy Info (Admins only) -->
                                 <% if (typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'super_admin')) { %>
-                                    <div style="grid-column: 1 / -1; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.1); display: flex; gap: 20px;">
-                                        <div><strong style="color: #ef4444;"><i class="fas fa-id-card"></i> <%= __('common_id_number') %>:</strong> <span style="font-family: monospace; font-size: 1.1em; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px;"><%= foundCase.familyStructure.guardian.idNumber || '---' %></span></div>
-                                        <div><strong style="color: #ef4444;"><i class="fas fa-phone"></i> <%= __('common_phone') %>:</strong> <span style="font-family: monospace; font-size: 1.1em; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px;" dir="ltr"><%= foundCase.familyStructure.guardian.phone || '---' %></span></div>
+                                    <div class="case-private-row">
+                                        <div>
+                                            <strong class="case-private-key"><i class="fas fa-id-card"></i> <%= __('common_id_number') %>:</strong>
+                                            <span class="case-private-val"><%= foundCase.familyStructure.guardian.idNumber || '---' %></span>
+                                        </div>
+                                        <div>
+                                            <strong class="case-private-key"><i class="fas fa-phone"></i> <%= __('common_phone') %>:</strong>
+                                            <span class="case-private-val" dir="ltr"><%= foundCase.familyStructure.guardian.phone || '---' %></span>
+                                        </div>
                                     </div>
                                 <% } %>
                             </div>
@@ -108,14 +195,20 @@
                         <!-- Family Members / Orphans -->
                         <% if (foundCase.familyStructure.orphans && foundCase.familyStructure.orphans.length > 0) { %>
                         <div>
-                            <h5 style="color: var(--secondary); font-weight: 800; margin-bottom: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 20px;"><i class="fas fa-children" style="margin-left: 5px;"></i> <%= foundCase.type === 'orphan' ? __('orphan_details') : __('family_members_details') %> (<%= foundCase.familyStructure.orphans.length %>)</h5>
-                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <h5 class="case-subtitle case-subtitle-divider">
+                                <i class="fas fa-children"></i>
+                                <%= foundCase.type === 'orphan' ? __('orphan_details') : __('family_members_details') %>
+                                (<%= foundCase.familyStructure.orphans.length %>)
+                            </h5>
+                            <div class="case-orphans-list">
                                 <% foundCase.familyStructure.orphans.forEach((orphan, i) => { %>
-                                    <div style="background: white; padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; font-size: 0.9rem; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                                        <div><strong style="color: var(--primary); font-size: 1.05rem;"><i class="fas fa-child" style="color: var(--secondary);"></i> <%= orphan.name %></strong></div>
-                                        <div><i class="far fa-calendar-alt text-muted" style="margin-left: 5px;"></i> <%= orphan.birthDate ? new Date(orphan.birthDate).toLocaleDateString() : '---' %></div>
-                                        <div><i class="fas fa-heart-pulse text-muted" style="margin-left: 5px;"></i> <%= orphan.healthStatus ? __('health_' + orphan.healthStatus) : '---' %></div>
-                                        <div><i class="fas fa-graduation-cap text-muted" style="margin-left: 5px;"></i> <%= orphan.educationStage ? __('edu_' + orphan.educationStage) : '---' %></div>
+                                    <div class="case-orphan-row">
+                                        <div class="case-orphan-name">
+                                            <i class="fas fa-child"></i> <%= orphan.name %>
+                                        </div>
+                                        <div class="case-orphan-meta"><i class="far fa-calendar-alt text-muted"></i> <%= orphan.birthDate ? new Date(orphan.birthDate).toLocaleDateString() : '---' %></div>
+                                        <div class="case-orphan-meta"><i class="fas fa-heart-pulse text-muted"></i> <%= orphan.healthStatus ? __('health_' + orphan.healthStatus) : '---' %></div>
+                                        <div class="case-orphan-meta"><i class="fas fa-graduation-cap text-muted"></i> <%= orphan.educationStage ? __('edu_' + orphan.educationStage) : '---' %></div>
                                     </div>
                                 <% }) %>
                             </div>
@@ -125,29 +218,29 @@
                     </div>
                     <% } %>
 
-                    <!-- Verification Evidence Section -->
+                    <!-- Panel 3: Verification Evidence -->
                     <% if (foundCase.gallery && foundCase.gallery.length > 0) { %>
-                    <div style="margin-top: 60px; padding: 30px; background: rgba(16, 185, 129, 0.03); border-radius: 20px; border: 1px dashed #10b981;">
-                        <h4 class="font-cairo" style="color: #065f46; margin-bottom: 25px; font-weight: 800;">
+                    <div class="luxury-card case-panel case-docs">
+                        <div class="case-panel-rail"></div>
+                        <h4 class="font-cairo case-block-title case-block-title-success">
                             <i class="fas fa-file-shield"></i> <%= __('case_details_docs_title') %>
                         </h4>
-                        <div class="grid-3" style="gap: 20px;">
+                        <div class="grid-3 case-docs-grid">
                             <% foundCase.gallery.forEach((img, idx) => { %>
-                                <div class="gallery-item-lux" style="height: 180px; border-radius: 15px; overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer; position: relative;">
-                                    <img src="<%= img %>" style="width: 100%; height: 100%; object-fit: cover; filter: blur(2px);">
-                                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white;">
-                                        <i class="fas fa-eye"></i>
-                                    </div>
-                                </div>
+                                <a href="<%= img %>" target="_blank" class="case-doc-item gallery-item-lux" aria-label="<%= __('case_details_docs_title') %>">
+                                    <img src="<%= img %>" alt="" class="case-doc-img">
+                                    <span class="case-doc-overlay"><i class="fas fa-eye"></i></span>
+                                </a>
                             <% }) %>
                         </div>
-                        <p style="font-size: 0.8rem; color: #065f46; margin-top: 15px; font-weight: 600;"><%= __('case_details_docs_disclaimer') %></p>
+                        <p class="case-docs-disclaimer"><%= __('case_details_docs_disclaimer') %></p>
                     </div>
                     <% } %>
 
-                    <!-- Updates Timeline -->
-                    <div style="margin-top: 60px;">
-                        <h4 class="font-cairo" style="color: var(--primary); margin-bottom: 40px; font-weight: 850; border-right: 6px solid var(--grad-navy); padding-right: 15px;">
+                    <!-- Panel 4: Updates Timeline -->
+                    <div class="luxury-card case-panel case-panel-updates">
+                        <div class="case-panel-rail"></div>
+                        <h4 class="font-cairo case-section-title case-section-title-sm">
                             <i class="fas fa-timeline"></i> <%= __('case_details_updates_title') %>
                         </h4>
                         
@@ -158,40 +251,38 @@
                                         <div class="timeline-dot"></div>
                                         <div class="timeline-date"><%= new Date(update.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
                                         <div class="timeline-content">
-                                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                                <h5 style="font-weight: 800; color: var(--primary); margin-bottom: 10px;">
-                                                    <i class="fa-solid fa-square-check" style="color: #10b981;"></i> <%= update.title %>
+                                            <div class="case-update-head">
+                                                <h5 class="case-update-title">
+                                                    <i class="fa-solid fa-square-check"></i> <%= update.title %>
                                                 </h5>
                                                 <% if (update.postedBy === 'family') { %>
-                                                    <span style="font-size: 0.70rem; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 12px; font-weight: 800; border: 1px solid #bae6fd; display: inline-flex; align-items: center; gap: 5px;"><i class="fas fa-home"></i> <%= __('case_details_update_family') %></span>
+                                                    <span class="case-update-pill case-update-pill-family"><i class="fas fa-home"></i> <%= __('case_details_update_family') %></span>
                                                 <% } else { %>
-                                                    <span style="font-size: 0.70rem; background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 12px; font-weight: 800; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 5px;"><i class="fas fa-shield-check"></i> <%= __('case_details_update_admin') %></span>
+                                                    <span class="case-update-pill case-update-pill-admin"><i class="fas fa-shield-check"></i> <%= __('case_details_update_admin') %></span>
                                                 <% } %>
                                             </div>
-                                            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px;"><%= update.content %></p>
+                                            <p class="case-update-content"><%= update.content %></p>
                                             
                                             <% if (update.images && update.images.length > 0) { %>
-                                                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                                                <div class="case-attachments">
                                                     <% update.images.forEach(img => { 
                                                         const ext = img.split('.').pop().toLowerCase();
                                                         const isVideo = ['mp4', 'webm', 'ogg'].includes(ext);
                                                         const isDoc = ['pdf', 'doc', 'docx', 'txt'].includes(ext);
                                                         const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
                                                     %>
-                                                        <a href="<%= img %>" target="_blank" class="attachment-preview" style="width: 90px; height: 90px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; background: #f8fafc; position: relative; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.borderColor='var(--secondary)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                                        <a href="<%= img %>" target="_blank" class="attachment-preview" aria-label="attachment">
                                                             <% if (isImage) { %>
-                                                                <img src="<%= img %>" style="width: 100%; height: 100%; object-fit: cover;">
-                                                                <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
-                                                                    <i class="fas fa-expand-alt" style="color: white; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></i>
-                                                                </div>
+                                                                <img src="<%= img %>" alt="" class="attachment-img">
+                                                                <span class="attachment-hover"><i class="fas fa-expand-alt"></i></span>
                                                             <% } else if (isVideo) { %>
-                                                                <i class="fas fa-file-video fa-2x" style="color: #3b82f6;"></i>
-                                                                <span style="position: absolute; bottom: 5px; font-size: 0.65rem; font-weight: 800; color: #1e3a8a; background: #dbeafe; padding: 2px 6px; border-radius: 6px;">فيديو</span>
+                                                                <i class="fas fa-file-video fa-2x attachment-ico attachment-ico-video"></i>
+                                                                <span class="attachment-tag attachment-tag-video">فيديو</span>
                                                             <% } else if (isDoc) { %>
-                                                                <i class="fas <%= ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-word' %> fa-2x" style="color: <%= ext === 'pdf' ? '#ef4444' : '#2563eb' %>;"></i>
-                                                                <span style="position: absolute; bottom: 5px; font-size: 0.65rem; font-weight: 800; color: <%= ext === 'pdf' ? '#7f1d1d' : '#1e3a8a' %>; background: <%= ext === 'pdf' ? '#fee2e2' : '#dbeafe' %>; padding: 2px 6px; border-radius: 6px;">ملف</span>
+                                                                <i class="fas <%= ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-word' %> fa-2x attachment-ico <%= ext === 'pdf' ? 'attachment-ico-pdf' : 'attachment-ico-doc' %>"></i>
+                                                                <span class="attachment-tag <%= ext === 'pdf' ? 'attachment-tag-pdf' : 'attachment-tag-doc' %>">ملف</span>
                                                             <% } else { %>
-                                                                <i class="fas fa-file fa-2x" style="color: #64748b;"></i>
+                                                                <i class="fas fa-file fa-2x attachment-ico attachment-ico-file"></i>
                                                             <% } %>
                                                         </a>
                                                     <% }) %>
@@ -202,89 +293,81 @@
                                 <% }) %>
                             </div>
                         <% } else { %>
-                            <div style="padding: 40px; background: #f8fafc; border-radius: 15px; text-align: center; color: #94a3b8;">
-                                <i class="fas fa-hourglass-start fa-2x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                            <div class="case-empty">
+                                <i class="fas fa-hourglass-start fa-2x"></i>
                                 <p><%= __('case_details_updates_empty') %></p>
                             </div>
                         <% } %>
                     </div>
-                </div>
+                </div> <!-- /case-main-stack -->
             </div>
 
             <!-- Right: Donation Sidebar -->
-            <div class="sticky" style="top: 100px;">
-                <div class="luxury-card reveal-on-scroll" style="padding: 40px; background: white; border: 1px solid #eab308; box-shadow: var(--shadow-premium); transition-delay: 0.2s;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="display: flex; justify-content: center; margin-bottom: 15px; color: var(--secondary);">
+            <aside class="sticky-sidebar reveal-on-scroll case-sidebar">
+                <div class="luxury-card case-card-side">
+                    <div class="case-side-head">
+                        <div class="case-side-icon">
                             <i class="fas fa-hand-holding-heart fa-3x"></i>
                         </div>
-                        <h3 class="font-cairo" style="font-weight: 900; font-size: 1.6rem;"><%= __('case_details_cta_title') %></h3>
-                        <p style="color: var(--text-muted); font-size: 0.88rem;"><%= __('case_details_cta_desc') %></p>
+                        <h3 class="font-cairo case-side-title"><%= __('case_details_cta_title') %></h3>
+                        <p class="case-side-desc"><%= __('case_details_cta_desc') %></p>
                     </div>
 
-                    <div style="margin-bottom: 35px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 900; font-size: 1.15rem;">
-                            <span style="color: var(--secondary);"><%= __('cases_raised_text') %> $<%= foundCase.raisedAmount %></span>
-                            <span style="color: #94a3b8; font-size: 0.9rem;"><%= __('cases_target_text') %>: $<%= foundCase.targetAmount %></span>
+                    <div class="case-side-progress">
+                        <div class="case-side-progress-top">
+                            <span class="case-side-raised"><%= __('cases_raised_text') %> $<%= foundCase.raisedAmount %></span>
+                            <span class="case-side-target"><%= __('cases_target_text') %>: $<%= foundCase.targetAmount %></span>
                         </div>
-                        <div class="progress-track" style="height: 14px; background: #f1f5f9; position: relative;">
+                        <div class="progress-track case-progress-track">
                             <% const progressPercent = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
-                            <div class="progress-fill" style="width: <%= progressPercent %>%"></div>
+                            <div class="progress-fill" data-progress="<%= progressPercent %>"></div>
                             
                             <!-- Milestone Markers -->
-                            <div style="position: absolute; left: 25%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
-                            <div style="position: absolute; left: 50%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
-                            <div style="position: absolute; left: 75%; top: -5px; bottom: -5px; width: 2px; background: rgba(255,255,255,0.5); z-index: 2;"></div>
+                            <div class="case-progress-mark" style="left: 25%;"></div>
+                            <div class="case-progress-mark" style="left: 50%;"></div>
+                            <div class="case-progress-mark" style="left: 75%;"></div>
                             
                             <% if (progressPercent >= 25) { %>
-                                <div title="وصلنا لـ 25%" style="position: absolute; left: 25%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-star"></i></div>
+                                <div title="وصلنا لـ 25%" class="case-progress-award" style="left: 25%;"><i class="fas fa-star"></i></div>
                             <% } %>
                             <% if (progressPercent >= 50) { %>
-                                <div title="وصلنا لـ 50%" style="position: absolute; left: 50%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-medal"></i></div>
+                                <div title="وصلنا لـ 50%" class="case-progress-award" style="left: 50%;"><i class="fas fa-medal"></i></div>
                             <% } %>
                             <% if (progressPercent >= 75) { %>
-                                <div title="وصلنا لـ 75%" style="position: absolute; left: 75%; top: -20px; font-size: 0.7rem; color: var(--secondary); transform: translateX(-50%);"><i class="fas fa-crown"></i></div>
+                                <div title="وصلنا لـ 75%" class="case-progress-award" style="left: 75%;"><i class="fas fa-crown"></i></div>
                             <% } %>
                         </div>
                     </div>
 
                     <!-- Impact Metrics (Phase 2) -->
-                    <div style="margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 15px; border: 1px dashed #e2e8f0;">
-                        <h4 class="font-cairo" style="font-size: 0.9rem; color: var(--primary); margin-bottom: 15px; font-weight: 800;">
-                            <i class="fas fa-chart-line" style="color: var(--secondary);"></i> <%= __('case_details_impact_title') %>
+                    <div class="case-side-box case-impact">
+                        <h4 class="font-cairo case-side-box-title">
+                            <i class="fas fa-chart-line"></i> <%= __('case_details_impact_title') %>
                         </h4>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="case-impact-list">
                             <% if (foundCase.impactMetrics && foundCase.impactMetrics.length > 0) { %>
                                 <% foundCase.impactMetrics.forEach(metric => { %>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                                        <span style="font-weight: 700; color: var(--secondary);">$<%= metric.amount %></span>
-                                        <span style="color: var(--text-muted);"><%= metric.descriptionAr %></span>
+                                    <div class="case-impact-row">
+                                        <span class="case-impact-amount">$<%= metric.amount %></span>
+                                        <span class="case-impact-desc"><%= metric.descriptionAr %></span>
                                     </div>
                                 <% }) %>
                             <% } else { %>
                                 <!-- Default metrics if none defined -->
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                                    <span style="font-weight: 700; color: var(--secondary);">$20</span>
-                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_edu') %></span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                                    <span style="font-weight: 700; color: var(--secondary);">$50</span>
-                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_food') %></span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0;">
-                                    <span style="font-weight: 700; color: var(--secondary);">$100</span>
-                                    <span style="color: var(--text-muted);"><%= __('case_details_impact_health') %></span>
-                                </div>
+                                <div class="case-impact-row"><span class="case-impact-amount">$20</span><span class="case-impact-desc"><%= __('case_details_impact_edu') %></span></div>
+                                <div class="case-impact-row"><span class="case-impact-amount">$50</span><span class="case-impact-desc"><%= __('case_details_impact_food') %></span></div>
+                                <div class="case-impact-row case-impact-row-last"><span class="case-impact-amount">$100</span><span class="case-impact-desc"><%= __('case_details_impact_health') %></span></div>
                             <% } %>
                         </div>
                     </div>
 
-                    <div style="padding: 25px; background: linear-gradient(to bottom right, #fffcf0, #fff); border: 2px dashed #fcd34d; border-radius: 20px; margin-bottom: 30px; text-align: center;">
-                        <h4 class="font-cairo" style="font-size: 0.95rem; color: #b45309; margin-bottom: 8px; font-weight: 800;">
+                    <div class="case-side-box case-sponsorship">
+                        <h4 class="font-cairo case-sponsorship-title">
                             <i class="fas fa-crown"></i> <%= __('case_details_sponsorship_title') %>
                         </h4>
-                        <p style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            $<%= foundCase.monthlySponsorshipAmount %> <span style="font-size: 1rem; font-weight: 700; color: #94a3b8;"><%= __('case_details_sponsorship_period') %></span>
+                        <p class="case-sponsorship-price">
+                            $<%= foundCase.monthlySponsorshipAmount %>
+                            <span class="case-sponsorship-period"><%= __('case_details_sponsorship_period') %></span>
                         </p>
                     </div>
 
@@ -293,64 +376,66 @@
                     %>
 
                     <% if (foundCase.isSatisfied) { %>
-                        <div style="background: #f8fafc; border: 2px solid var(--secondary); padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 30px;">
-                            <i class="fas fa-heart-circle-check fa-3x" style="color: var(--secondary); margin-bottom: 15px;"></i>
-                            <h4 class="font-cairo" style="font-weight: 900; color: var(--primary);"><%= __('case_details_satisfied_title') %></h4>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><%= __('case_details_satisfied_desc') %></p>
+                        <div class="case-side-box case-satisfied-premium">
+                            <div class="case-satisfied-icon"><i class="fas fa-heart-circle-check fa-3x"></i></div>
+                            <h4 class="font-cairo"><%= __('case_details_satisfied_title') %></h4>
+                            <p><%= __('case_details_satisfied_desc') %></p>
                         </div>
                     <% } else { %>
                         <% if (isSponsored) { %>
-                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; justify-content: center;">
-                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                <span style="font-weight: 700; color: #065f46; font-size: 0.85rem;">
+                            <div class="case-sponsored-note">
+                                <i class="fas fa-check-circle"></i>
+                                <span>
                                     <%= __('case_details_sponsored_until') %> <%= new Date(foundCase.sponsorshipExpiryDate).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
                                 </span>
                             </div>
                         <% } %>
 
-                        <div style="display: flex; flex-direction: column; gap: 15px;">
-                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px;">
+                        <div class="case-side-actions">
+                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct" class="btn-lux btn-lux-primary case-side-btn">
                                 <i class="fas fa-donate"></i> <%= __('case_details_btn_direct') %>
                             </a>
 
                             <% if (isSponsored) { %>
-                                <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px; cursor: not-allowed; opacity: 0.7;" disabled title="<%= __('case_details_btn_sponsored_done') %>">
+                                <button class="btn-lux btn-lux-outline case-side-btn case-side-btn-disabled" disabled title="<%= __('case_details_btn_sponsored_done') %>">
                                     <i class="fas fa-lock"></i> <%= __('case_details_btn_sponsored_done') %>
                                 </button>
                             <% } else { %>
-                                <a href="/donations/checkout?case=<%= foundCase._id %>&type=monthly" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; padding: 18px; font-size: 1.1rem; border-radius: 15px;">
+                                <a href="/donations/checkout?case=<%= foundCase._id %>&type=monthly" class="btn-lux btn-lux-navy case-side-btn">
                                     <i class="fas fa-arrows-rotate"></i> <%= __('case_details_btn_monthly') %>
                                 </a>
                             <% } %>
+                        </div>
+                    <% } %>
 
-                            <% if (typeof user !== 'undefined' && user && user.role === 'donor') { %>
-                                <div style="margin: 15px 0; text-align: center; position: relative;">
-                                    <span style="padding: 0 15px; background: white; position: relative; z-index: 1; color: #cbd5e1; font-size: 0.8rem; font-weight: 800;"><%= __('case_details_contact_divider') %></span>
-                                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #f1f5f9; z-index: 0;"></div>
+                    <div class="case-side-actions" style="margin-top: 0;">
+                        <% if (typeof user !== 'undefined' && user && user.role === 'donor') { %>
+                                <div class="case-divider">
+                                    <span><%= __('case_details_contact_divider') %></span>
                                 </div>
                                 
                                 <% if (chatRequest) { %>
                                     <% if (chatRequest.status === 'pending') { %>
-                                        <div style="background: #fdf2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 15px; text-align: center;">
-                                            <i class="fas fa-hourglass-half" style="color: #991b1b; margin-bottom: 10px; font-size: 1.2rem;"></i>
-                                            <p style="color: #991b1b; font-weight: 800; font-size: 0.9rem; margin-bottom: 8px;"><%= __('case_details_chat_pending_title') %></p>
-                                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;"><%= __('case_details_chat_pending_desc') %></p>
-                                            <p style="font-size: 0.75rem; color: #b91c1c; margin-bottom: 0;"><%= __('case_details_chat_pending_delay') %> <a href="/support" style="text-decoration: underline; color: inherit; font-weight: 900;"><%= __('case_details_chat_support') %></a>.</p>
+                                        <div class="case-chat case-chat-pending">
+                                            <i class="fas fa-hourglass-half"></i>
+                                            <p class="case-chat-title"><%= __('case_details_chat_pending_title') %></p>
+                                            <p class="case-chat-desc"><%= __('case_details_chat_pending_desc') %></p>
+                                            <p class="case-chat-help"><%= __('case_details_chat_pending_delay') %> <a href="/support"><%= __('case_details_chat_support') %></a>.</p>
                                         </div>
                                     <% } else if (chatRequest.status === 'approved') { %>
-                                        <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux" style="width: 100%; justify-content: center; background: #10b981; color: white; border-radius: 15px; border: none; padding: 15px;">
+                                        <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux btn-lux-primary case-side-btn" style="background: #10b981;">
                                             <i class="fas fa-comments"></i> <%= __('case_details_chat_approved') %>
                                         </a>
                                     <% } else if (chatRequest.status === 'rejected') { %>
-                                        <div style="margin-bottom: 15px; text-align: center;">
-                                            <p style="color: #ef4444; font-size: 0.8rem; font-weight: 700;"><%= __('case_details_chat_rejected') %></p>
-                                            <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; border-color: var(--accent); color: var(--accent); border-radius: 15px; border-width: 2px;" onclick="requestCommunication('<%= foundCase._id %>')">
+                                        <div class="case-chat-rejected">
+                                            <p><%= __('case_details_chat_rejected') %></p>
+                                            <button class="btn-lux btn-lux-outline case-side-btn" style="border-color: var(--accent); color: var(--accent);" onclick="requestCommunication('<%= foundCase._id %>')">
                                                 <i class="fas fa-redo"></i> <%= __('case_details_chat_retry') %>
                                             </button>
                                         </div>
                                     <% } %>
                                 <% } else { %>
-                                    <button class="btn-lux btn-lux-outline" style="width: 100%; justify-content: center; border-color: var(--accent); color: var(--accent); border-radius: 15px; border-width: 2px;" onclick="requestCommunication('<%= foundCase._id %>')">
+                                    <button class="btn-lux btn-lux-outline case-side-btn" style="border-color: var(--accent); color: var(--accent);" onclick="requestCommunication('<%= foundCase._id %>')">
                                         <i class="fas fa-comments"></i> <%= __('case_details_chat_request') %>
                                     </button>
                                 <% } %>
@@ -358,19 +443,19 @@
                         </div>
 
                         <!-- Social Sharing Section -->
-                        <div style="margin-top: 35px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
-                            <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin-bottom: 20px; font-weight: 800; text-align: center;"><%= __('case_details_share_title') %></h4>
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                                <a href="https://wa.me/?text=<%= encodeURIComponent('ساهم معنا في دعم حالة ' + foundCase.title + ' عبر منصة جسور السنابل') %>" target="_blank" class="btn-lux" style="background: #25D366; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                        <div class="case-share">
+                            <h4 class="font-cairo case-share-title"><%= __('case_details_share_title') %></h4>
+                            <div class="case-share-grid">
+                                <a href="https://wa.me/?text=<%= encodeURIComponent('ساهم معنا في دعم حالة ' + foundCase.title + ' عبر منصة جسور السنابل') %>" target="_blank" class="case-share-btn case-share-whatsapp" aria-label="whatsapp">
                                     <i class="fab fa-whatsapp"></i>
                                 </a>
-                                <a href="https://www.facebook.com/sharer/sharer.php?u=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="btn-lux" style="background: #1877F2; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="case-share-btn case-share-facebook" aria-label="facebook">
                                     <i class="fab fa-facebook-f"></i>
                                 </a>
-                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="btn-lux" style="background: #0077B5; color: white; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; text-decoration: none;">
+                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="case-share-btn case-share-linkedin" aria-label="linkedin">
                                     <i class="fab fa-linkedin-in"></i>
                                 </a>
-                                <button onclick="copyCaseLink()" class="btn-lux" style="background: #f1f5f9; color: var(--primary); display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; border: none; cursor: pointer;">
+                                <button onclick="copyCaseLink()" class="case-share-btn case-share-copy" aria-label="copy link">
                                     <i class="fas fa-link"></i>
                                 </button>
                             </div>
@@ -378,76 +463,76 @@
 
                         <!-- Follow System (Phase 2) -->
                         <% if (typeof user !== 'undefined' && user) { %>
-                        <div style="margin-top: 25px; text-align: center;">
+                        <div class="case-follow">
                             <% const isFollowing = foundCase.followers && foundCase.followers.includes(user._id); %>
-                            <button id="followBtn" onclick="toggleFollow('<%= foundCase._id %>')" class="btn-lux <%= isFollowing ? 'btn-lux-outline' : 'btn-lux-navy' %>" style="width: 100%; justify-content: center; border-radius: 12px; font-size: 0.9rem; padding: 12px;">
+                            <button id="followBtn" onclick="toggleFollow('<%= foundCase._id %>')" class="btn-lux <%= isFollowing ? 'btn-lux-outline' : 'btn-lux-navy' %> case-follow-btn">
                                 <i class="fas <%= isFollowing ? 'fa-bell-slash' : 'fa-bell' %>"></i>
                                 <span id="followText"><%= isFollowing ? __('case_details_unfollow') : __('case_details_follow') %></span>
                             </button>
-                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;"><%= __('case_details_follow_desc') %></p>
+                            <p class="case-follow-desc"><%= __('case_details_follow_desc') %></p>
                         </div>
                         <% } %>
 
                         <!-- Team Fundraising Section (Phase 3) -->
-                        <div style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                                <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin: 0; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-users-rays" style="color: var(--secondary);"></i> <%= __('case_details_teams_title') %>
+                        <div class="case-teams">
+                            <div class="case-teams-head">
+                                <h4 class="font-cairo case-teams-title">
+                                    <i class="fas fa-users-rays"></i> <%= __('case_details_teams_title') %>
                                 </h4>
                                 <% if (typeof user !== 'undefined' && user) { %>
-                                    <button onclick="openTeamModal()" class="btn-lux btn-sm btn-lux-outline" style="font-size: 0.75rem;"><i class="fas fa-plus"></i> <%= __('case_details_teams_create') %></button>
+                                    <button onclick="openTeamModal()" class="btn-lux btn-sm btn-lux-outline case-teams-create"><i class="fas fa-plus"></i> <%= __('case_details_teams_create') %></button>
                                 <% } %>
                             </div>
 
                             <% if (typeof teams !== 'undefined' && teams && teams.length > 0) { %>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div class="case-teams-grid">
                                     <% teams.forEach(team => { %>
-                                        <div class="glass-panel" style="padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
-                                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><%= team.name %></div>
-                                            <div style="color: var(--secondary); font-weight: 900; font-size: 1rem;">$<%= team.totalRaised %></div>
-                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px;"><%= team.donorCount %> <%= __('case_details_teams_donors') %></div>
-                                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct&team=<%= team._id %>" class="btn-lux btn-sm btn-lux-primary" style="font-size: 0.7rem; width: 100%; justify-content: center;"><%= __('case_details_teams_support') %></a>
+                                        <div class="glass-panel case-team-card">
+                                            <div class="case-team-name"><%= team.name %></div>
+                                            <div class="case-team-total">$<%= team.totalRaised %></div>
+                                            <div class="case-team-meta"><%= team.donorCount %> <%= __('case_details_teams_donors') %></div>
+                                            <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct&team=<%= team._id %>" class="btn-lux btn-sm btn-lux-primary case-team-btn"><%= __('case_details_teams_support') %></a>
                                         </div>
                                     <% }) %>
                                 </div>
                             <% } else { %>
-                                <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 15px; border: 1px dashed #e2e8f0;">
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;"><%= __('case_details_teams_empty') %></p>
+                                <div class="case-empty case-empty-sm">
+                                    <p><%= __('case_details_teams_empty') %></p>
                                 </div>
                             <% } %>
                         </div>
 
                         <!-- Donor Feed Section -->
                         <% if (typeof recentDonors !== 'undefined' && recentDonors && recentDonors.length > 0) { %>
-                        <div style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
-                            <h4 class="font-cairo" style="font-size: 0.95rem; color: var(--primary); margin-bottom: 25px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-users" style="color: var(--secondary);"></i> <%= __('case_details_donors_title') %> (<%= recentDonors.length %>)
+                        <div class="case-donors">
+                            <h4 class="font-cairo case-donors-title">
+                                <i class="fas fa-users"></i> <%= __('case_details_donors_title') %> (<%= recentDonors.length %>)
                             </h4>
                             
-                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div class="case-donors-list">
                                 <% recentDonors.forEach(transaction => { %>
-                                    <div style="display: flex; gap: 15px; align-items: flex-start; padding-bottom: 20px; border-bottom: 1px solid #f8fafc;">
-                                        <div style="width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <div class="case-donor-row">
+                                        <div class="case-donor-avatar">
                                             <% if (transaction.isAnonymous || !transaction.donor) { %>
-                                                <i class="fas fa-user-secret" style="color: #64748b; font-size: 1.2rem;"></i>
+                                                <i class="fas fa-user-secret"></i>
                                             <% } else { %>
-                                                <img src="<%= transaction.donor.avatar || '/assets/images/placeholder-avatar.jpg' %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <img src="<%= transaction.donor.avatar || '/assets/images/placeholder-avatar.jpg' %>" alt="">
                                             <% } %>
                                         </div>
-                                        <div style="flex-grow: 1;">
-                                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                                                <span style="font-weight: 800; font-size: 0.9rem; color: var(--primary);">
+                                        <div class="case-donor-body">
+                                            <div class="case-donor-top">
+                                                <span class="case-donor-name">
                                                     <%= (transaction.isAnonymous || !transaction.donor) ? __('case_details_donor_anonymous') : transaction.donor.name %>
                                                 </span>
-                                                <strong style="color: var(--secondary); font-size: 0.95rem;">$<%= transaction.amount %></strong>
+                                                <strong class="case-donor-amount">$<%= transaction.amount %></strong>
                                             </div>
                                             <% if (transaction.encouragementMessage) { %>
-                                                <div style="font-size: 0.85rem; color: var(--text-muted); background: #fdfcf6; padding: 12px 15px; border-radius: 12px; border: 1px solid #fef3c7; position: relative; margin-top: 8px; line-height: 1.5; font-style: italic;">
-                                                    <i class="fas fa-quote-right" style="position: absolute; left: 10px; top: 8px; opacity: 0.05; font-size: 1.4rem;"></i>
+                                                <div class="case-donor-msg">
+                                                    <i class="fas fa-quote-right"></i>
                                                     "<%= transaction.encouragementMessage %>"
                                                 </div>
                                             <% } %>
-                                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px; font-weight: 700;">
+                                            <div class="case-donor-date">
                                                 <i class="far fa-clock"></i> <%= new Date(transaction.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
                                             </div>
                                         </div>
@@ -456,40 +541,36 @@
                             </div>
                         </div>
                         <% } %>
-                    <% } %>
-
                     <% if (typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'super_admin')) { %>
                         <!-- Admin Control Center -->
-                        <div style="margin-top: 30px; padding: 25px; background: #fdf2f2; border: 2px solid #fecaca; border-radius: 20px;">
-                            <h4 class="font-cairo" style="font-size: 1rem; color: #991b1b; margin-bottom: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <div class="case-admin">
+                            <h4 class="font-cairo case-admin-title">
                                 <i class="fas fa-user-shield"></i> <%= __('case_details_admin_title') %>
                             </h4>
                             
                             <form action="/admin/cases/<%= foundCase._id %>/toggle-satisfaction" method="POST">
                                 <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-                                <button type="submit" class="btn-lux <%= foundCase.isSatisfied ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="width: 100%; justify-content: center; border-color: #991b1b; color: #991b1b;">
+                                <button type="submit" class="btn-lux <%= foundCase.isSatisfied ? 'btn-lux-primary' : 'btn-lux-outline' %> case-admin-btn" style="border-color: #991b1b; color: #991b1b;">
                                     <i class="fas <%= foundCase.isSatisfied ? 'fa-hand-holding-heart' : 'fa-check-double' %>"></i>
                                     <%= foundCase.isSatisfied ? __('case_details_admin_resume') : __('case_details_admin_stop') %>
                                 </button>
                             </form>
                             
-                            <p style="font-size: 0.75rem; color: #b91c1c; margin-top: 10px; font-weight: 600; text-align: center;">
+                            <p class="case-admin-note">
                                 <i class="fas fa-circle-info"></i> <%= __('case_details_admin_disclaimer') %>
                             </p>
                         </div>
                     <% } %>
 
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-top: 30px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9;">
-                        <div style="width: 45px; height: 45px; border-radius: 50%; background: #ecfdf5; display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.2rem;">
-                            <i class="fas fa-shield-check"></i>
-                        </div>
-                        <span style="font-size: 0.82rem; color: #64748b; line-height: 1.5; font-weight: 600;"><%= __('case_details_trust_disclaimer') %></span>
+                    <div class="case-trust">
+                        <div class="case-trust-ico"><i class="fas fa-shield-check"></i></div>
+                        <span class="case-trust-text"><%= __('case_details_trust_disclaimer') %></span>
                     </div>
                 </div>
-            </div>
+            </aside>
 
         </div>
-    </div>
+    </section>
 </main>
 
 <script>
@@ -505,73 +586,16 @@
 
     document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
 
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .timeline-lux {
-            position: relative;
-            padding-right: 30px;
-            border-right: 2px solid #e2e8f0;
-        }
-        .timeline-item {
-            position: relative;
-            padding-bottom: 40px;
-        }
-        .timeline-dot {
-            position: absolute;
-            right: -37px;
-            top: 0;
-            width: 14px;
-            height: 14px;
-            background: var(--secondary);
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
-        }
-        .timeline-date {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--secondary);
-            margin-bottom: 5px;
-        }
-        .timeline-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid #f1f5f9;
-            transition: all 0.3s ease;
-        }
-        .timeline-item:hover .timeline-content {
-            transform: translateX(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border-color: var(--secondary);
-        }
-        .gallery-item-lux:hover img {
-            filter: blur(0) !important;
-            transform: scale(1.1);
-            transition: all 0.5s ease;
-        }
-        .gallery-item-lux:hover div {
-            opacity: 0;
-        }
-        @media (max-width: 992px) {
-            .case-main-grid {
-                grid-template-columns: 1fr !important;
-                gap: 30px !important;
-            }
-            .hero-luxury {
-                padding-top: 100px !important;
-            }
-            .hero-title-luxury {
-                font-size: 2.2rem !important;
-            }
-        }
-    `;
-    document.head.appendChild(style);
+    // Avoid EJS-in-CSS lint issues by applying widths in JS
+    document.querySelectorAll('.progress-fill[data-progress]').forEach((el) => {
+        const value = Number(el.dataset.progress);
+        if (!Number.isNaN(value)) el.style.width = `${Math.min(Math.max(value, 0), 100)}%`;
+    });
 
     function copyCaseLink() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            alert('<%= __('case_details_copy_success') %>');
+            alert("<%= __('case_details_copy_success') %>");
         }).catch(err => {
             console.error('Failed to copy: ', err);
         });
@@ -703,5 +727,1104 @@
         </form>
     </div>
 </div>
+
+<style>
+    .case-details-page {
+        overflow: hidden;
+        background: var(--bg-subtle);
+    }
+
+    /* Hero */
+    .case-hero {
+        padding: 140px 5% 70px;
+        align-items: flex-end;
+        justify-content: flex-start;
+        text-align: right;
+    }
+    .case-hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        transform: scale(1.06);
+        filter: saturate(1.05) contrast(1.05);
+        z-index: 0;
+    }
+    .case-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(to top, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.45) 35%, rgba(2, 6, 23, 0.15) 70%, rgba(2, 6, 23, 0.05) 100%);
+        z-index: 6;
+    }
+    .case-hero-content {
+        position: relative;
+        z-index: 20;
+        width: 100%;
+        padding-inline: 5%;
+    }
+    .case-hero-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        align-items: center;
+    }
+    @media (min-width: 992px) {
+        .case-hero-grid {
+            grid-template-columns: 1.6fr 0.9fr;
+            gap: 60px;
+        }
+    }
+    .case-hero-action {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.4) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-radius: 28px;
+        padding: 35px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .quick-donate-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    .quick-donate-stats .stat { display: flex; flex-direction: column; }
+    .quick-donate-stats .label {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.65);
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+    .quick-donate-stats .value { font-size: 1.6rem; font-weight: 950; color: #fff; }
+    
+    .case-hero-progress-track {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .case-hero-progress-fill {
+        height: 100%;
+        background: var(--secondary);
+        border-radius: 20px;
+        box-shadow: 0 0 15px rgba(226, 176, 100, 0.6);
+        position: relative;
+        transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .case-hero-progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+        border-radius: 20px;
+    }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .hero-donate-btn {
+        background: #10b981;
+        color: white !important;
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 1.15rem;
+        font-weight: 800;
+        border: none;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .hero-donate-btn:hover {
+        background: #059669;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
+    }
+    .case-hero-fade {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 160px;
+        background: linear-gradient(to top, var(--bg-subtle), transparent);
+        z-index: 10;
+    }
+    .case-breadcrumb {
+        margin-bottom: 18px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .case-breadcrumb-link {
+        color: var(--secondary-light);
+        font-weight: 900;
+    }
+    .case-breadcrumb-sep {
+        color: rgba(255,255,255,0.55);
+        margin-inline: 2px;
+    }
+    .case-breadcrumb-current {
+        color: #fff;
+        opacity: 0.95;
+        font-weight: 800;
+    }
+    .case-hero-title {
+        margin-bottom: 10px;
+        transition-delay: 0.2s;
+        font-size: clamp(2.2rem, 5vw, 4.2rem);
+    }
+    .case-hero-badges {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        transition-delay: 0.3s;
+    }
+    .case-hero-badge {
+        padding: 9px 18px;
+        font-weight: 900;
+        border-radius: var(--radius-pill);
+    }
+    .case-hero-badge-dark {
+        background: rgba(15, 23, 42, 0.25);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Layout */
+    .case-details-section {
+        padding-top: 70px;
+        padding-bottom: 110px;
+        position: relative;
+        z-index: 50;
+    }
+    .case-details-layout {
+        gap: 36px;
+        /* Force: sidebar left, main right (independent of RTL grid placement). */
+        grid-template-columns: 1fr 2fr;
+        grid-template-areas: "side main";
+        align-items: start;
+    }
+    .case-details-main { grid-area: main; }
+    .case-sidebar { grid-area: side; }
+
+    /* Main card */
+    .case-card-main {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 20px 60px rgba(2, 6, 23, 0.06);
+        padding: 34px;
+    }
+    .case-cover {
+        height: 520px;
+        margin-bottom: 26px;
+        border-radius: 30px;
+    }
+    .case-block {
+        margin-top: 34px;
+    }
+    .case-section-title {
+        color: var(--primary);
+        font-weight: 950;
+        font-size: 1.6rem;
+        margin-bottom: 18px;
+        border-right: 6px solid var(--secondary);
+        padding-right: 14px;
+        line-height: 1.2;
+    }
+    .case-section-title-sm {
+        font-size: 1.35rem;
+        border-right-width: 4px;
+    }
+    .case-story {
+        white-space: pre-line;
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        border-radius: 18px;
+        padding: 22px 22px;
+        color: var(--text-muted);
+        line-height: 1.95;
+        font-size: 1.05rem;
+    }
+
+    /* ── Cinematic, Graduated Main Layout ───────────────────────── */
+    .case-main-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .case-panel {
+        background: rgba(255,255,255,0.96);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 18px 55px rgba(2, 6, 23, 0.06);
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .case-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(1200px 500px at 15% 0%, rgba(16,185,129,0.10), transparent 60%),
+            radial-gradient(900px 380px at 85% 100%, rgba(10,37,64,0.08), transparent 58%);
+        pointer-events: none;
+        opacity: 0.9;
+    }
+
+    .case-panel > * { position: relative; z-index: 1; }
+
+    /* Journey rail on the right side of the main column */
+    .case-panel-rail {
+        position: absolute;
+        top: 28px;
+        bottom: 28px;
+        right: 22px;
+        width: 3px;
+        background: linear-gradient(to bottom, rgba(16,185,129,0.55), rgba(226,176,100,0.18));
+        border-radius: 999px;
+        opacity: 0.9;
+        z-index: 0;
+    }
+
+    .case-panel-rail::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--secondary);
+        box-shadow: 0 0 0 6px rgba(16,185,129,0.18);
+    }
+
+    .case-panel-story {
+        padding-top: 28px;
+    }
+
+    .case-panel-head {
+        margin-bottom: 18px;
+    }
+
+    .case-panel-kicker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .case-section-title-story {
+        margin-bottom: 14px;
+    }
+
+    .case-story-grid {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .case-cover-compact {
+        height: 340px;
+        margin-bottom: 0;
+        border-radius: 28px;
+        box-shadow: 0 30px 70px rgba(2, 6, 23, 0.12);
+    }
+
+    .case-story-side {
+        padding-right: 14px;
+    }
+
+    /* Give each panel a subtle "graduated" identity */
+    .case-panel-family::after,
+    .case-panel-updates::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.55;
+        background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(255,255,255,0) 45%, rgba(226,176,100,0.04));
+    }
+
+    .case-panel-family { border-color: rgba(16,185,129,0.14); }
+    .case-panel-updates { border-color: rgba(10,37,64,0.10); }
+
+    /* Family block */
+    .case-family {
+        padding: 26px;
+        border-radius: 26px;
+        background: #fffbeb;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+    .case-subblock {
+        margin-bottom: 22px;
+    }
+    .case-subtitle {
+        color: var(--secondary);
+        font-weight: 900;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-subtitle-divider {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px dashed rgba(15, 23, 42, 0.12);
+    }
+    .case-kv-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+        font-size: 0.95rem;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(15, 23, 42, 0.04);
+        padding: 14px 16px;
+        border-radius: 14px;
+    }
+    .case-kv-key {
+        color: var(--primary);
+    }
+    .case-kv-key-danger {
+        color: var(--danger);
+    }
+    .case-kv-span {
+        grid-column: 1 / -1;
+    }
+    .case-private-row {
+        grid-column: 1 / -1;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(15, 23, 42, 0.12);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 22px;
+        align-items: center;
+    }
+    .case-private-key {
+        color: var(--danger);
+        font-weight: 900;
+    }
+    .case-private-val {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 1.05em;
+        background: rgba(239, 68, 68, 0.12);
+        padding: 2px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .case-orphans-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .case-orphan-row {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        border-radius: 16px;
+        padding: 14px 16px;
+        display: grid;
+        grid-template-columns: 1.2fr repeat(3, 1fr);
+        gap: 10px 14px;
+        align-items: center;
+        box-shadow: 0 8px 18px rgba(2,6,23,0.03);
+        font-size: 0.92rem;
+    }
+    .case-orphan-name {
+        font-weight: 950;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-orphan-name i { color: var(--secondary); }
+    .case-orphan-meta i { margin-left: 6px; }
+
+    /* Docs */
+    .case-docs {
+        background: rgba(16, 185, 129, 0.03);
+        border: 1px dashed rgba(16, 185, 129, 0.55);
+        border-radius: 26px;
+        padding: 26px;
+    }
+    .case-block-title {
+        font-weight: 950;
+        margin-bottom: 18px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-block-title-success { color: #065f46; }
+    .case-docs-grid { gap: 16px; }
+    .case-doc-item {
+        height: 180px;
+        border-radius: 18px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+        display: block;
+        border: 1px solid rgba(255,255,255,0.4);
+    }
+    .case-doc-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: blur(2px);
+        transform: scale(1.02);
+        transition: transform 0.6s ease, filter 0.6s ease;
+    }
+    .case-doc-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(2, 6, 23, 0.35);
+        color: #fff;
+        transition: opacity 0.4s ease;
+    }
+    .case-doc-item:hover .case-doc-img {
+        filter: blur(0);
+        transform: scale(1.08);
+    }
+    .case-doc-item:hover .case-doc-overlay { opacity: 0; }
+    .case-docs-disclaimer {
+        font-size: 0.82rem;
+        color: #065f46;
+        margin-top: 12px;
+        font-weight: 700;
+    }
+
+    /* Timeline */
+    .timeline-lux {
+        position: relative;
+        padding-right: 30px;
+        border-right: 2px solid rgba(148, 163, 184, 0.35);
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 34px;
+    }
+    .timeline-dot {
+        position: absolute;
+        right: -37px;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        background: var(--secondary);
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    }
+    .timeline-date {
+        font-size: 0.82rem;
+        font-weight: 900;
+        color: var(--secondary);
+        margin-bottom: 8px;
+    }
+    .timeline-content {
+        background: #fff;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        transition: all 0.3s ease;
+    }
+    .timeline-item:hover .timeline-content {
+        transform: translateX(-5px);
+        box-shadow: 0 14px 32px rgba(2, 6, 23, 0.06);
+        border-color: rgba(16,185,129,0.35);
+    }
+    .case-update-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .case-update-title {
+        font-weight: 950;
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+    .case-update-title i { color: #10b981; }
+    .case-update-pill {
+        font-size: 0.72rem;
+        font-weight: 900;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .case-update-pill-family {
+        background: #e0f2fe;
+        color: #0284c7;
+        border-color: #bae6fd;
+    }
+    .case-update-pill-admin {
+        background: #fef9c3;
+        color: #854d0e;
+        border-color: #fde047;
+    }
+    .case-update-content {
+        font-size: 0.96rem;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        line-height: 1.8;
+    }
+
+    /* Attachments */
+    .case-attachments {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+    .attachment-preview {
+        width: 90px;
+        height: 90px;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(148,163,184,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        position: relative;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .attachment-preview:hover {
+        border-color: rgba(16, 185, 129, 0.65);
+        box-shadow: 0 12px 25px rgba(2,6,23,0.06);
+        transform: translateY(-3px);
+    }
+    .attachment-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .attachment-hover {
+        position: absolute;
+        inset: 0;
+        background: rgba(2,6,23,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        color: #fff;
+        font-size: 1.1rem;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    .attachment-preview:hover .attachment-hover { opacity: 1; }
+    .attachment-ico { color: #64748b; }
+    .attachment-ico-video { color: #3b82f6; }
+    .attachment-ico-pdf { color: #ef4444; }
+    .attachment-ico-doc { color: #2563eb; }
+    .attachment-tag {
+        position: absolute;
+        bottom: 6px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 2px 7px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+    }
+    .attachment-tag-video { color: #1e3a8a; background: #dbeafe; border-color: #bfdbfe; }
+    .attachment-tag-pdf { color: #7f1d1d; background: #fee2e2; border-color: #fecaca; }
+    .attachment-tag-doc { color: #1e3a8a; background: #dbeafe; border-color: #bfdbfe; }
+
+    /* Empty */
+    .case-empty {
+        padding: 36px 18px;
+        background: #f8fafc;
+        border-radius: 18px;
+        text-align: center;
+        color: #94a3b8;
+        border: 1px dashed rgba(148,163,184,0.5);
+    }
+    .case-empty i { margin-bottom: 12px; opacity: 0.55; }
+    .case-empty-sm { padding: 18px; }
+    .case-empty p { margin: 0; font-weight: 700; }
+
+    /* Sidebar */
+    .case-card-side {
+        background: linear-gradient(180deg, rgba(10, 37, 64, 0.03), rgba(16, 185, 129, 0.06));
+        border: 1px solid rgba(16, 185, 129, 0.28);
+        box-shadow: 0 30px 70px rgba(2, 6, 23, 0.1);
+        padding: 30px;
+        position: relative;
+    }
+    .case-card-side::after {
+        content: '';
+        position: absolute;
+        top: -140px;
+        left: -140px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 65%);
+        pointer-events: none;
+        z-index: 0;
+    }
+    .case-card-side > * { position: relative; z-index: 1; }
+
+    .case-side-head {
+        text-align: center;
+        margin-bottom: 22px;
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(16, 185, 129, 0.06);
+        border: 1px solid rgba(16, 185, 129, 0.18);
+    }
+    .case-side-icon {
+        width: 68px;
+        height: 68px;
+        border-radius: 24px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        color: var(--secondary);
+    }
+    .case-side-title { font-weight: 950; font-size: 1.55rem; margin-bottom: 6px; }
+    .case-side-desc { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+    .case-side-progress { margin-bottom: 22px; }
+    .case-side-progress-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-weight: 950;
+        font-size: 1.05rem;
+        align-items: baseline;
+    }
+    .case-side-raised { color: var(--secondary); }
+    .case-side-target { color: #94a3b8; font-size: 0.9rem; font-weight: 800; }
+    .case-progress-track { height: 14px; border: 1px solid rgba(148,163,184,0.35); position: relative; }
+    .case-progress-mark {
+        position: absolute;
+        top: -5px;
+        bottom: -5px;
+        width: 2px;
+        background: rgba(255,255,255,0.55);
+        z-index: 2;
+    }
+    .case-progress-award {
+        position: absolute;
+        top: -22px;
+        font-size: 0.72rem;
+        color: var(--secondary);
+        transform: translateX(-50%);
+    }
+
+    .case-side-box {
+        margin-bottom: 18px;
+        padding: 18px;
+        background: rgba(248, 250, 252, 0.92);
+        border-radius: 18px;
+        border: 1px solid rgba(16, 185, 129, 0.18);
+    }
+    .case-side-box-title {
+        font-size: 0.92rem;
+        color: var(--primary);
+        margin-bottom: 12px;
+        font-weight: 950;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-side-box-title i { color: var(--secondary); }
+    .case-impact-list { display: flex; flex-direction: column; gap: 8px; }
+    .case-impact-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.86rem;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(241, 245, 249, 1);
+    }
+    .case-impact-row-last { border-bottom: none; }
+    .case-impact-amount { font-weight: 900; color: var(--secondary); white-space: nowrap; }
+    .case-impact-desc { color: var(--text-muted); }
+
+    .case-sponsorship {
+        background: linear-gradient(to bottom right, #fffbeb, #ffffff);
+        border: 2px dashed rgba(251, 191, 36, 0.75);
+        text-align: center;
+    }
+    .case-sponsorship-title {
+        font-size: 0.95rem;
+        color: #b45309;
+        margin-bottom: 8px;
+        font-weight: 950;
+    }
+    .case-sponsorship-price {
+        font-size: 2.1rem;
+        font-weight: 950;
+        color: var(--primary);
+        margin: 0;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .case-sponsorship-period { font-size: 1rem; font-weight: 800; color: #94a3b8; }
+
+    .case-satisfied {
+        border: 2px solid rgba(16,185,129,0.35);
+        text-align: center;
+        background: rgba(16,185,129,0.04);
+    }
+    .case-satisfied i { color: var(--secondary); margin-bottom: 10px; }
+    .case-satisfied h4 { margin: 0 0 6px; font-weight: 950; color: var(--primary); }
+    .case-satisfied p { margin: 0; color: var(--text-muted); font-size: 0.86rem; font-weight: 700; }
+
+    .case-sponsored-note {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        padding: 12px 14px;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        color: #065f46;
+        font-weight: 800;
+        font-size: 0.86rem;
+    }
+    .case-sponsored-note i { color: #10b981; }
+
+    .case-side-actions { display: flex; flex-direction: column; gap: 12px; }
+    .case-side-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 16px;
+        font-size: 1.05rem;
+        border-radius: 16px;
+    }
+    .case-side-btn-disabled { cursor: not-allowed; opacity: 0.75; }
+
+    .case-divider {
+        margin: 14px 0 6px;
+        text-align: center;
+        position: relative;
+    }
+    .case-divider::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: rgba(241,245,249,1);
+    }
+    .case-divider span {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        padding: 0 14px;
+        background: #fff;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 950;
+    }
+
+    .case-chat {
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid #fecaca;
+        background: #fdf2f2;
+        text-align: center;
+    }
+    .case-chat i {
+        color: #991b1b;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+    .case-chat-title {
+        color: #991b1b;
+        font-weight: 950;
+        font-size: 0.92rem;
+        margin: 0 0 6px;
+    }
+    .case-chat-desc {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin: 0;
+        font-weight: 700;
+    }
+    .case-chat-help {
+        font-size: 0.78rem;
+        color: #b91c1c;
+        margin: 8px 0 0;
+        font-weight: 800;
+    }
+    .case-chat-help a { color: inherit; text-decoration: underline; font-weight: 950; }
+    .case-chat-rejected { text-align: center; }
+    .case-chat-rejected p { margin: 0 0 10px; color: var(--danger); font-size: 0.82rem; font-weight: 900; }
+
+    /* Share */
+    .case-share {
+        margin-top: 26px;
+        border-top: 1px solid rgba(15,23,42,0.06);
+        padding-top: 22px;
+    }
+    .case-share-title {
+        font-size: 0.95rem;
+        color: var(--primary);
+        margin-bottom: 14px;
+        font-weight: 950;
+        text-align: center;
+    }
+    .case-share-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .case-sidebar .case-share-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .case-share-btn {
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.12);
+        transition: all 0.25s ease;
+        cursor: pointer;
+        background: #0f172a;
+    }
+    .case-share-btn:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(2,6,23,0.12); }
+    .case-share-whatsapp { background: #25D366; }
+    .case-share-facebook { background: #1877F2; }
+    .case-share-linkedin { background: #0077B5; }
+    .case-share-copy { background: #f1f5f9; color: var(--primary); border-color: rgba(15,23,42,0.06); }
+
+    .case-follow { margin-top: 14px; text-align: center; }
+    .case-follow-btn { width: 100%; justify-content: center; border-radius: 14px; font-size: 0.92rem; padding: 12px; }
+    .case-follow-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; font-weight: 700; }
+
+    /* Teams */
+    .case-teams {
+        margin-top: 28px;
+        border-top: 1px solid rgba(15,23,42,0.06);
+        padding-top: 22px;
+    }
+    .case-teams-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .case-teams-title {
+        font-size: 0.95rem;
+        color: var(--primary);
+        margin: 0;
+        font-weight: 950;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-teams-title i { color: var(--secondary); }
+    .case-teams-create { font-size: 0.78rem; }
+    .case-teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 12px;
+    }
+    .case-team-card {
+        padding: 14px;
+        border-radius: 18px;
+        text-align: center;
+        border: 1px solid rgba(15,23,42,0.06);
+        overflow: hidden;
+        position: relative;
+    }
+    .case-team-name { font-weight: 950; font-size: 0.9rem; color: var(--primary); margin-bottom: 4px; }
+    .case-team-total { color: var(--secondary); font-weight: 950; font-size: 1rem; margin-bottom: 2px; }
+    .case-team-meta { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 800; }
+    .case-team-btn { width: 100%; justify-content: center; font-size: 0.75rem; padding: 10px 14px; border-radius: 14px; }
+
+    /* Donors */
+    .case-donors {
+        margin-top: 28px;
+        border-top: 1px solid rgba(15,23,42,0.06);
+        padding-top: 22px;
+    }
+    .case-donors-title {
+        font-size: 0.95rem;
+        color: var(--primary);
+        margin-bottom: 14px;
+        font-weight: 950;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-donors-title i { color: var(--secondary); }
+    .case-donors-list { display: flex; flex-direction: column; gap: 16px; }
+    .case-donor-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(241,245,249,1);
+    }
+    .case-donor-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        flex-shrink: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+        box-shadow: 0 10px 20px rgba(2,6,23,0.06);
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+    .case-donor-body { flex: 1; }
+    .case-donor-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+    .case-donor-name { font-weight: 950; font-size: 0.92rem; color: var(--primary); }
+    .case-donor-amount { color: var(--secondary); font-size: 0.96rem; }
+    .case-donor-msg {
+        font-size: 0.86rem;
+        color: var(--text-muted);
+        background: #fffbeb;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        position: relative;
+        margin-top: 8px;
+        line-height: 1.55;
+        font-style: italic;
+    }
+    .case-donor-msg i {
+        position: absolute;
+        left: 12px;
+        top: 8px;
+        opacity: 0.08;
+        font-size: 1.3rem;
+        color: var(--primary);
+    }
+    .case-donor-date {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        margin-top: 8px;
+        font-weight: 800;
+    }
+
+    /* Admin + Trust */
+    .case-admin {
+        margin-top: 22px;
+        padding: 18px;
+        background: #fdf2f2;
+        border: 2px solid #fecaca;
+        border-radius: 22px;
+    }
+    .case-admin-title {
+        font-size: 1rem;
+        color: #991b1b;
+        margin-bottom: 12px;
+        font-weight: 950;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .case-admin-btn {
+        width: 100%;
+        justify-content: center;
+        border-radius: 16px;
+    }
+    .case-admin-note {
+        font-size: 0.78rem;
+        color: #b91c1c;
+        margin-top: 10px;
+        font-weight: 700;
+        text-align: center;
+    }
+    .case-trust {
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 18px;
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid rgba(241,245,249,1);
+    }
+    .case-trust-ico {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ecfdf5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #059669;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .case-trust-text {
+        font-size: 0.84rem;
+        color: #64748b;
+        line-height: 1.65;
+        font-weight: 700;
+    }
+
+    @media (max-width: 992px) {
+        .case-hero { padding-top: 110px; padding-bottom: 60px; }
+        .case-cover { height: 360px; }
+        .case-story-grid { grid-template-columns: 1fr; }
+        .case-cover-compact { height: 300px; }
+        .case-panel-rail { display: none; }
+        .case-orphan-row { grid-template-columns: 1fr; }
+        .case-share-grid { grid-template-columns: repeat(4, 1fr); }
+        .case-sidebar .case-share-grid { grid-template-columns: repeat(4, 1fr); }
+        .case-details-layout { grid-template-columns: 1fr !important; grid-template-areas: "main" "side"; }
+    }
+    @media (max-width: 540px) {
+        .case-card-main { padding: 22px; }
+        .case-card-side { padding: 22px; }
+        .case-share-grid { grid-template-columns: repeat(2, 1fr); }
+        .case-cover { height: 290px; }
+    }
+</style>
 
 <%- include('../../partials/footer-bottom') %>

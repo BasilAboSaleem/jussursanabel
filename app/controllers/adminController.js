@@ -159,6 +159,41 @@ exports.updateCase = async (req, res) => {
         }
         await logActivity(req.user._id, 'case_update', 'Case', req.params.id, logMessage);
 
+        // Notify Beneficiary (Guardian) on Status Change
+        const updatedCase = await Case.findById(req.params.id);
+        if (updatedCase && updatedCase.guardian) {
+            let notifMessage = "";
+            let notifType = "info";
+
+            if (status === 'approved') {
+                notifMessage = res.__('notif_case_approved_msg');
+                notifType = "success";
+            } else if (status === 'rejected') {
+                notifMessage = res.__('notif_case_rejected_msg', { reason: rejectionReason || "—" });
+                notifType = "danger";
+            } else if (status === 'fully_sponsored') {
+                notifMessage = res.__('notif_case_satisfied_msg');
+                notifType = "success";
+            }
+
+            if (notifMessage) {
+                const notification = await Notification.create({
+                    recipient: updatedCase.guardian,
+                    sender: req.user._id,
+                    title: res.__('notif_case_status_title'),
+                    message: notifMessage,
+                    type: notifType,
+                    targetType: 'specific',
+                    link: `/cases/${updatedCase._id}`
+                });
+
+                const io = req.app.get('io');
+                if (io) {
+                    io.to(updatedCase.guardian.toString()).emit('newNotification', notification);
+                }
+            }
+        }
+
         req.flash('success', res.__('flash_case_updated'));
         res.redirect('/admin/cases-manager');
     } catch (err) {
@@ -388,11 +423,37 @@ exports.toggleCaseSatisfaction = async (req, res) => {
         }
 
         foundCase.isSatisfied = !foundCase.isSatisfied;
+        foundCase.satisfiedBy = foundCase.isSatisfied ? 'admin' : 'none';
+        
+        // Ensure status doesn't change incorrectly
+        if (foundCase.isSatisfied && foundCase.status !== 'approved') {
+            // Optional: logical check if we want to force status to something else, 
+            // but for now we keep it as is unless it's already approved.
+        }
+
         await foundCase.save();
 
         const statusText = foundCase.isSatisfied ? res.__('case_satisfied_yes') : res.__('case_satisfied_no');
         await logActivity(req.user._id, 'case_update', 'Case', id, 
             res.__('log_case_satisfied', { status: statusText }));
+
+        // Notify Beneficiary (Guardian)
+        if (foundCase.guardian) {
+            const notification = await Notification.create({
+                recipient: foundCase.guardian,
+                sender: req.user._id,
+                title: res.__('notif_case_satisfied_title'),
+                message: foundCase.isSatisfied ? res.__('notif_case_satisfied_msg') : res.__('notif_case_unsatisfied_msg'),
+                type: foundCase.isSatisfied ? 'success' : 'warning',
+                targetType: 'specific',
+                link: `/cases/${foundCase._id}`
+            });
+
+            const io = req.app.get('io');
+            if (io) {
+                io.to(foundCase.guardian.toString()).emit('newNotification', notification);
+            }
+        }
 
         req.flash('success', `${res.__('flash_satisfied_update')} (${statusText})`);
         

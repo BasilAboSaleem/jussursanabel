@@ -1,151 +1,128 @@
 <%- include('../partials/header-top') %>
 
 <main style="overflow: hidden; background: #fff;">
-    <!-- Premium Hero Section -->
-    <section class="hero-luxury" style="min-height: 50vh; padding: 160px 5% 80px;">
-        <div class="bg-mesh"></div>
-        
-        <!-- Floating Elements -->
-        <div class="float-element" style="position: absolute; top: 15%; right: 8%; font-size: 3rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
-            <i class="fas fa-file-shield"></i>
-        </div>
-        <div class="float-element" style="position: absolute; bottom: 20%; left: 5%; font-size: 4rem; color: var(--accent); opacity: 0.15; filter: blur(2px); animation-delay: -2s;">
-            <i class="fas fa-magnifying-glass-chart"></i>
-        </div>
+    <style>
+        .btn-vault-lux {
+            border: 2px solid #f1f5f9 !important;
+            color: var(--primary) !important;
+            background: transparent !important;
+            transition: all 0.4s var(--ease-smooth) !important;
+        }
+        .btn-vault-lux:hover {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(10,37,64,0.15);
+        }
+    </style>
 
-        <div class="hero-content-luxury container">
-            <span class="hero-badge-luxury reveal-on-scroll">
-                <i class="fas fa-handshake-angle"></i> <%= __('transparency_hero_badge') %>
+    <!-- 1. Majestic Hero Section -->
+    <section class="hero-luxury" style="min-height: 55vh; padding: 160px 5% 100px; display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
+        <!-- Brand Gradient Overlay -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25) 0%, transparent 70%);"></div>
+        <div class="bg-mesh" style="opacity: 0.6;"></div>
+        
+        <div class="container" style="position: relative; z-index: 20;">
+            <span class="hero-badge-luxury reveal-on-scroll" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--secondary-light); padding: 8px 25px; font-size: 0.9rem; letter-spacing: 1px;">
+                <i class="fas fa-file-shield"></i> <%= __('transparency_hero_badge') %>
             </span>
-            <h1 class="hero-title-luxury reveal-on-scroll" style="transition-delay: 0.2s;">
-                <% 
-                    const transHeroSubTitle = __('transparency_hero_title');
-                    const transHighlight = currentLocale === 'ar' ? 'النزاهة' : 'Integrity';
-                    const transShimmered = transHeroSubTitle.includes(transHighlight) ? transHeroSubTitle.replace(transHighlight, `<span class="shimmer-text">${transHighlight}</span>`) : transHeroSubTitle;
-                %>
-                <%- transShimmered %>
+            <h1 class="hero-title-luxury reveal-on-scroll" style="font-size: clamp(3rem, 6vw, 5.5rem); margin-top: 25px; margin-bottom: 25px; color: #fff; line-height: 1.1; font-weight: 950; text-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                <%= __('transparency_hero_title') %>
             </h1>
-            <p class="hero-desc-luxury reveal-on-scroll" style="transition-delay: 0.4s;">
+            <p class="hero-desc-luxury reveal-on-scroll" style="transition-delay: 0.2s; color: rgba(255,255,255,0.85); max-width: 750px; margin: 0 auto; font-size: 1.25rem; line-height: 1.8; font-weight: 500;">
                 <%= __('transparency_hero_desc') %>
             </p>
         </div>
+
+        <!-- Hero Bottom Fade -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 150px; background: linear-gradient(to top, #ffffff, transparent); z-index: 10;"></div>
     </section>
 
-    <!-- Key Metrics Section -->
-    <section class="section-luxury container" style="margin-top: -60px; position: relative; z-index: 10;">
-        <div class="grid-4">
-            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9;">
-                <div class="impact-number" data-target="100" style="font-size: 2.5rem;">0</div>
-                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_1') %></div>
+    <!-- 2. Floating Impact Metrics Ribbon -->
+    <section class="container" style="margin-top: -65px; position: relative; z-index: 100;">
+        <div class="grid-4" style="gap: 25px; display: grid; align-items: stretch;">
+            <% 
+                const stats = [
+                    { target: 100, label: __('transparency_stat_1'), icon: 'fa-award', delay: 0, color: '#10b981' },
+                    { target: 1400, label: __('transparency_stat_2'), icon: 'fa-users', delay: 0.1, color: '#0ea5e9' },
+                    { target: 24, label: __('transparency_stat_3'), icon: 'fa-chart-pie', delay: 0.2, color: '#8b5cf6' },
+                    { target: 98, label: __('transparency_stat_4'), icon: 'fa-face-smile-beam', delay: 0.3, color: '#10b981' }
+                ];
+                stats.forEach((s) => { 
+            %>
+            <div class="luxury-card reveal-on-scroll" style="padding: 40px 30px; text-align: center; background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 30px 60px rgba(10,37,64,0.1); border-radius: 35px; transition-delay: <%= s.delay %>s; display: flex; flex-direction: column; height: 100%; justify-content: center;">
+                <div style="width: 55px; height: 55px; background: rgba(16, 185, 129, 0.05); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: <%= s.color %>;">
+                    <i class="fas <%= s.icon %>" style="font-size: 1.4rem;"></i>
+                </div>
+                <div class="impact-number" data-target="<%= s.target %>" style="font-size: 2.8rem; font-weight: 950; color: #10b981; margin-bottom: 5px; text-shadow: none;">0</div>
+                <div style="font-weight: 800; color: #64748b; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; line-height: 1.4;"><%= s.label %></div>
             </div>
-            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.1s;">
-                <div class="impact-number" data-target="1400" style="font-size: 2.5rem;">0</div>
-                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_2') %></div>
-            </div>
-            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.2s;">
-                <div class="impact-number" data-target="24" style="font-size: 2.5rem;">0</div>
-                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_3') %></div>
-            </div>
-            <div class="luxury-card reveal-on-scroll" style="padding: 30px; text-align: center; background: white; border: 1px solid #f1f5f9; transition-delay: 0.3s;">
-                <div class="impact-number" data-target="98" style="font-size: 2.5rem;">0</div>
-                <div style="font-weight: 800; color: var(--primary);"><%= __('transparency_stat_4') %></div>
-            </div>
+            <% }) %>
         </div>
     </section>
 
-    <!-- Trust Journey Section -->
-    <section class="section-luxury container">
-        <div class="section-header-luxury reveal-on-scroll">
-            <span class="section-badge"><i class="fas fa-route"></i> <%= __('transparency_journey_badge') %></span>
-            <h2 class="section-title-luxury"><%= __('transparency_journey_title') %></h2>
-            <p class="section-subtitle-luxury"><%= __('transparency_journey_desc') %></p>
-        </div>
-
-        <div class="grid-3">
-            <div class="glass-step-card reveal-on-scroll">
-                <div class="step-number">1</div>
-                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_1_title') %></h4>
-                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_1_desc') %></p>
-            </div>
-            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.2s;">
-                <div class="step-number">2</div>
-                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_2_title') %></h4>
-                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_2_desc') %></p>
-            </div>
-            <div class="glass-step-card reveal-on-scroll" style="transition-delay: 0.4s;">
-                <div class="step-number">3</div>
-                <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px;"><%= __('transparency_step_3_title') %></h4>
-                <p style="color: var(--text-muted); font-size: 0.95rem;"><%= __('transparency_step_3_desc') %></p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Document Reports Section -->
-    <section class="section-luxury" style="background: #f8fafc; border-top: 1px solid #f1f5f9;">
+    <!-- 3. Document Reports (The Vault) -->
+    <section class="section-luxury" style="background: #ffffff; padding-top: 120px;">
         <div class="container">
-            <div class="section-header-luxury reveal-on-scroll">
+            <div class="section-header-luxury reveal-on-scroll" style="text-align: center; margin-bottom: 80px;">
                 <span class="section-badge"><i class="fas fa-file-invoice-dollar"></i> <%= __('transparency_reports_badge') %></span>
-                <h2 class="section-title-luxury"><%= __('transparency_reports_title') %></h2>
+                <h2 class="section-title-luxury" style="font-weight: 950; margin-top: 15px; font-size: 3.2rem;"><%= __('transparency_reports_title') %></h2>
             </div>
 
-            <div class="grid-3">
-                <!-- Report Card 1 -->
-                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center;">
-                    <div style="width: 80px; height: 80px; background: #fffcf0; color: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
-                        <i class="fas fa-file-pdf"></i>
+            <div class="grid-3" style="gap: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: stretch;">
+                <% 
+                    const reports = [
+                        { id: 1, type: 'pdf', color: '#10b981', bg: 'rgba(16, 185, 129, 0.05)', icon: 'fa-file-pdf' },
+                        { id: 2, type: 'chart', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.05)', icon: 'fa-chart-line' },
+                        { id: 3, type: 'cert', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.05)', icon: 'fa-certificate' }
+                    ];
+                    reports.forEach((r, idx) => {
+                %>
+                <div class="luxury-card reveal-on-scroll report-card-vault" style="background: white; border: 1px solid #f1f5f9; padding: 50px 40px; text-align: center; border-radius: 40px; transition: all 0.5s var(--ease-smooth); transition-delay: <%= idx * 0.2 %>s; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.03);">
+                    <!-- Subtle Glow Backdrop -->
+                    <div style="position: absolute; top: -100px; left: -100px; width: 200px; height: 200px; background: <%= r.bg %>; filter: blur(80px); border-radius: 50%; z-index: 0; opacity: 0.6;"></div>
+                    
+                    <div style="width: 85px; height: 85px; background: <%= r.bg %>; color: <%= r.color %>; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 30px; position: relative; z-index: 1;">
+                        <i class="fas <%= r.icon %>"></i>
                     </div>
-                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_1_title') %></h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_1_desc') %></p>
-                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
-                        <i class="fas fa-download"></i> <%= __('transparency_report_btn_download') %>
-                    </a>
-                </div>
-
-                <!-- Report Card 2 -->
-                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center; transition-delay: 0.2s;">
-                    <div style="width: 80px; height: 80px; background: #f0f9ff; color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
-                        <i class="fas fa-chart-line-up"></i>
+                    <h4 class="font-cairo" style="font-weight: 900; margin-bottom: 15px; color: var(--primary); font-size: 1.4rem; position: relative; z-index: 1;"><%= __(`transparency_report_${r.id}_title`) %></h4>
+                    <p style="color: var(--gray-mid); font-size: 1rem; margin-bottom: 35px; line-height: 1.7; font-weight: 500; position: relative; z-index: 1;"><%= __(`transparency_report_${r.id}_desc`) %></p>
+                    
+                    <div style="margin-top: auto; position: relative; z-index: 1;">
+                        <a href="#" class="btn-lux btn-vault-lux btn-sm" style="width: 100%; justify-content: center; border-radius: 18px; padding: 15px; font-weight: 800;">
+                            <% if (r.id === 1) { %><i class="fas fa-download"></i> <%= __('transparency_report_btn_download') %><% } %>
+                            <% if (r.id === 2) { %><i class="fas fa-eye"></i> <%= __('transparency_report_btn_view') %><% } %>
+                            <% if (r.id === 3) { %><i class="fas fa-paperclip"></i> <%= __('transparency_report_btn_preview') %><% } %>
+                        </a>
                     </div>
-                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_2_title') %></h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_2_desc') %></p>
-                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
-                        <i class="fas fa-eye"></i> <%= __('transparency_report_btn_view') %>
-                    </a>
                 </div>
-
-                <!-- Report Card 3 -->
-                <div class="luxury-card reveal-on-scroll" style="background: white; border: 1px solid #e2e8f0; padding: 40px; text-align: center; transition-delay: 0.4s;">
-                    <div style="width: 80px; height: 80px; background: #fff0f0; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; box-shadow: var(--shadow-sm);">
-                        <i class="fas fa-shield-halved"></i>
-                    </div>
-                    <h4 class="font-cairo" style="font-weight: 800; margin-bottom: 12px;"><%= __('transparency_report_3_title') %></h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"><%= __('transparency_report_3_desc') %></p>
-                    <a href="#" class="btn-lux btn-lux-outline btn-sm" style="width: 100%; justify-content: center;">
-                        <i class="fas fa-certificate"></i> <%= __('transparency_report_btn_preview') %>
-                    </a>
-                </div>
+                <% }) %>
             </div>
         </div>
     </section>
 
-    <!-- FAQ / Assurance -->
-    <section class="section-luxury container">
-        <div class="luxury-card" style="background: var(--grad-navy); color: white; padding: 60px; border-radius: 40px; display: flex; align-items: center; gap: 40px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px;" class="reveal-on-scroll">
-                <h2 class="font-cairo" style="font-weight: 900; font-size: 2.25rem; margin-bottom: 20px;"><%= __('transparency_trust_title') %></h2>
-                <p style="opacity: 0.85; line-height: 1.8; font-size: 1.1rem; margin-bottom: 30px;">
+    <!-- 4. Trust Summary Section -->
+    <section class="section-luxury container" style="padding-bottom: 150px;">
+        <div class="luxury-card" style="background: var(--grad-navy); color: white; padding: 80px 70px; border-radius: 50px; display: flex; align-items: center; gap: 60px; flex-wrap: wrap; position: relative; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.2);">
+            <div class="bg-mesh" style="opacity: 0.3;"></div>
+            <div style="flex: 1; min-width: 300px; position: relative; z-index: 2;" class="reveal-on-scroll">
+                <h2 class="font-cairo" style="font-weight: 950; font-size: 3rem; margin-bottom: 25px; line-height: 1.2;"><%= __('transparency_trust_title') %></h2>
+                <p style="opacity: 0.8; line-height: 1.9; font-size: 1.2rem; margin-bottom: 40px; font-weight: 400;">
                     <%= __('transparency_trust_desc') %>
                 </p>
                 <div style="display: flex; gap: 20px; align-items: center;">
-                    <i class="fas fa-user-shield fa-3x" style="color: var(--secondary); opacity: 0.5;"></i>
-                    <p style="font-weight: 700; margin: 0;"><%= __('transparency_trust_policy') %></p>
+                    <div style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                        <i class="fas fa-user-shield fa-2x"></i>
+                    </div>
+                    <p style="font-weight: 700; margin: 0; font-size: 1.1rem; color: var(--secondary-light);"><%= __('transparency_trust_policy') %></p>
                 </div>
             </div>
-            <div style="flex: 0 0 350px;" class="reveal-on-scroll">
-                <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 30px; border-radius: 30px; backdrop-filter: blur(20px);">
-                    <h4 class="font-cairo" style="margin-bottom: 15px;"><%= __('transparency_faq_title') %></h4>
-                    <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 20px;"><%= __('transparency_faq_desc') %></p>
-                    <a href="/contact" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center;"><%= __('about_cta_btn_contact') %></a>
+            <div style="flex: 0 0 380px; position: relative; z-index: 2;" class="reveal-on-scroll" style="transition-delay: 0.3s;">
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 45px; border-radius: 40px; backdrop-filter: blur(25px); text-align: center;">
+                    <h4 class="font-cairo" style="margin-bottom: 20px; font-size: 1.5rem; font-weight: 900;"><%= __('transparency_faq_title') %></h4>
+                    <p style="font-size: 1rem; opacity: 0.7; margin-bottom: 30px; line-height: 1.6;"><%= __('transparency_faq_desc') %></p>
+                    <a href="/contact" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; background: var(--grad-green); color: #fff; border: none; padding: 18px; font-size: 1.1rem; font-weight: 900; border-radius: 20px; box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3);"><%= __('about_cta_btn_contact') %></a>
                 </div>
             </div>
         </div>

@@ -161,7 +161,14 @@ exports.toggleCaseSatisfaction = async (req, res) => {
             return res.redirect('/dashboard');
         }
 
+        if (foundCase.isSatisfied && foundCase.satisfiedBy === 'admin') {
+            req.flash('error', req.getLocale() === 'ar' ? 'نأسف، تم إعلان الاكتفاء لهذه الحالة بقرار إداري. يرجى التواصل مع الإدارة لطلب إعادة التفعيل.' : 'Sorry, this case was marked as satisfied by administration. Please contact support to request reopening.');
+            return res.redirect('/dashboard');
+        }
+
         foundCase.isSatisfied = !foundCase.isSatisfied;
+        foundCase.satisfiedBy = foundCase.isSatisfied ? 'guardian' : 'none';
+        
         await foundCase.save();
 
         await logActivity(req.user._id, 'case_update', 'Case', id, 

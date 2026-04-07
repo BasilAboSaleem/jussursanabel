@@ -1,15 +1,23 @@
 <%- include('../../partials/header-top') %>
 
-<div class="container" style="padding-top: 120px; padding-bottom: 80px; max-width: 900px;">
-    <div class="section-header-luxury">
-        <span class="section-badge"><i class="fas fa-credit-card"></i> بوابة العطاء الآمنة</span>
-        <h2 class="section-title-luxury">تفاصيل مساهمتك الإنسانية</h2>
-        <p class="section-subtitle-luxury">عطاؤك يصنع فرقاً حقيقياً. اختر الطريقة التي تفضل بها دعم هذه الحالة.</p>
-    </div>
+<main class="checkout-page">
+<div class="container checkout-wrap">
+    <section class="checkout-hero luxury-card">
+        <div class="checkout-hero-bg"></div>
+        <div class="checkout-hero-content">
+            <span class="section-badge"><i class="fas fa-credit-card"></i> بوابة العطاء الآمنة</span>
+            <h2 class="section-title-luxury checkout-title">تفاصيل مساهمتك الإنسانية</h2>
+            <p class="section-subtitle-luxury checkout-subtitle">عطاؤك يصنع فرقاً حقيقياً. اختر الطريقة التي تفضل بها دعم هذه الحالة.</p>
+            <div class="checkout-stripe-ready">
+                <i class="fab fa-stripe-s"></i>
+                <span>واجهة الدفع مهيّأة بصريًا للربط مع Stripe لاحقًا.</span>
+            </div>
+        </div>
+    </section>
 
-    <div class="luxury-grid-checkout" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; align-items: start;">
+    <div class="luxury-grid-checkout">
         <!-- Left Column: Settings -->
-        <div class="luxury-card glass-panel" style="padding: 35px;">
+        <div class="luxury-card glass-panel checkout-form-card">
             <form action="/donations/process" method="POST" id="payment-form">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <input type="hidden" name="caseId" value="<%= foundCase._id %>">
@@ -18,7 +26,7 @@
                 <input type="hidden" name="teamId" value="<%= typeof teamId !== 'undefined' ? teamId : '' %>">
 
                 <!-- Donation Type Toggle -->
-                <div style="margin-bottom: 35px;">
+                <div class="checkout-block">
                     <label class="form-label-luxury">نوع المساهمة</label>
                     <div class="type-selector-luxury">
                         <div class="type-option <%= type === 'monthly' ? 'active' : '' %>" id="typeMonthly" onclick="setDonationType('monthly')">
@@ -39,9 +47,9 @@
                 </div>
 
                 <!-- Amount Presets & Custom -->
-                <div style="margin-bottom: 35px;">
+                <div class="checkout-block">
                     <label class="form-label-luxury">حدد مبلغ المساهمة ($)</label>
-                    <div class="amount-presets" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+                    <div class="amount-presets">
                         <div class="preset-btn" onclick="setAmount(10)">$10</div>
                         <div class="preset-btn <%= amount == 50 ? 'active' : '' %>" onclick="setAmount(50)">$50</div>
                         <div class="preset-btn <%= amount == 100 ? 'active' : '' %>" onclick="setAmount(100)">$100</div>
@@ -55,9 +63,9 @@
 
                 <!-- Operation Fee Alert -->
                 <% if (operationPercentage > 0) { %>
-                <div style="margin-bottom: 25px; padding: 15px; background: rgba(226, 176, 100, 0.1); border-radius: 12px; border: 1px dashed var(--secondary); display: flex; gap: 12px; align-items: flex-start;">
-                    <i class="fas fa-info-circle" style="color: var(--secondary); margin-top: 3px;"></i>
-                    <div style="font-size: 0.85rem; color: var(--primary); line-height: 1.5;">
+                <div class="checkout-fee-alert">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="checkout-fee-text">
                         <strong class="font-cairo"><%= __('admin_settings_fee_label') %>:</strong>
                         <%= __('checkout_fee_breakdown', operationPercentage, institutionPercentage, gatewayPercentage) %>
                     </div>
@@ -65,15 +73,15 @@
                 <% } %>
 
                 <!-- Payment Details -->
-                <div style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px; margin-bottom: 30px;">
+                <div class="checkout-block checkout-block-separated">
                     <label class="form-label-luxury">إعدادات العطاء</label>
-                    <div style="display: flex; gap: 20px; flex-direction: column;">
-                        <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-user-secret" style="color: var(--primary); font-size: 1.2rem;"></i>
+                    <div class="checkout-settings">
+                        <div class="form-group checkout-anonymous-row">
+                            <div class="checkout-anonymous-info">
+                                <i class="fas fa-user-secret"></i>
                                 <div>
-                                    <span style="display: block; font-weight: 800; font-size: 0.9rem;">إخفاء هويتي (تبرع مجهول)</span>
-                                    <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">لن يظهر اسمك في جدار الداعمين العلني</span>
+                                    <span class="checkout-anonymous-title">إخفاء هويتي (تبرع مجهول)</span>
+                                    <span class="checkout-anonymous-desc">لن يظهر اسمك في جدار الداعمين العلني</span>
                                 </div>
                             </div>
                             <label class="switch-lux">
@@ -83,41 +91,41 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label-luxury" style="font-size: 0.85rem;">كلمة تحفيز للأهل (اختياري)</label>
-                            <textarea name="encouragementMessage" class="form-input" style="height: 80px; resize: none; padding: 12px;" placeholder="اكتب كلمة طيبة تشجع بها اليتيم أو الأسرة..."></textarea>
+                            <label class="form-label-luxury checkout-small-label">كلمة تحفيز للأهل (اختياري)</label>
+                            <textarea name="encouragementMessage" class="form-input checkout-message" placeholder="اكتب كلمة طيبة تشجع بها اليتيم أو الأسرة..."></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Payment Details -->
-                <div style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 30px;">
+                <div class="checkout-block checkout-block-separated">
                     <label class="form-label-luxury">معلومات الدفع</label>
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group checkout-field">
                         <input type="text" name="cardHolder" class="form-input" placeholder="اسم صاحب البطاقة" required>
                     </div>
-                    <div class="form-group" style="margin-bottom: 20px; position: relative;">
+                    <div class="form-group checkout-field checkout-field-icon">
                         <input type="text" id="card-number" class="form-input" placeholder="رقم البطاقة" maxlength="19" required>
-                        <i class="fas fa-shield-halved" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); opacity: 0.5;"></i>
+                        <i class="fas fa-shield-halved"></i>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="checkout-grid-2">
                         <input type="text" id="expiry" class="form-input" placeholder="MM / YY" maxlength="5" required>
                         <input type="text" id="cvv" class="form-input" placeholder="CVV" maxlength="3" required>
                     </div>
 
                     <!-- Phase 3: Cover Fees Toggle -->
-                    <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="toggleCoverFees()">
-                        <div style="flex-shrink: 0; position: relative; width: 44px; height: 24px; background: var(--secondary); border-radius: 12px; transition: 0.3s;" id="feeToggleTrack">
-                            <div style="position: absolute; left: 22px; top: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s;" id="feeToggleCircle"></div>
+                    <div class="checkout-cover-fees" onclick="toggleCoverFees()">
+                        <div id="feeToggleTrack" class="fee-toggle-track">
+                            <div id="feeToggleCircle" class="fee-toggle-circle"></div>
                         </div>
                         <input type="checkbox" id="coverFeesCheckbox" name="isFeeCovered" value="true" checked style="display: none;">
-                        <div style="flex-grow: 1;">
-                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--primary);">تغطية رسوم المعاملة</div>
-                            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.3;">أضف مبلغاً بسيطاً لضمان وصول 100% من تبرعك للحالة.</div>
+                        <div class="checkout-cover-fees-content">
+                            <div class="checkout-cover-fees-title">تغطية رسوم المعاملة</div>
+                            <div class="checkout-cover-fees-desc">أضف مبلغاً بسيطاً لضمان وصول 100% من تبرعك للحالة.</div>
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" onclick="showInvoicePreview(event)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 20px; margin-top: 35px; font-size: 1.15rem; gap: 12px; border-radius: 15px;">
+                <button type="submit" onclick="showInvoicePreview(event)" class="btn-lux btn-lux-primary checkout-submit-btn">
                     <i class="fas fa-heart"></i> تأكيد العطاء الإنساني
                 </button>
             </form>
@@ -126,9 +134,9 @@
         <!-- Right Column: Summary Card -->
         <div class="summary-column">
             <div class="luxury-card glass-panel summary-sticky">
-                <img src="<%= foundCase.image || '/assets/images/placeholder-case.jpg' %>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 20px; margin-bottom: 20px;">
+                <img src="<%= foundCase.image || '/assets/images/placeholder-case.jpg' %>" class="checkout-summary-image">
                 
-                <h4 class="font-cairo" style="margin-bottom: 15px; color: var(--primary);"><%= foundCase.title %></h4>
+                <h4 class="font-cairo checkout-summary-title"><%= foundCase.title %></h4>
                 
                 <div class="summary-details">
                     <div class="summary-row">
@@ -143,7 +151,7 @@
                         <span><%= __('admin_settings_fee_label') %> (<%= operationPercentage %>%):</span>
                         <strong id="summaryFeeAmount">$0.00</strong>
                     </div>
-                    <div id="feeBreakdown" style="font-size: 0.75rem; color: var(--text-light); text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; margin-top: -8px; margin-bottom: 10px; opacity: 0.8;">
+                    <div id="feeBreakdown" class="checkout-fee-breakdown" style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
                         (<%= institutionPercentage %>% <%= __('admin_settings_institution_fee_label').replace(' (%)', '') %> + <%= gatewayPercentage %>% <%= __('admin_settings_gateway_fee_label').replace(' (%)', '') %>)
                     </div>
                     <div class="summary-row" style="border-top: 2px solid rgba(0,0,0,0.05); padding-top: 10px; margin-top: 10px;">
@@ -157,11 +165,11 @@
                     <% } %>
                 </div>
 
-                <div class="trust-badges" style="margin-top: 30px; text-align: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">
+                <div class="trust-badges checkout-trust">
+                    <div class="checkout-trust-text">
                         <i class="fas fa-lock"></i> تشفير آمن 256-بت بمعايير PCI-DSS
                     </div>
-                    <div style="display: flex; justify-content: center; gap: 15px; opacity: 0.6;">
+                    <div class="checkout-trust-icons">
                         <i class="fab fa-cc-visa fa-lg"></i>
                         <i class="fab fa-cc-mastercard fa-lg"></i>
                         <i class="fab fa-cc-stripe fa-lg"></i>
@@ -171,8 +179,49 @@
         </div>
     </div>
 </div>
+</main>
 
 <style>
+    .checkout-page {
+        background: var(--bg-subtle);
+        min-height: 100vh;
+    }
+    .checkout-wrap {
+        padding-top: 110px;
+        padding-bottom: 90px;
+        max-width: 1120px;
+    }
+    .checkout-hero {
+        margin-bottom: 26px;
+        padding: 34px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(16,185,129,0.25);
+    }
+    .checkout-hero-bg {
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 10% 10%, rgba(16,185,129,0.18), transparent 35%),
+            radial-gradient(circle at 90% 90%, rgba(10,37,64,0.15), transparent 40%);
+    }
+    .checkout-hero-content { position: relative; z-index: 2; }
+    .checkout-title { margin-bottom: 8px; }
+    .checkout-subtitle { max-width: 700px; }
+    .checkout-stripe-ready {
+        margin-top: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px dashed rgba(99, 102, 241, 0.4);
+        border-radius: 12px;
+        color: #3730a3;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
     .form-label-luxury { 
         display: block; 
         margin-bottom: 12px; 
@@ -180,6 +229,178 @@
         color: var(--primary); 
         font-size: 0.95rem; 
         font-family: 'Cairo', sans-serif;
+    }
+    .checkout-form-card { padding: 35px; }
+    .luxury-grid-checkout {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 26px;
+        align-items: start;
+    }
+    .checkout-block { margin-bottom: 35px; }
+    .checkout-block-separated {
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 30px;
+    }
+    .amount-presets {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .checkout-fee-alert {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: rgba(226, 176, 100, 0.1);
+        border-radius: 12px;
+        border: 1px dashed var(--secondary);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .checkout-fee-alert i { color: var(--secondary); margin-top: 3px; }
+    .checkout-fee-text {
+        font-size: 0.85rem;
+        color: var(--primary);
+        line-height: 1.5;
+    }
+    .checkout-settings { display: flex; gap: 20px; flex-direction: column; }
+    .checkout-anonymous-row {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+    .checkout-anonymous-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .checkout-anonymous-info i {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+    .checkout-anonymous-title {
+        display: block;
+        font-weight: 800;
+        font-size: 0.9rem;
+    }
+    .checkout-anonymous-desc {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+    }
+    .checkout-small-label { font-size: 0.85rem; }
+    .checkout-message {
+        height: 88px;
+        resize: none;
+        padding: 12px;
+    }
+    .checkout-field { margin-bottom: 20px; }
+    .checkout-field-icon { position: relative; }
+    .checkout-field-icon i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        opacity: 0.5;
+    }
+    .checkout-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .checkout-cover-fees {
+        margin-top: 25px;
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+    .fee-toggle-track {
+        flex-shrink: 0;
+        position: relative;
+        width: 44px;
+        height: 24px;
+        background: var(--secondary);
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+    .fee-toggle-circle {
+        position: absolute;
+        left: 22px;
+        top: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    .checkout-cover-fees-content { flex-grow: 1; }
+    .checkout-cover-fees-title {
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+    .checkout-cover-fees-desc {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        line-height: 1.3;
+    }
+    .checkout-submit-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 20px;
+        margin-top: 35px;
+        font-size: 1.15rem;
+        gap: 12px;
+        border-radius: 15px;
+    }
+    .checkout-summary-image {
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.5);
+        box-shadow: 0 15px 30px rgba(2,6,23,0.08);
+    }
+    .checkout-summary-title {
+        margin-bottom: 15px;
+        color: var(--primary);
+    }
+    .checkout-fee-breakdown {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: -8px;
+        margin-bottom: 10px;
+        opacity: 0.8;
+    }
+    .checkout-trust {
+        margin-top: 30px;
+        text-align: center;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 20px;
+    }
+    .checkout-trust-text {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 15px;
+    }
+    .checkout-trust-icons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        opacity: 0.6;
     }
 
     .type-selector-luxury {
@@ -310,6 +531,14 @@
         .luxury-grid-checkout { grid-template-columns: 1fr; }
         .summary-column { order: -1; }
         .summary-sticky { position: static; margin-bottom: 30px; }
+        .checkout-wrap { padding-top: 95px; }
+        .checkout-hero { padding: 24px; }
+        .checkout-form-card { padding: 24px; }
+    }
+    @media (max-width: 640px) {
+        .type-selector-luxury { grid-template-columns: 1fr; }
+        .amount-presets { grid-template-columns: repeat(2, 1fr); }
+        .checkout-grid-2 { grid-template-columns: 1fr; gap: 14px; }
     }
 
     /* Modal Overlay Styles */

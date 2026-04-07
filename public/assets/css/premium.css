@@ -5,59 +5,54 @@
 
 /* ── 1. Design Tokens ─────────────────────────────────────────── */
 :root {
-    /* Palette - Ultra Premium */
-    --primary: #020617; /* Slate 950 - Deepest Navy */
-    --primary-light: #0f172a; /* Slate 900 */
-    --primary-mid: #1e293b; /* Slate 800 */
-    --secondary: #d97706; /* Amber 600 - Rich Gold */
-    --secondary-light: #f59e0b; /* Amber 500 */
-    --accent: #0f766e; /* Teal 700 */
-    --accent-light: #14b8a6; /* Teal 500 */
-    --danger: #be123c;
-    --success: #059669;
+    /* Senabil Brand Identity - Ultra Premium */
+    --primary: #0A2540; /* Deep Senabil Blue */
+    --primary-light: #1A365D;
+    --primary-mid: #2C5282;
+    --secondary: #10B981; /* Emerald Green */
+    --secondary-light: #34D399;
+    --accent: #059669; /* Darker Green */
+    --accent-light: #6EE7B7;
+    --gray-light: #F1F5F9;
+    --gray-mid: #94A3B8;
+    --gray-dark: #475569;
+    --danger: #ef4444;
+    --success: #10B981;
+    --grad-gold: linear-gradient(135deg, #E2B064 0%, #FBBF24 100%);
+    --grad-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
 
     /* Backgrounds */
-    --bg-main: #fafaf9; /* Stone 50 */
-    --bg-subtle: #f5f5f4; /* Stone 100 */
-    --bg-card: rgba(255, 255, 255, 0.8);
-    --glass-bg: rgba(255, 255, 255, 0.5);
+    --bg-main: #ffffff;
+    --bg-subtle: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.9);
+    --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-dark-bg: rgba(2, 6, 23, 0.9);
+    --glass-dark-bg: rgba(10, 37, 64, 0.85);
 
     /* Text */
-    --text-main: #0c0a09; /* Stone 950 */
-    --text-muted: #57534e; /* Stone 600 */
-    --text-light: #a8a29e; /* Stone 400 */
-    --text-on-dark: #f5f5f4;
+    --text-main: #0A2540;
+    --text-muted: #475569;
+    --text-light: #94A3B8;
+    --text-on-dark: #f8fafc;
 
-    /* Gradients - Modern & Vibrant */
-    --grad-navy: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-    --grad-gold: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
-    --grad-teal: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
-    --grad-hero: radial-gradient(circle at top right, #0f172a 0%, #020617 100%);
-    --grad-glow-teal: radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, transparent 70%);
-    --grad-glow-gold: radial-gradient(circle, rgba(217, 119, 6, 0.12) 0%, transparent 70%);
+    /* Gradients (Strict Brand Identity - Elegant Restore) */
+    --grad-navy: linear-gradient(135deg, #0A2540 0%, #1A365D 100%);
+    --grad-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    --grad-hero: linear-gradient(rgba(10, 37, 64, 0.75), rgba(10, 37, 64, 0.4));
 
-    /* Shadows - Soft & Deep */
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-gold: 0 10px 20px -5px rgba(217, 119, 6, 0.3);
-    --shadow-teal: 0 10px 20px -5px rgba(15, 118, 110, 0.25);
-    --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-
-    /* Geometry */
-    --radius-xs: 6px;
+    /* Geometry & Motion */
     --radius-sm: 12px;
-    --radius-md: 18px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
+    --radius-md: 24px;
+    --radius-lg: 40px;
     --radius-pill: 9999px;
+    --transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    --transition-fast: all 0.25s ease;
+    --ease-smooth: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Motion */
-    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --transition: all 0.3s var(--ease-smooth);
+    /* Zen Spacing */
+    --section-pad: 140px;
+    --container-max: 1240px;
 }
 
 /* ── 2. Reset & Base ───────────────────────────────────────────── */
@@ -284,20 +279,16 @@ button {
     }
 }
 
-.section-luxury {
-    padding: 100px 5%;
+.section-zen {
+    padding: 140px 5%;
     position: relative;
-}
-
-@media (max-width: 768px) {
-    .section-luxury {
-        padding: 64px 5%;
-    }
+    background: #fff;
+    width: 100%;
 }
 
 .section-header-luxury {
     text-align: center;
-    margin-bottom: 64px;
+    margin-bottom: 80px;
 }
 
 .section-badge {
@@ -376,17 +367,35 @@ button {
     }
 }
 
-.dashboard-section {
-    display: none;
-    animation: fadeIn 0.4s var(--ease-smooth);
+/* ── Media Frame ────────────────────────────────────────────────── */
+.media-frame {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 40px 100px rgba(10, 37, 64, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.dashboard-section.active {
-    display: block;
+.media-frame video,
+.media-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1s var(--ease-smooth);
 }
 
-.dashboard-section.active.grid-2 {
-    display: grid;
+.media-frame:hover video,
+.media-frame:hover img {
+    transform: scale(1.05);
+}
+
+.media-overlay-brand {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(10, 37, 64, 0.7) 0%, rgba(16, 185, 129, 0.2) 100%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* ── 6. Hero Section ───────────────────────────────────────────── */
@@ -397,7 +406,7 @@ button {
     align-items: center;
     justify-content: center;
     padding: 140px 5% 90px;
-    background: var(--grad-hero);
+    background: transparent; /* Changed to transparent to show video */
     overflow: hidden;
     text-align: center;
 }
@@ -407,29 +416,27 @@ button {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(13, 148, 136, 0.18) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(226, 176, 100, 0.12) 0%, transparent 55%),
-        radial-gradient(circle at 50% 100%, rgba(30, 58, 95, 0.8) 0%, transparent 60%);
-    z-index: 1;
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(16, 185, 129, 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 55%),
+        radial-gradient(circle at 50% 100%, rgba(10, 37, 64, 0.4) 0%, transparent 60%);
+    z-index: 5; /* Lowered below content but above video */
     pointer-events: none;
 }
 
-/* Animated star particles */
+/* Star particles simplified for premium feel */
 .hero-luxury::after {
     content: '';
     position: absolute;
     inset: 0;
     background-image:
-        radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, 0.7) 0%, transparent 100%),
-        radial-gradient(1px 1px at 60% 20%, rgba(255, 255, 255, 0.5) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 80% 60%, rgba(226, 176, 100, 0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 10% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
-        radial-gradient(2px 2px at 45% 55%, rgba(45, 212, 191, 0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 90% 10%, rgba(255, 255, 255, 0.6) 0%, transparent 100%);
+        radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 80% 60%, rgba(16, 185, 129, 0.3) 0%, transparent 100%);
     background-size: 400px 300px;
     animation: starsDrift 60s linear infinite;
-    z-index: 1;
+    z-index: 5;
     pointer-events: none;
+    opacity: 0.5;
 }
 
 @keyframes starsDrift {
@@ -547,13 +554,13 @@ button {
 }
 
 .btn-lux-primary {
-    background: var(--grad-gold);
-    color: var(--primary);
-    box-shadow: var(--shadow-gold);
+    background: var(--grad-green);
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
 }
 
 .btn-lux-primary:hover {
-    box-shadow: 0 20px 50px rgba(226, 176, 100, 0.4);
+    box-shadow: 0 20px 50px rgba(16, 185, 129, 0.5);
 }
 
 .btn-lux-dark {
@@ -637,7 +644,7 @@ button {
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--grad-gold);
+    background: var(--grad-green);
     transform: scaleX(0);
     transform-origin: right;
     transition: transform 0.45s var(--ease-smooth);
@@ -661,7 +668,7 @@ button {
 }
 
 .luxury-card-dark:hover {
-    border-color: rgba(226, 176, 100, 0.2);
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
 /* Stat card */
@@ -707,7 +714,7 @@ button {
 
 .progress-fill {
     height: 100%;
-    background: var(--grad-gold);
+    background: var(--grad-green);
     border-radius: var(--radius-pill);
     position: relative;
     transition: width 1.2s var(--ease-out);
@@ -783,9 +790,9 @@ button {
 }
 
 .badge-gold {
-    background: rgba(226, 176, 100, 0.12);
-    color: #B45309;
-    border: 1px solid rgba(226, 176, 100, 0.3);
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--secondary);
+    border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badge-teal {
@@ -1147,9 +1154,9 @@ tbody tr:hover {
 }
 
 .step-dot.active {
-    background: var(--grad-gold);
-    color: var(--primary);
-    box-shadow: var(--shadow-gold);
+    background: var(--grad-green);
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
 }
 
 .step-dot.done {
@@ -1382,10 +1389,10 @@ tbody tr:hover {
 .impact-number {
     font-family: 'Cairo', sans-serif;
     font-size: 3.5rem;
-    font-weight: 900;
+    font-weight: 950;
     line-height: 1;
     margin-bottom: 10px;
-    background: var(--grad-gold);
+    background: linear-gradient(135deg, #10b981, #059669);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1410,8 +1417,8 @@ tbody tr:hover {
 .step-number {
     width: 50px;
     height: 50px;
-    background: var(--grad-gold);
-    color: var(--primary);
+    background: linear-gradient(135deg, #10b981, #0ea5e9);
+    color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1419,7 +1426,7 @@ tbody tr:hover {
     font-weight: 900;
     font-size: 1.4rem;
     margin: 0 auto 25px;
-    box-shadow: var(--shadow-gold);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
 }
 
 .shimmer-text {
@@ -1434,6 +1441,142 @@ tbody tr:hover {
 
 @keyframes shine {
     to { background-position: 200% center; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Restore Original Elegant Frame (Video Compatible) */
+.royal-white-frame {
+    background: #fff;
+    border: 15px solid #fff;
+    border-radius: 40px;
+    box-shadow: 0 40px 100px rgba(10,37,64,0.15);
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.5s var(--ease-out);
+}
+.royal-white-frame:hover { transform: rotate(1deg) scale(1.01); }
+
+.section-zen {
+    padding: 100px 0;
+    position: relative;
+}
+
+.impact-number {
+    font-family: 'Tajawal', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+/* --- Hero Text Bloom Animation (Ultra Clarity & Top Z-Index) --- */
+.hero-text-bloom {
+    position: relative;
+    padding: 35px;
+    border-radius: 45px;
+    background: linear-gradient(135deg, 
+                rgba(16, 185, 129, 0.1) 0%, 
+                rgba(255, 255, 255, 0) 50%, 
+                rgba(10, 37, 64, 0.04) 100%);
+    background-size: 300% 300%;
+    animation: majestic-flow 10s ease-in-out infinite alternate;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+    z-index: 100; /* Highest priority to clear any overlapping blur */
+    isolation: isolate; 
+}
+
+/* Hero Button Mobile Flow (Side-by-Side) */
+.hero-btn-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .hero-btn-container {
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+    }
+    .hero-btn-container .btn-lux {
+        padding: 14px 18px !important;
+        font-size: 0.85rem !important;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        min-width: 0;
+    }
+    .hero-btn-container .btn-lux i {
+        display: none; /* Hide icons on small mobile to save space */
+    }
+}
+
+@keyframes majestic-flow {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
+@keyframes majestic-bloom {
+    0% { background-position: 0% 10%; }
+    50% { background-position: 100% 90%; }
+    100% { background-position: 10% 100%; }
+}
+
+/* --- The Pure Crystal Frame --- */
+.crystal-frame {
+    position: relative;
+    background: #ffffff;
+    padding: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+    z-index: 5;
+}
+
+.crystal-frame:hover {
+    transform: translateY(-8px);
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 60px 140px rgba(16, 185, 129, 0.08);
+}
+
+.crystal-content {
+    background: #000;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- Majestic Photo Album (Hero) --- */
+.album-slide {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 30px;
+}
+
+.album-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: ken-burns 15s ease-in-out infinite alternate;
+}
+
+@keyframes ken-burns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-2%, -2%); }
+}
+
+.royal-white-frame {
+    padding: 15px;
+    background: #ffffff;
+    border-radius: 40px;
+    box-shadow: 0 40px 100px rgba(10, 37, 64, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .reveal-on-scroll {
@@ -1456,5 +1599,35 @@ tbody tr:hover {
         radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.1) 0, transparent 50%), 
         radial-gradient(at 50% 0%, rgba(217, 119, 6, 0.1) 0, transparent 50%), 
         radial-gradient(at 100% 0%, rgba(30, 64, 175, 0.1) 0, transparent 50%);
+}
+
+/* ── Celestial Journey Path Styles ────────────────────────────── */
+.journey-card-couture {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.journey-card-couture:hover {
+    transform: translateY(-20px) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 60px 120px rgba(10, 37, 64, 0.1) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.journey-card-couture:hover div[style*="border: 4px solid var(--secondary)"] {
+    animation: orbital-pulse 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%) scale(1.1) !important;
+}
+
+@keyframes orbital-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 25px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@media (max-width: 1024px) {
+    div[style*="border-bottom: 2px dashed rgba(16, 185, 129, 0.4)"] {
+        display: none !important;
+    }
 }
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const indexController = require('../controllers/indexController');
 
 router.get('/', indexController.getHomepage);
-router.get('/about', indexController.getAbout);
+router.get('/stories', indexController.getStoriesHub);
 router.get('/contact', indexController.getContact);
 router.get('/transparency', indexController.getTransparency);
 

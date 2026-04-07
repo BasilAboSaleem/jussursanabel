@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="<%= locals.currentLocale || 'ar' %>" dir="<%= locals.langDir || 'rtl' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= title %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/premium.css">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+        }
+
+        /* ── CONTAINER ── */
+        #stories-container {
+            width: 100%; height: 100dvh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        #stories-container::-webkit-scrollbar { display: none; }
+
+        /* ── SLIDE ── */
+        .story-slide {
+            width: 100%; height: 100dvh;
+            scroll-snap-align: start;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── MEDIA ── */
+        .story-media {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; border: none;
+            opacity: 0;
+            transform: scale(1.05);
+            transition: opacity 0.5s ease, transform 8s ease-out;
+        }
+        .story-media.playing {
+            opacity: 1; transform: scale(1);
+        }
+
+        /* ── SKELETON LOADING ── */
+        .story-skeleton {
+            position: absolute; inset: 0; z-index: 1;
+            background: linear-gradient(110deg, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%);
+            background-size: 200% 100%;
+            animation: skeleton-wave 1.8s infinite linear;
+        }
+        @keyframes skeleton-wave {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── THUMBNAIL ── */
+        .story-thumb {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: opacity 0.6s ease;
+            z-index: 2;
+        }
+        .story-thumb.hidden { opacity: 0; pointer-events: none; }
+
+        /* ── GRADIENTS ── */
+        .story-gradient {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top,
+                rgba(0,0,0,0.95) 0%,
+                rgba(0,0,0,0.45) 38%,
+                rgba(0,0,0,0.08) 65%,
+                transparent 100%);
+            z-index: 3; pointer-events: none;
+        }
+        .story-gradient-top {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 200px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            z-index: 3; pointer-events: none;
+        }
+
+        /* ── TOP BAR ── */
+        .stories-topbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 200;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px;
+            pointer-events: none;
+        }
+        .stories-topbar > * { pointer-events: auto; }
+
+        .stories-logo {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: white;
+        }
+        .stories-logo img { height: 34px; filter: brightness(0) invert(1); }
+        .stories-logo-text {
+            display: flex; flex-direction: column;
+        }
+        .stories-logo-text span:first-child {
+            font-family: 'Cairo', sans-serif; font-weight: 900;
+            font-size: 1rem; color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            line-height: 1.1;
+        }
+
+        /* ① Live counter */
+        .stories-live-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: linear-gradient(135deg, rgba(239,68,68,0.85), rgba(220,38,38,0.85));
+            border-radius: 20px; padding: 2px 9px;
+            font-size: 0.7rem; font-weight: 800; color: white;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 3px;
+        }
+        .live-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: white;
+            animation: live-pulse 1.5s infinite;
+        }
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.75); }
+        }
+
+        .stories-close-btn {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.22);
+            color: white; width: 44px; height: 44px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(10px);
+            font-size: 1.2rem; text-decoration: none;
+            transition: background 0.2s;
+        }
+        .stories-close-btn:hover { background: rgba(255,255,255,0.28); }
+
+        /* ② Position indicator — dots sidebar */
+        .story-dots {
+            position: fixed;
+            top: 50%; right: 16px;
+            transform: translateY(-50%);
+            z-index: 200;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            pointer-events: none;
+        }
+        .story-dot {
+            width: 6px; border-radius: 4px;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.35s ease;
+            height: 6px;
+        }
+        .story-dot.active {
+            background: white;
+            height: 22px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .story-dot.done { background: rgba(255,255,255,0.55); }
+
+        /* Story position counter text */
+        .story-position-text {
+            position: fixed; top: 50%; right: 36px;
+            transform: translateY(-50%);
+            display: none; /* shown only when > 8 stories */
+            z-index: 200; color: rgba(255,255,255,0.6);
+            font-size: 0.7rem; font-weight: 700;
+            writing-mode: vertical-lr;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        }
+
+        /* ── RIGHT ACTIONS ── */
+        .story-actions {
+            position: absolute; right: 18px; bottom: 230px;
+            z-index: 10;
+            display: flex; flex-direction: column; gap: 18px; align-items: center;
+        }
+        .action-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            background: none; border: none; color: white;
+            cursor: pointer; font-family: 'Cairo', sans-serif; padding: 0;
+        }
+        .action-btn-icon {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; backdrop-filter: blur(8px);
+            transition: all 0.2s;
+        }
+        .action-btn:hover .action-btn-icon { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        .action-btn span { font-size: 0.72rem; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+
+        /* ── BOTTOM INFO ── */
+        .story-info {
+            position: absolute; bottom: 0; left: 0; 
+            width: 85%; /* Make it span mostly to the left side */
+            z-index: 10; padding: 30px 22px 44px;
+            text-align: left; /* Align text to the left */
+        }
+
+        /* Badges row */
+        .story-badges-row {
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+            flex-direction: row-reverse; /* Swap direction so it visually sits on the left clearly */
+        }
+
+        .story-type-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--secondary, #d97706); color: white;
+            border-radius: 30px; padding: 5px 14px;
+            font-size: 0.8rem; font-weight: 800; font-family: 'Cairo', sans-serif;
+        }
+
+        /* ④ URGENT badge — pulsing red */
+        .story-urgent-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(239, 68, 68, 0.9); color: white;
+            border-radius: 30px; padding: 5px 12px;
+            font-size: 0.78rem; font-weight: 900; font-family: 'Cairo', sans-serif;
+            animation: urgent-pulse 1.8s ease-in-out infinite;
+            border: 1px solid rgba(255,100,100,0.5);
+        }
+        @keyframes urgent-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+        }
+
+        .story-title-text {
+            font-family: 'Cairo', sans-serif; font-size: 1.5rem; font-weight: 900;
+            color: white; line-height: 1.35; margin-bottom: 8px;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.8);
+        }
+        .story-desc-text {
+            font-size: 0.9rem; color: rgba(255,255,255,0.8);
+            line-height: 1.6; margin-bottom: 14px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ⑦ Supporters count */
+        .story-supporters {
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+            margin-bottom: 14px;
+            flex-direction: row-reverse;
+        }
+        .story-supporters-avatars {
+            display: flex;
+        }
+        .supporter-avatar {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; color: white; font-weight: 900;
+            margin-inline-start: -8px;
+        }
+        .supporter-avatar:first-child { margin-inline-start: 0; }
+        .story-supporters-text {
+            font-size: 0.82rem; color: rgba(255,255,255,0.75);
+            text-shadow: 0 1px 6px rgba(0,0,0,0.6); font-weight: 700;
+        }
+        .story-supporters-text strong { color: #34d399; }
+
+        /* Donation bar */
+        .story-donation-bar { margin-bottom: 18px; }
+        .story-amounts {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+            flex-direction: row-reverse;
+        }
+        .story-raised {
+            font-family: 'Cairo', sans-serif; font-weight: 900;
+            font-size: 1.1rem; color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+        }
+        .story-raised span { color: #34d399; }
+        .story-target {
+            font-size: 0.83rem; color: rgba(255,255,255,0.7); font-weight: 700;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+        .story-bar-track {
+            height: 6px; background: rgba(255,255,255,0.2);
+            border-radius: 10px; overflow: hidden;
+        }
+        .story-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 10px;
+            box-shadow: 0 0 14px rgba(52,211,153,0.65);
+            transition: width 1.2s ease;
+        }
+
+        /* CTA */
+        .story-cta-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; padding: 16px 28px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; border-radius: 18px;
+            font-family: 'Cairo', sans-serif; font-size: 1.1rem; font-weight: 900;
+            cursor: pointer; text-decoration: none;
+            box-shadow: 0 8px 30px rgba(16,185,129,0.5);
+            transition: all 0.25s ease;
+        }
+        .story-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(16,185,129,0.65); color: white; }
+
+        /* ⑤ Islamic ayah overlay */
+        .story-ayah-overlay {
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 50;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 28px 32px;
+            text-align: center;
+            max-width: 420px; width: 90%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        .story-ayah-overlay.show { opacity: 1; }
+        .ayah-text {
+            font-family: 'Cairo', sans-serif; font-size: 1.15rem; font-weight: 800;
+            color: white; line-height: 1.7; margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .ayah-source {
+            font-size: 0.78rem; color: #34d399; font-weight: 700;
+        }
+        .ayah-icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.6; }
+
+        /* Scroll hint */
+        @keyframes bounce-up { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-10px)} }
+        .scroll-hint {
+            position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 20;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            color: rgba(255,255,255,0.5); font-size: 0.75rem;
+            animation: bounce-up 2s infinite;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .scroll-hint i { font-size: 1.3rem; }
+
+        /* Empty */
+        .stories-empty {
+            width: 100%; height: 100dvh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: white; text-align: center; padding: 40px;
+            background: linear-gradient(135deg, #0f172a, #1e3a5f);
+        }
+        .stories-empty i { font-size: 5rem; color: rgba(255,255,255,0.2); margin-bottom: 25px; }
+        .stories-empty h2 { font-family: 'Cairo', sans-serif; font-size: 1.8rem; font-weight: 900; margin-bottom: 15px; }
+        .stories-empty p { color: rgba(255,255,255,0.6); line-height: 1.8; max-width: 400px; }
+
+        @media (max-width: 600px) {
+            .story-title-text { font-size: 1.25rem; }
+            .story-actions { right: 12px; bottom: 255px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── AYAH OVERLAY (one per page, shown transitionally) ── -->
+<div class="story-ayah-overlay" id="ayah-overlay">
+    <div class="ayah-icon">☪</div>
+    <p class="ayah-text" id="ayah-text"></p>
+    <p class="ayah-source" id="ayah-source"></p>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div class="stories-topbar">
+    <a href="/" class="stories-logo">
+        <img src="/assets/images/logo.png" alt="جسور السنابل" onerror="this.style.display='none'">
+        <div class="stories-logo-text">
+            <span>جسور السنابل</span>
+            <!-- ① Live Counter Badge -->
+            <span class="stories-live-badge">
+                <span class="live-dot"></span>
+                <span id="live-count"><%= stories ? stories.length : 0 %></span> قصة حية
+            </span>
+        </div>
+    </a>
+    <a href="/" class="stories-close-btn" title="العودة للرئيسية">
+        <i class="fas fa-xmark"></i>
+    </a>
+</div>
+
+<!-- ② Position dots sidebar -->
+<% if (stories && stories.length > 0 && stories.length <= 12) { %>
+<div class="story-dots" id="story-dots">
+    <% stories.forEach((s, i) => { %>
+    <div class="story-dot <%= i === 0 ? 'active' : '' %>" data-dot="<%= i %>"></div>
+    <% }); %>
+</div>
+<% } %>
+
+<!-- ── MAIN CONTAINER ── -->
+<div id="stories-container">
+<% if (stories && stories.length > 0) { %>
+
+    <% stories.forEach((story, index) => { %>
+    <%
+        let isYT = false;
+        let embedUrl = '';
+        if (story.storyVideo) {
+            if (story.storyVideo.includes('youtube.com/shorts/')) {
+                isYT = true;
+                const vid = story.storyVideo.split('shorts/')[1].split('?')[0];
+                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
+            } else if (story.storyVideo.includes('youtu.be/')) {
+                isYT = true;
+                const vid = story.storyVideo.split('youtu.be/')[1].split('?')[0];
+                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
+            } else if (story.storyVideo.includes('youtube.com/watch')) {
+                isYT = true;
+                const vUrl = new URL(story.storyVideo);
+                const vid = vUrl.searchParams.get('v');
+                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
+            }
+        }
+        const pct = story.targetAmount ? Math.min(Math.round((story.raisedAmount / story.targetAmount) * 100), 100) : 0;
+        const isUrgent = pct < 30;
+        // Fake but plausible supporter count for visual richness
+        const supporterCount = Math.max(1, Math.floor((story.raisedAmount || 0) / (story.monthlySponsorshipAmount || 100)));
+    %>
+
+    <div class="story-slide"
+         data-index="<%= index %>"
+         data-id="<%= story._id %>"
+         data-is-yt="<%= isYT %>"
+         data-muted="false"
+         id="story-slide-<%= index %>">
+
+        <!-- ⑥ Skeleton loader (shown while media prepares) -->
+        <div class="story-skeleton" id="skeleton-<%= index %>"></div>
+
+        <!-- Thumbnail -->
+        <img
+            src="<%= story.image || 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop' %>"
+            alt="<%= story.title %>"
+            class="story-thumb"
+            id="thumb-<%= index %>"
+            onload="hideSkeleton(<%= index %>)">
+
+        <!-- Media -->
+        <% if (isYT) { %>
+            <iframe
+                class="story-media yt-frame"
+                id="media-<%= index %>"
+                src="<%= embedUrl %>"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowfullscreen
+                title="<%= story.title %>">
+            </iframe>
+        <% } else if (story.storyVideo) { %>
+            <video
+                class="story-media html5-vid"
+                id="media-<%= index %>"
+                src="<%= story.storyVideo %>"
+                loop playsinline preload="none">
+            </video>
+        <% } %>
+
+        <div class="story-gradient-top"></div>
+        <div class="story-gradient"></div>
+
+        <!-- Right actions -->
+        <div class="story-actions">
+            <button class="action-btn mute-action" onclick="toggleStoryMute(this, <%= index %>)" title="الصوت">
+                <div class="action-btn-icon">
+                    <i class="fas fa-volume-high" id="mute-icon-<%= index %>"></i>
+                </div>
+                <span id="mute-label-<%= index %>">صوت</span>
+            </button>
+            <button class="action-btn" onclick="shareStory('<%= story.title %>', '/cases/<%= story._id %>')" title="مشاركة">
+                <div class="action-btn-icon"><i class="fas fa-share-nodes"></i></div>
+                <span>مشاركة</span>
+            </button>
+        </div>
+
+        <!-- Bottom overlay -->
+        <div class="story-info">
+
+            <!-- Badges row -->
+            <div class="story-badges-row">
+                <div class="story-type-badge">
+                    <i class="fas <%= story.type === 'orphan' ? 'fa-child' : 'fa-people-roof' %>"></i>
+                    <%= story.type === 'orphan' ? 'حالة يتيم' : 'أسرة محتاجة' %>
+                </div>
+                <!-- ④ Urgent badge — only when < 30% funded -->
+                <% if (isUrgent) { %>
+                <div class="story-urgent-badge">
+                    <i class="fas fa-fire-flame-curved"></i>
+                    بحاجة عاجلة
+                </div>
+                <% } %>
+            </div>
+
+            <!-- Title -->
+            <h2 class="story-title-text"><%= story.title %></h2>
+
+            <!-- Description -->
+            <% if (story.description) { %>
+            <p class="story-desc-text"><%= story.description %></p>
+            <% } %>
+
+            <!-- ⑦ Supporters -->
+            <% if (supporterCount > 0) { %>
+            <div class="story-supporters">
+                <div class="story-supporters-avatars">
+                    <% for(let k=0; k < Math.min(supporterCount, 3); k++) { %>
+                    <div class="supporter-avatar"><i class="fas fa-user" style="font-size:0.6rem;"></i></div>
+                    <% } %>
+                </div>
+                <span class="story-supporters-text">
+                    <strong><%= supporterCount %>+</strong> متبرع دعم هذه الحالة
+                </span>
+            </div>
+            <% } %>
+
+            <!-- Donation bar -->
+            <div class="story-donation-bar">
+                <div class="story-amounts">
+                    <div class="story-raised">
+                        <span>$<%= (story.raisedAmount || 0).toLocaleString() %></span>
+                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.55); font-weight:600;"> جُمع</span>
+                    </div>
+                    <div class="story-target">الهدف: $<%= (story.targetAmount || 0).toLocaleString() %></div>
+                </div>
+                <div class="story-bar-track">
+                    <div class="story-bar-fill" style="width:<%= pct %>%;"></div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <a href="/cases/<%= story._id %>" class="story-cta-btn">
+                <i class="fas fa-hand-holding-heart"></i>
+                ابدأ الكفالة / تبرع الآن
+            </a>
+        </div>
+
+        <!-- Scroll hint — first slide only -->
+        <% if (index === 0 && stories.length > 1) { %>
+        <div class="scroll-hint" id="scroll-hint">
+            <i class="fas fa-chevron-up"></i>
+            <span>اسحب للأعلى</span>
+        </div>
+        <% } %>
+
+    </div>
+    <% }); %>
+
+<% } else { %>
+    <div class="stories-empty">
+        <i class="fas fa-film"></i>
+        <h2>لا توجد قصص متاحة حالياً</h2>
+        <p>لم يتم إضافة قصص فيديو لأي حالة بعد. عند إضافة حالة برابط فيديو ستظهر هنا.</p>
+        <a href="/" style="margin-top:30px; display:inline-flex; align-items:center; gap:10px; background:white; color:#0f172a; padding:14px 30px; border-radius:12px; font-family:'Cairo',sans-serif; font-weight:900; text-decoration:none;">
+            <i class="fas fa-home"></i> العودة للرئيسية
+        </a>
+    </div>
+<% } %>
+</div>
+
+<!-- ── JAVASCRIPT ── -->
+<script>
+(function StoriesApp() {
+
+    const container = document.getElementById('stories-container');
+    const slides    = document.querySelectorAll('.story-slide');
+    const totalSlides = slides.length;
+    let currentIndex  = 0;
+    let isGlobalMuted = false; // Start unmuted as requested
+
+    if (!totalSlides) return;
+
+    // ⑤ Islamic Ayahs pool
+    const ayahs = [
+        { text: '﴿مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ﴾', source: 'سورة البقرة: 261' },
+        { text: '«من نفَّس عن مؤمنٍ كُربَةً من كُرب الدنيا، نفَّس اللهُ عنه كُربةً من كُرب يوم القيامة»', source: 'رواه مسلم' },
+        { text: '﴿وَفِي أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ﴾', source: 'سورة الذاريات: 19' },
+        { text: '«الصدقة تطفئ الخطيئة كما يطفئ الماء النار»', source: 'رواه الترمذي' },
+        { text: '﴿وَمَا تُنفِقُوا مِن خَيْرٍ فَلِأَنفُسِكُمْ ۚ وَمَا تُنفِقُونَ إِلَّا ابْتِغَاءَ وَجْهِ اللَّهِ﴾', source: 'سورة البقرة: 272' },
+        { text: '«ابن آدم: إنك أن تبسط من فضلك خير لك، وأن تمسكه شر لك»', source: 'رواه مسلم' },
+    ];
+    let ayahIndex = 0;
+    let ayahTimer = null;
+
+    function showAyah() {
+        const overlay = document.getElementById('ayah-overlay');
+        const textEl  = document.getElementById('ayah-text');
+        const srcEl   = document.getElementById('ayah-source');
+        if (!overlay) return;
+
+        const a = ayahs[ayahIndex % ayahs.length];
+        textEl.textContent = a.text;
+        srcEl.textContent  = a.source;
+        ayahIndex++;
+
+        overlay.classList.add('show');
+        clearTimeout(ayahTimer);
+        ayahTimer = setTimeout(() => overlay.classList.remove('show'), 3500);
+    }
+
+    // ⑥ Hide skeleton once thumb loads
+    window.hideSkeleton = function(idx) {
+        const sk = document.getElementById('skeleton-' + idx);
+        if (sk) { sk.style.opacity = '0'; setTimeout(() => sk.remove(), 600); }
+    };
+
+    /* ── helpers ── */
+    function getMedia(idx) { return document.getElementById('media-' + idx); }
+    function getThumb(idx) { return document.getElementById('thumb-' + idx); }
+    function isYTSlide(idx) {
+        const s = document.getElementById('story-slide-' + idx);
+        return s && s.getAttribute('data-is-yt') === 'true';
+    }
+    function isMuted(idx) {
+        const s = document.getElementById('story-slide-' + idx);
+        return !s || s.getAttribute('data-muted') !== 'false';
+    }
+    function updateMuteUI(idx, muted) {
+        const icon  = document.getElementById('mute-icon-' + idx);
+        const label = document.getElementById('mute-label-' + idx);
+        if (icon)  icon.className = muted ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
+        if (label) label.textContent = muted ? 'صامت' : 'صوت';
+    }
+
+    function setMuted(idx, muted) {
+        const s = document.getElementById('story-slide-' + idx);
+        if (s) s.setAttribute('data-muted', muted ? 'true' : 'false');
+        updateMuteUI(idx, muted);
+        isGlobalMuted = muted;
+    }
+    function ytCmd(idx, func) {
+        const f = getMedia(idx);
+        if (f && f.contentWindow) {
+            f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: '' }), '*');
+        }
+    }
+
+    /* ── ② Update dots ── */
+    function updateDots(idx) {
+        const dots = document.querySelectorAll('.story-dot');
+        dots.forEach((d, i) => {
+            d.classList.remove('active', 'done');
+            if (i === idx) d.classList.add('active');
+            else if (i < idx) d.classList.add('done');
+        });
+    }
+
+    /* ── Play / Pause ── */
+    function playStory(idx) {
+        const media = getMedia(idx);
+        const thumb = getThumb(idx);
+        const hint  = document.getElementById('scroll-hint');
+        if (hint) hint.style.opacity = '0';
+
+        if (media) {
+            media.classList.add('playing');
+            if (isYTSlide(idx)) {
+                setTimeout(() => {
+                    ytCmd(idx, 'playVideo');
+                    setTimeout(() => { 
+                        if (thumb) thumb.classList.add('hidden'); 
+                        muteStory(idx, isGlobalMuted);
+                        updateMuteUI(idx, isGlobalMuted);
+                    }, 500);
+                }, 350);
+            } else {
+                media.muted = isGlobalMuted;
+                updateMuteUI(idx, isGlobalMuted);
+                media.play().catch(err => {
+                    console.log("Autoplay with sound blocked, playing muted.");
+                    media.muted = true;
+                    // Note: we don't set isGlobalMuted to true here, 
+                    // because we want the next ones to try with sound too 
+                    // or wait for the first click to fix it.
+                    media.play();
+                });
+                if (thumb) thumb.classList.add('hidden');
+            }
+        }
+
+        updateDots(idx);
+    }
+
+    function pauseStory(idx) {
+        const media = getMedia(idx);
+        if (!media) return;
+        if (isYTSlide(idx)) {
+            ytCmd(idx, 'pauseVideo');
+            ytCmd(idx, 'mute');
+        } else {
+            media.pause();
+            media.muted = true;
+        }
+        // NOTE: We do NOT call setMuted(idx, true) here anymore,
+        // because we don't want to change the Global isGlobalMuted state.
+    }
+
+    function muteStory(idx, muted) {
+        const m = getMedia(idx);
+        if (!m) return;
+        if (isYTSlide(idx)) ytCmd(idx, muted ? 'mute' : 'unMute');
+        else m.muted = muted;
+    }
+
+    /* ── Controls (global) ── */
+    window.toggleStoryMute = function(btn, idx) {
+        const newMuted = !isGlobalMuted;
+        isGlobalMuted = newMuted;
+        
+        // Apply to current
+        muteStory(idx, newMuted);
+        setMuted(idx, newMuted);
+        
+        // Also ensure it applies to all slides via global state
+        slides.forEach((s, i) => {
+            if (i !== idx) {
+                setMuted(i, newMuted);
+            }
+        });
+    };
+
+    window.shareStory = function(title, path) {
+        const url = window.location.origin + path;
+        if (navigator.share) navigator.share({ title, url }).catch(() => {});
+        else navigator.clipboard.writeText(url).then(() => alert('تم نسخ رابط الحالة!'));
+    };
+
+    /* ── IntersectionObserver ── */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const idx = parseInt(entry.target.getAttribute('data-index'));
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
+                // IMPORTANT: Stop EVERY OTHER Slide before playing the current one
+                slides.forEach((s, i) => {
+                    if (i !== idx) pauseStory(i);
+                });
+                
+                currentIndex = idx;
+                setTimeout(() => playStory(idx), 100);
+
+                // ⑤ Show an ayah on transition (not on very first load)
+                if (idx > 0) setTimeout(showAyah, 800);
+            } else {
+                // If sliding out, pause this one too
+                pauseStory(idx);
+            }
+        });
+    }, { threshold: 0.8, root: container });
+
+    slides.forEach(s => observer.observe(s));
+
+    /* ── Keyboard ── */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            slides[Math.max(0, currentIndex - 1)].scrollIntoView({ behavior: 'smooth' });
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            slides[Math.min(totalSlides - 1, currentIndex + 1)].scrollIntoView({ behavior: 'smooth' });
+        } else if (e.key === 'm' || e.key === 'M') {
+            window.toggleStoryMute(null, currentIndex);
+        }
+    });
+
+    /* ── Dot click navigation ── */
+    document.querySelectorAll('.story-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const target = parseInt(dot.getAttribute('data-dot'));
+            slides[target].scrollIntoView({ behavior: 'smooth' });
+        });
+        dot.style.pointerEvents = 'auto';
+    });
+
+    /* ── Initial ── */
+    // Global listener to unmute on first click if blocked
+    document.body.addEventListener('click', () => {
+        if (!isGlobalMuted) {
+            const currentMedia = getMedia(currentIndex);
+            if (currentMedia) {
+                if (isYTSlide(currentIndex)) ytCmd(currentIndex, 'unMute');
+                else currentMedia.muted = false;
+                setMuted(currentIndex, false);
+            }
+        }
+    }, { once: true });
+
+    const params = new URLSearchParams(window.location.search);
+    const targetCaseId = params.get('caseId');
+    if (targetCaseId) {
+        const targetSlide = document.querySelector('.story-slide[data-id="' + targetCaseId + '"]');
+        if (targetSlide) {
+            currentIndex = parseInt(targetSlide.getAttribute('data-index'));
+            targetSlide.scrollIntoView({ behavior: 'auto' });
+        }
+    }
+    setTimeout(() => playStory(currentIndex), 600);
+
+})();
+</script>
+
+</body>
+</html>

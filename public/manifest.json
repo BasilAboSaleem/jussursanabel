@@ -1,7 +1,7 @@
 {
-  "name": "Jussur Sanabel",
-  "short_name": "Sanabel",
-  "description": "جسور السنابل - منصة خيرية للربط بين المتبرعين والمحتاجين",
+  "name": "Rawaf",
+  "short_name": "Rawaf",
+  "description": "رواف - منصة خيرية للربط بين المتبرعين والمحتاجين",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

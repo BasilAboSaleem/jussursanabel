@@ -224,12 +224,12 @@
                                         </div>
                                     </td>
                                     <td style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; vertical-align: middle; padding: 12px 8px;">
-                                        <div style="font-weight: 900; color: var(--secondary); font-size: 1rem;">$<%= (trans.amount + (trans.operationFee || 0)).toLocaleString() %></div>
+                                        <div style="font-weight: 900; color: var(--secondary); font-size: 1rem;">$<%= (trans.amount + (trans.institutionFee || 0)).toLocaleString() %></div>
                                         <div style="font-size: 0.68rem; color: #94a3b8; margin-top: 2px;">
-                                            <%= __('admin_dist_donation') %>: $<%= trans.amount %>, <%= __('admin_dist_fees') %>: $<%= trans.operationFee || 0 %>
+                                            <%= __('admin_dist_donation') %>: $<%= trans.amount %>, <%= __('admin_dist_fees') %>: $<%= trans.institutionFee || 0 %>
                                         </div>
                                         <input type="hidden" class="trans-net" value="<%= trans.amount %>">
-                                        <input type="hidden" class="trans-fee" value="<%= trans.operationFee || 0 %>">
+                                        <input type="hidden" class="trans-fee" value="<%= trans.institutionFee || 0 %>">
                                     </td>
                                 </tr>
                             <% }) %>

@@ -6,6 +6,7 @@ const caseSchema = new mongoose.Schema({
     description: { type: String, required: true },
     image: { type: String }, // Main photo/thumbnail
     gallery: [String], // Verification photos/documents
+    storyVideo: { type: String }, // Optional Short/Reel video for urgent cases and full screen viewing
     targetAmount: { type: Number }, // For direct donates
     raisedAmount: { type: Number, default: 0 },
     monthlySponsorshipAmount: { type: Number, default: 100 }, // suggested amount
@@ -73,6 +74,7 @@ const caseSchema = new mongoose.Schema({
     sponsorshipExpiryDate: { type: Date },
     currentSponsor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isSatisfied: { type: Boolean, default: false },
+    satisfiedBy: { type: String, enum: ['admin', 'guardian', 'none'], default: 'none' },
     needs: [{ type: String }],
     // Phase 2: Trust & Impact
     impactMetrics: [{

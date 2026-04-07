@@ -53,7 +53,10 @@ app.use(compression());
 app.use(methodOverride("_method"));
 
 // Security
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ 
+    contentSecurityPolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+}));
 app.use(apiLimiter); // Apply global rate limiter
 
 if (process.env.NODE_ENV !== "production") {

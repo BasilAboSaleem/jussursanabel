@@ -121,7 +121,16 @@
                                                 
                                                 <form action="/dashboard/case/<%= c._id %>/toggle-satisfaction" method="POST" style="margin: 0;">
                                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                                    <button type="submit" class="btn-action-lux <%= c.isSatisfied ? 'active' : 'warning' %>" title="<%= c.isSatisfied ? 'إعادة التفعيل واستقبال الدعم' : 'إعلان الاكتفاء من التبرعات' %>">
+                                                    <% 
+                                                        const isAdminSatisfied = c.isSatisfied && c.satisfiedBy === 'admin';
+                                                        const btnTitle = isAdminSatisfied ? 
+                                                            (lang === 'ar' ? 'تم إغلاق الحالة بقرار إداري - لا يمكن إعادة فتحها من هنا' : 'Case closed by admin - cannot be reopened here') : 
+                                                            (c.isSatisfied ? (lang === 'ar' ? 'إعادة التفعيل واستقبال الدعم' : 'Reactivate and receive support') : (lang === 'ar' ? 'إعلان الاكتفاء من التبرعات' : 'Declare direct satisfaction'));
+                                                    %>
+                                                    <button type="submit" 
+                                                        class="btn-action-lux <%= c.isSatisfied ? 'active' : 'warning' %>" 
+                                                        title="<%= btnTitle %>"
+                                                        <%= isAdminSatisfied ? 'disabled style="opacity: 0.5; cursor: not-allowed; grayscale(1);"' : '' %>>
                                                         <i class="fas <%= c.isSatisfied ? 'fa-heart-circle-check' : 'fa-hand-holding-heart' %>"></i>
                                                     </button>
                                                 </form>

@@ -2,6 +2,7 @@ const Transaction = require('../models/Transaction');
 const Case = require('../models/Case');
 const Payout = require('../models/Payout');
 const BankReceipt = require('../models/BankReceipt');
+const Notification = require('../models/Notification');
 const { cloudinary } = require('../utils/cloudinary');
 const { logActivity } = require('../utils/logger');
 
@@ -105,8 +106,8 @@ exports.exportBankTransactions = async (req, res) => {
             t.case  ? t.case.title  : '—',
             (t.case && t.case.guardian) ? t.case.guardian.name : '—',
             t.amount || 0,
-            t.institutionFee !== undefined ? t.institutionFee : (t.operationFee || 0),
-            (t.amount || 0) + (t.institutionFee !== undefined ? t.institutionFee : (t.operationFee || 0)),
+            t.institutionFee || 0,
+            (t.amount || 0) + (t.institutionFee || 0),
             t.type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر',
             fmtDate(t.createdAt)
         ]);
@@ -230,7 +231,7 @@ exports.getDistributionCenter = async (req, res) => {
             count: pendingBankConfirmation.length
         };
         pendingBankConfirmation.forEach(t => {
-            const instFee = t.institutionFee !== undefined ? t.institutionFee : (t.operationFee || 0);
+            const instFee = t.institutionFee || 0;
             bankFilteredTotals.donations += t.amount;
             bankFilteredTotals.fees += instFee;
             bankFilteredTotals.grandTotal += (t.amount + instFee);
@@ -345,7 +346,7 @@ exports.getDistributionCenter = async (req, res) => {
         };
 
         pendingBankConfirmation.forEach(t => {
-            const instFee = t.institutionFee !== undefined ? t.institutionFee : (t.operationFee || 0);
+            const instFee = t.institutionFee || 0;
             stats.pendingStripeDonations += t.amount || 0;
             stats.pendingStripeFees += instFee;
         });
@@ -406,7 +407,7 @@ exports.confirmBankReceipt = async (req, res) => {
         let expectedOperationalFees = 0;
         
         transactions.forEach(t => {
-            const instFee = t.institutionFee !== undefined ? t.institutionFee : (t.operationFee || 0);
+            const instFee = t.institutionFee || 0;
             expectedDonations += t.amount || 0;
             expectedOperationalFees += instFee;
             t.netDonationAmount = t.amount;
@@ -555,6 +556,24 @@ exports.generatePayout = async (req, res) => {
                 createdAt: new Date()
             });
             await targetCase.save();
+
+            // 4. Notify Beneficiary (Guardian)
+            if (targetCase.guardian) {
+                const notification = await Notification.create({
+                    recipient: targetCase.guardian,
+                    sender: req.user._id,
+                    title: res.__('notif_payout_generated_title'),
+                    message: res.__('notif_payout_generated_msg', { amount: calculatedAmount }),
+                    type: 'success',
+                    targetType: 'specific',
+                    link: `/cases/${targetCase._id}`
+                });
+
+                const io = req.app.get('io');
+                if (io) {
+                    io.to(targetCase.guardian.toString()).emit('newNotification', notification);
+                }
+            }
         }
 
         logActivity(req.user._id, 'payout_generate', 'Payout', payout._id, `Generated payout ${payoutNumber} of $${calculatedAmount} for case ${caseId} via ${paymentMethod}`);

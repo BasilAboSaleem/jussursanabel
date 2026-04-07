@@ -3,8 +3,11 @@ const Testimonial = require('../models/Testimonial');
 
 exports.getHomepage = async (req, res) => {
     try {
-        // Fetch featured or recent cases
-        const cases = await Case.find({ status: 'approved' }).limit(3).sort({ createdAt: -1 });
+        // Fetch featured or recent cases that have a video story attached
+        const cases = await Case.find({ 
+            status: 'approved', 
+            storyVideo: { $exists: true, $ne: '' } 
+        }).limit(3).sort({ createdAt: -1 });
         
         // Mock data if DB is empty for initial run
         const demoCases = cases.length > 0 ? cases : [
@@ -38,7 +41,7 @@ exports.getHomepage = async (req, res) => {
             cases: demoCases,
             testimonials: testimonials.length > 0 ? testimonials : [
                 {
-                    content: 'أجمل ما في جسور السنابل هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
+                    content: 'أجمل ما في رواف هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
                     user: { name: 'خالد عبد الله' },
                     locationAr: 'متبرع من الأردن',
                     rating: 5
@@ -83,4 +86,23 @@ exports.getTransparency = (req, res) => {
         title: res.__('navbar_transparency'),
         fullUrl: `${req.protocol}://${req.get('host')}/transparency`
     });
+};
+
+exports.getStoriesHub = async (req, res) => {
+    try {
+        // Fetch ALL approved cases with storyVideo sorted newest first
+        const stories = await Case.find({ 
+            status: 'approved', 
+            storyVideo: { $exists: true, $ne: '' } 
+        }).sort({ createdAt: -1 });
+
+        res.render('pages/stories', {
+            title: 'قصص سنابل - Stories',
+            stories,
+            fullUrl: `${req.protocol}://${req.get('host')}/stories`
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
 };

@@ -2,6 +2,7 @@ const Transaction = require('../models/Transaction');
 const Case = require('../models/Case');
 const Setting = require('../models/Setting');
 const Team = require('../models/Team');
+const Notification = require('../models/Notification');
 const { logActivity } = require('../utils/logger');
 const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
@@ -152,6 +153,24 @@ exports.processDonation = async (req, res) => {
         // Log the activity
         await logActivity(req.user._id, 'transaction_create', 'Transaction', transaction._id, 
             `تبرع ${type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${finalCaseAmount} ليرة للحالة: ${foundCase.title}`);
+
+        // Notify Beneficiary (Guardian)
+        if (foundCase.guardian) {
+            const notification = await Notification.create({
+                recipient: foundCase.guardian,
+                sender: req.user._id,
+                title: res.__('notif_donation_received_title'),
+                message: res.__('notif_donation_received_msg', { amount: finalCaseAmount, title: foundCase.title }),
+                type: 'success',
+                targetType: 'specific',
+                link: `/cases/${foundCase._id}`
+            });
+
+            const io = req.app.get('io');
+            if (io) {
+                io.to(foundCase.guardian.toString()).emit('newNotification', notification);
+            }
+        }
 
         // Send Donation Receipt Email
         try {

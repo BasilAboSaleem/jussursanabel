@@ -1,55 +1,95 @@
-<footer class="premium-footer">
+<footer class="premium-footer" style="background: #051423; color: rgba(255,255,255,0.7); padding: 100px 5% 40px; border-top: 1px solid rgba(255,255,255,0.05);">
     <div class="container">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 60px; margin-bottom: 80px;">
             <div>
-                <a href="/" class="logo-luxury" style="color: white; margin-bottom: 25px;">
-                    <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
-                    <span class="font-cairo"><%= __('hero_title') %></span>
+                <a href="/" class="logo-luxury" style="color: white; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+                    <img src="/logoSanabel.png" alt="رواف" style="height: 60px; width: auto; border-radius: 8px;">
+                    <span class="font-cairo" style="font-weight: 900; font-size: 1.5rem;"><%= __('hero_title') %></span>
                 </a>
-                <p style="color: rgba(255,255,255,0.6); line-height: 1.8; font-size: 0.95rem;">
+                <p style="line-height: 1.85; font-size: 1rem; color: rgba(255,255,255,0.55); margin-bottom: 35px;">
                     <%= __('footer_desc') %>
                 </p>
-                <div style="display: flex; gap: 15px; margin-top: 30px;">
-                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="btn-lux btn-lux-dark" style="padding: 10px; width: 42px; height: 42px; justify-content: center; border-radius: 50%;">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
+                <div style="display: flex; gap: 15px;">
+                    <a href="#" class="social-btn-lux"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-btn-lux"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-btn-lux"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="social-btn-lux"><i class="fab fa-x-twitter"></i></a>
                 </div>
             </div>
 
             <div>
-                <h4 class="font-cairo" style="color: white; margin-bottom: 30px; font-size: 1.2rem;"><%= __('footer_links_title') %></h4>
-                <ul style="list-style: none; padding: 0; display: grid; gap: 15px;">
-                    <li><a href="/cases" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_all_cases') %></a></li>
-                    <li><a href="/cases?type=orphan" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_orphan_sponsorship') %></a></li>
-                    <li><a href="/cases?type=family" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('footer_family_support') %></a></li>
-                    <li><a href="/about" style="color: rgba(255,255,255,0.7); transition: var(--transition-fast);"><%= __('about_us') %></a></li>
+                <h4 class="font-cairo" style="color: white; margin-bottom: 35px; font-size: 1.25rem; font-weight: 800; position: relative; padding-bottom: 12px;">
+                    <%= __('footer_links_title') %>
+                    <div style="position: absolute; bottom: 0; <%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 0; width: 40px; height: 3px; background: var(--secondary); border-radius: 10px;"></div>
+                </h4>
+                <ul style="list-style: none; padding: 0; display: grid; gap: 18px;">
+                    <li><a href="/cases" class="footer-link-lux"><%= __('footer_all_cases') %></a></li>
+                    <li><a href="/cases?type=orphan" class="footer-link-lux"><%= __('footer_orphan_sponsorship') %></a></li>
+                    <li><a href="/cases?type=family" class="footer-link-lux"><%= __('footer_family_support') %></a></li>
+                    <li><a href="https://www.senabil-pal.org/ar/about" class="footer-link-lux"><%= __('about_us') %></a></li>
+                    <li><a href="/transparency" class="footer-link-lux"><%= __('navbar_transparency') %></a></li>
                 </ul>
             </div>
 
             <div>
-                <h4 class="font-cairo" style="color: white; margin-bottom: 30px; font-size: 1.2rem;"><%= __('footer_contact_title') %></h4>
-                <div style="display: grid; gap: 20px;">
+                <h4 class="font-cairo" style="color: white; margin-bottom: 35px; font-size: 1.25rem; font-weight: 800; position: relative; padding-bottom: 12px;">
+                    <%= __('footer_contact_title') %>
+                    <div style="position: absolute; bottom: 0; <%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 0; width: 40px; height: 3px; background: var(--secondary); border-radius: 10px;"></div>
+                </h4>
+                <div style="display: grid; gap: 25px;">
                     <div style="display: flex; gap: 15px; align-items: start;">
-                        <i class="fas fa-location-dot" style="color: var(--secondary); margin-top: 5px;"></i>
-                        <span style="color: rgba(255,255,255,0.7);"><%= __('footer_location') %></span>
+                        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-location-dot" style="color: var(--secondary); font-size: 0.9rem;"></i>
+                        </div>
+                        <span style="font-size: 0.95rem; line-height: 1.6;"><%= __('footer_location') %></span>
                     </div>
                     <div style="display: flex; gap: 15px; align-items: start;">
-                        <i class="fas fa-envelope" style="color: var(--secondary); margin-top: 5px;"></i>
-                        <span style="color: rgba(255,255,255,0.7);">info@sanabel.ps</span>
+                        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-envelope" style="color: var(--secondary); font-size: 0.9rem;"></i>
+                        </div>
+                        <span style="font-size: 0.95rem;">info@sanabel.ps</span>
                     </div>
-                    <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md); border-<%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 3px solid var(--secondary);">
-                        <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.5);"><%= __('footer_working_hours_title') %></p>
-                        <p style="margin: 5px 0 0; color: white;"><%= __('footer_working_hours_val') %></p>
+                    <div style="padding: 25px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border-<%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 3px solid var(--secondary); backdrop-filter: blur(10px);">
+                        <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;"><%= __('footer_working_hours_title') %></p>
+                        <p style="margin: 8px 0 0; color: #fff; font-weight: 800; font-size: 1.05rem;"><%= __('footer_working_hours_val') %></p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</footer>
+
+<style>
+    .social-btn-lux {
+        width: 44px;
+        height: 44px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .social-btn-lux:hover {
+        background: var(--grad-green);
+        border-color: transparent;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    }
+    .footer-link-lux {
+        color: rgba(255,255,255,0.6);
+        transition: all 0.3s ease;
+        display: inline-block;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .footer-link-lux:hover {
+        color: var(--secondary-light);
+        transform: translateX(<%= locals.langDir === 'rtl' ? '-8px' : '8px' %>);
+    }
+</style>
 
         </div>
     </div>

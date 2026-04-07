@@ -60,7 +60,7 @@ exports.createCase = async (req, res) => {
             return res.redirect('/dashboard');
         }
 
-        const { title, type, description, location, storyAr, memberCount, orphanCount, familyCount, isFatherDeceased, father, mother, guardian, orphans } = req.body;
+        const { title, type, description, location, storyAr, memberCount, orphanCount, familyCount, isFatherDeceased, father, mother, guardian, orphans, storyVideo } = req.body;
         const needs = req.body.needs || [];
         
         // Logical syncing for member counts
@@ -79,6 +79,7 @@ exports.createCase = async (req, res) => {
             description,
             needs: Array.isArray(needs) ? needs : [needs],
             location,
+            storyVideo: storyVideo ? storyVideo.trim() : undefined,
             guardian: req.user._id,
             details: {
                 storyAr,
