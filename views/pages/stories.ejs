@@ -429,11 +429,12 @@
             id="thumb-<%= index %>"
             onload="hideSkeleton(<%= index %>)">
 
-        <!-- Media: src intentionally EMPTY - set dynamically by JS to prevent iOS decoder limit -->
+        <!-- Media -->
         <% if (isYT) { %>
             <iframe
                 class="story-media yt-frame"
                 id="media-<%= index %>"
+                src="<%= embedUrl %>"
                 data-src="<%= embedUrl %>"
                 allow="autoplay; encrypted-media; fullscreen"
                 allowfullscreen
@@ -443,6 +444,7 @@
             <video
                 class="story-media html5-vid"
                 id="media-<%= index %>"
+                src="<%= story.storyVideo %>"
                 data-src="<%= story.storyVideo %>"
                 controlsList="nodownload"
                 loop playsinline webkit-playsinline muted preload="none">
@@ -609,28 +611,11 @@
         });
     }
 
-    /* ── Play / Pause (true lazy-load for iOS Safari decoder limit) ── */
-    function loadMedia(idx) {
-        const media = getMedia(idx);
-        if (!media) return;
-        const dataSrc = media.getAttribute('data-src');
-        if (!dataSrc) return; // no video for this slide
-        const currentSrc = media.getAttribute('src');
-        if (!currentSrc || currentSrc !== dataSrc) {
-            media.setAttribute('src', dataSrc);
-            if (!isYTSlide(idx)) media.load(); // reset decoder
-        }
-    }
+    /* ── iOS / iPadOS detection ── */
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    function unloadMedia(idx) {
-        const media = getMedia(idx);
-        if (!media || isYTSlide(idx)) return;
-        media.pause();
-        media.removeAttribute('src');
-        media.load(); // release iOS decoder slot immediately
-        media.classList.remove('playing');
-    }
-
+    /* ── Play / Pause ── */
     function playStory(idx) {
         const media = getMedia(idx);
         const thumb = getThumb(idx);
@@ -638,41 +623,35 @@
         if (hint) hint.style.opacity = '0';
 
         if (media) {
-            loadMedia(idx); // assign src only now
+            // Restore src if iOS cleared it
+            if (!media.getAttribute('src')) {
+                const ds = media.getAttribute('data-src');
+                if (ds) media.setAttribute('src', ds);
+            }
+
             media.classList.add('playing');
+
             if (isYTSlide(idx)) {
                 setTimeout(() => {
                     ytCmd(idx, 'playVideo');
-                    setTimeout(() => { 
-                        if (thumb) thumb.classList.add('hidden'); 
+                    setTimeout(() => {
+                        if (thumb) thumb.classList.add('hidden');
                         muteStory(idx, isGlobalMuted);
                         updateMuteUI(idx, isGlobalMuted);
                     }, 500);
                 }, 500);
             } else {
-                media.muted = true; // ALWAYS start muted (iOS policy)
+                media.muted = true;
                 updateMuteUI(idx, true);
-                // Wait for enough data before playing
-                const tryPlay = () => {
-                    media.play().then(() => {
-                        if (thumb) thumb.classList.add('hidden');
-                        // After successful visual play, unmute if user preference
-                        if (!isGlobalMuted) {
-                            media.muted = false;
-                            updateMuteUI(idx, false);
-                        }
-                    }).catch(() => {
-                        // Stay muted, still play
-                        media.muted = true;
-                        media.play().catch(() => {});
-                        if (thumb) thumb.classList.add('hidden');
-                    });
-                };
-                if (media.readyState >= 2) {
-                    tryPlay();
-                } else {
-                    media.addEventListener('canplay', tryPlay, { once: true });
-                }
+                isGlobalMuted = true;
+
+                media.play().then(() => {
+                    if (thumb) thumb.classList.add('hidden');
+                }).catch(() => {
+                    media.muted = true;
+                    media.play().catch(() => {});
+                    if (thumb) thumb.classList.add('hidden');
+                });
             }
         }
 
@@ -686,8 +665,13 @@
             ytCmd(idx, 'pauseVideo');
             ytCmd(idx, 'mute');
         } else {
-            // Fully unload to free iOS decoder slot for the active video
-            unloadMedia(idx);
+            media.pause();
+            media.classList.remove('playing');
+            // iOS ONLY: release the video decoder slot
+            if (isIOS) {
+                media.removeAttribute('src');
+                media.load();
+            }
         }
     }
 
