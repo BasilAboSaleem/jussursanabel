@@ -321,33 +321,6 @@
         }
         .story-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(16,185,129,0.65); color: white; }
 
-        /* ⑤ Islamic ayah overlay */
-        .story-ayah-overlay {
-            position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 50;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 24px;
-            padding: 28px 32px;
-            text-align: center;
-            max-width: 420px; width: 90%;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-        }
-        .story-ayah-overlay.show { opacity: 1; }
-        .ayah-text {
-            font-family: 'Cairo', sans-serif; font-size: 1.15rem; font-weight: 800;
-            color: white; line-height: 1.7; margin-bottom: 10px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-        .ayah-source {
-            font-size: 0.78rem; color: #34d399; font-weight: 700;
-        }
-        .ayah-icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.6; }
-
         /* Scroll hint */
         @keyframes bounce-up { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-10px)} }
         .scroll-hint {
@@ -380,13 +353,6 @@
     </style>
 </head>
 <body>
-
-<!-- ── AYAH OVERLAY (one per page, shown transitionally) ── -->
-<div class="story-ayah-overlay" id="ayah-overlay">
-    <div class="ayah-icon">☪</div>
-    <p class="ayah-text" id="ayah-text"></p>
-    <p class="ayah-source" id="ayah-source"></p>
-</div>
 
 <!-- ── TOP BAR ── -->
 <div class="stories-topbar">
@@ -479,7 +445,7 @@
                 id="media-<%= index %>"
                 src="<%= story.storyVideo %>"
                 controlsList="nodownload"
-                loop playsinline webkit-playsinline muted preload="metadata">
+                loop playsinline webkit-playsinline muted preload="auto">
             </video>
         <% } %>
 
@@ -592,37 +558,9 @@
     const slides    = document.querySelectorAll('.story-slide');
     const totalSlides = slides.length;
     let currentIndex  = 0;
-    let isGlobalMuted = false; // Start unmuted as requested
+    let isGlobalMuted = true; // IMPORTANT: Must start muted to bypass iOS Safari strict AutoPlay visual blockers
 
     if (!totalSlides) return;
-
-    // ⑤ Islamic Ayahs pool
-    const ayahs = [
-        { text: '﴿مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ﴾', source: 'سورة البقرة: 261' },
-        { text: '«من نفَّس عن مؤمنٍ كُربَةً من كُرب الدنيا، نفَّس اللهُ عنه كُربةً من كُرب يوم القيامة»', source: 'رواه مسلم' },
-        { text: '﴿وَفِي أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ﴾', source: 'سورة الذاريات: 19' },
-        { text: '«الصدقة تطفئ الخطيئة كما يطفئ الماء النار»', source: 'رواه الترمذي' },
-        { text: '﴿وَمَا تُنفِقُوا مِن خَيْرٍ فَلِأَنفُسِكُمْ ۚ وَمَا تُنفِقُونَ إِلَّا ابْتِغَاءَ وَجْهِ اللَّهِ﴾', source: 'سورة البقرة: 272' },
-        { text: '«ابن آدم: إنك أن تبسط من فضلك خير لك، وأن تمسكه شر لك»', source: 'رواه مسلم' },
-    ];
-    let ayahIndex = 0;
-    let ayahTimer = null;
-
-    function showAyah() {
-        const overlay = document.getElementById('ayah-overlay');
-        const textEl  = document.getElementById('ayah-text');
-        const srcEl   = document.getElementById('ayah-source');
-        if (!overlay) return;
-
-        const a = ayahs[ayahIndex % ayahs.length];
-        textEl.textContent = a.text;
-        srcEl.textContent  = a.source;
-        ayahIndex++;
-
-        overlay.classList.add('show');
-        clearTimeout(ayahTimer);
-        ayahTimer = setTimeout(() => overlay.classList.remove('show'), 3500);
-    }
 
     // ⑥ Hide skeleton once thumb loads
     window.hideSkeleton = function(idx) {
@@ -763,9 +701,6 @@
                 
                 currentIndex = idx;
                 setTimeout(() => playStory(idx), 100);
-
-                // ⑤ Show an ayah on transition (not on very first load)
-                if (idx > 0) setTimeout(showAyah, 800);
             } else {
                 // If sliding out, pause this one too
                 pauseStory(idx);
@@ -798,6 +733,9 @@
     });
 
     /* ── Initial ── */
+    // Ensure the mute UI matches the state for all buttons initially
+    slides.forEach((_, i) => updateMuteUI(i, true));
+
     // Global listener to unmute on first click if blocked
     document.body.addEventListener('click', () => {
         if (!isGlobalMuted) {

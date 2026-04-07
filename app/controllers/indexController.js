@@ -8,7 +8,7 @@ exports.getHomepage = async (req, res) => {
             status: 'approved', 
             isHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
-        }).limit(3).sort({ createdAt: -1 });
+        }).limit(10).sort({ createdAt: -1 });
         
         // Mock data if DB is empty for initial run
         const demoCases = cases.length > 0 ? cases : [
