@@ -1,7 +1,17 @@
-const YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'youtu.be', 'www.youtu.be'];
+const YOUTUBE_HOSTS = [
+    'youtube.com',
+    'www.youtube.com',
+    'm.youtube.com',
+    'music.youtube.com',
+    'youtu.be',
+    'www.youtu.be',
+    'youtube-nocookie.com',
+    'www.youtube-nocookie.com'
+];
 const DIRECT_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.m4v', '.mov'];
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const NON_DIRECT_PAGE_HOSTS = ['instagram.com', 'www.instagram.com', 'tiktok.com', 'www.tiktok.com', 'facebook.com', 'www.facebook.com'];
+const cloudinaryEnabled = Boolean(CLOUDINARY_CLOUD_NAME);
 
 function isYouTubeUrl(urlString = '') {
     try {
@@ -10,6 +20,43 @@ function isYouTubeUrl(urlString = '') {
     } catch {
         return false;
     }
+}
+
+function extractYouTubeId(urlString = '') {
+    try {
+        const url = new URL(urlString);
+        const host = url.hostname.toLowerCase();
+
+        if (!YOUTUBE_HOSTS.includes(host)) return null;
+
+        // youtu.be/<id>
+        if (host.includes('youtu.be')) {
+            const id = url.pathname.split('/').filter(Boolean)[0];
+            return id || null;
+        }
+
+        // youtube.com/watch?v=<id>
+        const v = url.searchParams.get('v');
+        if (v) return v;
+
+        // youtube.com/shorts/<id>
+        const shortsMatch = url.pathname.match(/\/shorts\/([^/?#]+)/i);
+        if (shortsMatch && shortsMatch[1]) return shortsMatch[1];
+
+        // youtube.com/embed/<id>
+        const embedMatch = url.pathname.match(/\/embed\/([^/?#]+)/i);
+        if (embedMatch && embedMatch[1]) return embedMatch[1];
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function buildYouTubeEmbedUrl(youtubeId, { muted = 0 } = {}) {
+    if (!youtubeId) return null;
+    const m = muted ? 1 : 0;
+    return `https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&mute=${m}&controls=0&autoplay=0&loop=1&playlist=${youtubeId}&playsinline=1&rel=0&modestbranding=1`;
 }
 
 function hasDirectVideoExtension(pathname = '') {
@@ -70,5 +117,8 @@ function getPlayableStoryVideoUrl(rawUrl = '') {
 
 module.exports = {
     getPlayableStoryVideoUrl,
-    isYouTubeUrl
+    isYouTubeUrl,
+    extractYouTubeId,
+    buildYouTubeEmbedUrl,
+    cloudinaryEnabled
 };

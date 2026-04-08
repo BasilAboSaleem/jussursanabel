@@ -150,6 +150,26 @@ exports.updateCase = async (req, res) => {
 
         await Case.findByIdAndUpdate(req.params.id, updateData);
 
+        // ─── Enforce single-active-case rule ────────────────────────────────────
+        // When a NEW case is approved for a beneficiary, permanently lock all of
+        // their OLD satisfied cases (satisfiedBy → 'admin') so the guardian can
+        // never re-enable them while the new case is active.
+        if (status === 'approved') {
+            const newlyApprovedCase = await Case.findById(req.params.id);
+            if (newlyApprovedCase && newlyApprovedCase.guardian) {
+                await Case.updateMany(
+                    {
+                        guardian: newlyApprovedCase.guardian,
+                        _id: { $ne: newlyApprovedCase._id },
+                        isSatisfied: true,
+                        satisfiedBy: 'guardian' // only re-lock guardian-satisfied ones
+                    },
+                    { $set: { satisfiedBy: 'admin' } }
+                );
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         // Logging
         let logMessage = res.__('log_case_status_update', { status: res.__('status_' + status) });
         if (status === 'approved') {

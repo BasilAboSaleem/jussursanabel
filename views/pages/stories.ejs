@@ -371,6 +371,11 @@
         <i class="fas fa-xmark"></i>
     </a>
 </div>
+<% if (!locals.cloudinaryEnabled && locals.user && (locals.user.role === 'admin' || locals.user.role === 'super_admin')) { %>
+<div style="position: fixed; top: 74px; left: 16px; right: 16px; z-index: 250; padding: 10px 12px; border-radius: 14px; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.35); color: rgba(255,255,255,0.92); font-size: 0.78rem; font-weight: 800; backdrop-filter: blur(10px);">
+    Cloudinary غير مُفعّل على السيرفر. روابط الفيديو المباشرة قد تُعرض كـ (صوت فقط) على الجوال. فعّل `CLOUDINARY_*` أو استخدم YouTube Shorts.
+</div>
+<% } %>
 
 <!-- ② Position dots sidebar -->
 <% if (stories && stories.length > 0 && stories.length <= 12) { %>
@@ -387,24 +392,8 @@
 
     <% stories.forEach((story, index) => { %>
     <%
-        let isYT = false;
-        let embedUrl = '';
-        if (story.storyVideoPlayable) {
-            if (story.storyVideoPlayable.includes('youtube.com/shorts/')) {
-                isYT = true;
-                const vid = story.storyVideoPlayable.split('shorts/')[1].split('?')[0];
-                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
-            } else if (story.storyVideoPlayable.includes('youtu.be/')) {
-                isYT = true;
-                const vid = story.storyVideoPlayable.split('youtu.be/')[1].split('?')[0];
-                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
-            } else if (story.storyVideoPlayable.includes('youtube.com/watch')) {
-                isYT = true;
-                const vUrl = new URL(story.storyVideoPlayable);
-                const vid = vUrl.searchParams.get('v');
-                embedUrl = `https://www.youtube.com/embed/${vid}?enablejsapi=1&mute=0&controls=0&autoplay=0&loop=1&playlist=${vid}&playsinline=1&rel=0&modestbranding=1`;
-            }
-        }
+        const isYT = Boolean(story.storyVideoIsYouTube);
+        const embedUrl = story.storyYouTubeEmbedUrl || '';
         const pct = story.targetAmount ? Math.min(Math.round((story.raisedAmount / story.targetAmount) * 100), 100) : 0;
         const isUrgent = pct < 30;
         // Fake but plausible supporter count for visual richness

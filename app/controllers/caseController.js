@@ -5,7 +5,7 @@ const ChatRequest = require('../models/ChatRequest');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
 const { logActivity } = require('../utils/logger');
-const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
+const { getPlayableStoryVideoUrl, cloudinaryEnabled } = require('../utils/storyVideo');
 
 exports.getRegisterCase = async (req, res) => {
     try {
@@ -74,9 +74,15 @@ exports.createCase = async (req, res) => {
             return res.redirect('back');
         }
 
-        const normalizedStoryVideo = storyVideo ? getPlayableStoryVideoUrl(storyVideo.trim()) : undefined;
+        const rawStoryVideo = storyVideo ? storyVideo.trim() : '';
+        const normalizedStoryVideo = rawStoryVideo ? getPlayableStoryVideoUrl(rawStoryVideo) : undefined;
         if (storyVideo && !normalizedStoryVideo) {
-            req.flash('error', 'رابط فيديو القصة غير مدعوم. استخدم رابط YouTube Shorts أو رابط فيديو مباشر (MP4/WebM) أو رابط Cloudinary.');
+            req.flash('error', 'رابط فيديو القصة غير مدعوم. استخدم رابط YouTube Shorts أو رابط Cloudinary.');
+            return res.redirect('back');
+        }
+        // If Cloudinary isn't configured, direct-video links often fail on mobile due to codec/CORS/range issues.
+        if (rawStoryVideo && normalizedStoryVideo === rawStoryVideo && !cloudinaryEnabled) {
+            req.flash('error', 'تم تعطيل روابط الفيديو المباشرة مؤقتاً لأن Cloudinary غير مُعدّ على السيرفر، وهذا يسبب مشكلة (صوت بدون صورة) على الجوال. الرجاء استخدام YouTube Shorts أو إعداد Cloudinary.');
             return res.redirect('back');
         }
 

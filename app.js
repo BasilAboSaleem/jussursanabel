@@ -13,6 +13,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const methodOverride = require("method-override");
 const i18n = require("i18n");
+const { cloudinaryEnabled } = require("./app/utils/storyVideo");
 
 i18n.configure({
   locales: ['ar', 'en'],
@@ -101,6 +102,7 @@ app.use((req, res, next) => {
   res.locals.currentLocale = req.getLocale();
   res.locals.langDir = req.getLocale() === 'ar' ? 'rtl' : 'ltr';
   res.locals.title = ""; // Default title to avoid ReferenceError
+  res.locals.cloudinaryEnabled = cloudinaryEnabled;
   next();
 });
 

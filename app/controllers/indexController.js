@@ -1,6 +1,6 @@
 const Case = require('../models/Case');
 const Testimonial = require('../models/Testimonial');
-const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
+const { getPlayableStoryVideoUrl, extractYouTubeId, buildYouTubeEmbedUrl } = require('../utils/storyVideo');
 
 exports.getHomepage = async (req, res) => {
     try {
@@ -40,9 +40,13 @@ exports.getHomepage = async (req, res) => {
 
         const preparedCases = demoCases.map((item) => {
             const plain = typeof item.toObject === 'function' ? item.toObject() : item;
+            const storyVideoPlayable = getPlayableStoryVideoUrl(plain.storyVideo || '');
+            const ytId = storyVideoPlayable ? extractYouTubeId(storyVideoPlayable) : null;
             return {
                 ...plain,
-                storyVideoPlayable: getPlayableStoryVideoUrl(plain.storyVideo || '')
+                storyVideoPlayable,
+                storyVideoIsYouTube: Boolean(ytId),
+                storyYouTubeEmbedUrl: ytId ? buildYouTubeEmbedUrl(ytId, { muted: 1 }) : null
             };
         });
 
@@ -111,9 +115,13 @@ exports.getStoriesHub = async (req, res) => {
         const preparedStories = stories
             .map((story) => {
                 const plain = story.toObject();
+                const storyVideoPlayable = getPlayableStoryVideoUrl(plain.storyVideo || '');
+                const ytId = storyVideoPlayable ? extractYouTubeId(storyVideoPlayable) : null;
                 return {
                     ...plain,
-                    storyVideoPlayable: getPlayableStoryVideoUrl(plain.storyVideo || '')
+                    storyVideoPlayable,
+                    storyVideoIsYouTube: Boolean(ytId),
+                    storyYouTubeEmbedUrl: ytId ? buildYouTubeEmbedUrl(ytId, { muted: 0 }) : null
                 };
             })
             .filter((story) => Boolean(story.storyVideoPlayable));

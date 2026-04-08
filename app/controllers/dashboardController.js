@@ -166,6 +166,26 @@ exports.toggleCaseSatisfaction = async (req, res) => {
             return res.redirect('/dashboard');
         }
 
+        // Rule: Only 1 active case per beneficiary at all times.
+        // If they want to RE-ENABLE this case (cancel satisfaction),
+        // we must ensure they have NO other active (non-satisfied, approved) case.
+        const isReEnabling = foundCase.isSatisfied === true; // going from satisfied → active
+        if (isReEnabling) {
+            const otherActiveCase = await Case.findOne({
+                guardian: req.user._id,
+                _id: { $ne: foundCase._id },
+                status: { $in: ['pending', 'field_verification', 'approved'] },
+                isSatisfied: { $ne: true }
+            });
+
+            if (otherActiveCase) {
+                req.flash('error', req.getLocale() === 'ar'
+                    ? 'لا يمكن إعادة استقبال التبرعات لهذه الحالة لأنك لديك حالة نشطة أخرى. يجب أن تكون حالة واحدة فقط نشطة في نفس الوقت.'
+                    : 'You cannot re-enable this case while another active case exists. Only one active case is allowed per beneficiary at a time.');
+                return res.redirect('/dashboard');
+            }
+        }
+
         foundCase.isSatisfied = !foundCase.isSatisfied;
         foundCase.satisfiedBy = foundCase.isSatisfied ? 'guardian' : 'none';
         
