@@ -2,7 +2,7 @@
 
 <main style="background: #ffffff; min-height: 100vh; margin-top: 50px;">
     <!-- 1. Elegant Hero Section (Majestic Aurora Immersive) -->
-    <section class="section-zen" style="padding: 60px 0 170px; overflow: hidden; background: var(--grad-navy); position: relative;">
+    <section class="section-zen hero-section-fit" style="padding: 40px 0 80px; overflow: hidden; background: var(--grad-navy); position: relative;">
         <!-- Vibrant Glowing Ambient Orbs -->
         <div style="position: absolute; top: -15%; left: -5%; width: 70vw; height: 75vh; background: radial-gradient(circle, rgba(16, 185, 129, 0.55) 0%, transparent 60%); filter: blur(90px); pointer-events: none;"></div>
         <div style="position: absolute; top: 10%; right: -10%; width: 60vw; height: 60vh; background: radial-gradient(circle, rgba(14, 165, 233, 0.45) 0%, transparent 65%); filter: blur(90px); pointer-events: none;"></div>
@@ -12,13 +12,13 @@
         <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 55%; background: linear-gradient(to top, #ffffff 15%, rgba(255,255,255,0.7) 45%, transparent 100%); z-index: 10; pointer-events: none;"></div>
         
         <div class="container" style="position: relative; z-index: 20;">
-            <div class="grid-2 align-items-center" style="gap: 80px;">
+            <div class="grid-2 align-items-center hero-grid-fit" style="gap: 36px;">
                 <div class="reveal-on-scroll" style="position: relative;">
                     <!-- Majestic Decor Elements -->
                     <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
                     <div style="position: absolute; bottom: -40px; left: -20px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(10,37,64,0.08) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
                     
-                    <div class="luxury-card hero-text-bloom" style="padding: 50px 45px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border-radius: 45px; border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 40px 100px rgba(10, 37, 64, 0.08); position: relative; z-index: 1; overflow: hidden;">
+                    <div class="luxury-card hero-text-bloom" style="padding: 34px 32px; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(25px); border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 24px 60px rgba(10, 37, 64, 0.10); position: relative; z-index: 1; overflow: hidden;">
                         
                         <!-- Subtle internal gradient -->
                         <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--secondary), #34D399);"></div>
@@ -29,34 +29,41 @@
                             </span>
                         </div>
 
-                        <h1 class="hero-title-luxury" style="color: var(--primary); font-size: clamp(2rem, 5.5vw, 4.2rem); line-height: 1.2; margin-bottom: 15px; font-weight: 950; text-rendering: optimizeLegibility; letter-spacing: -1.5px;">
+                        <h1 class="hero-title-luxury" style="color: var(--primary); font-size: clamp(1.75rem, 4.3vw, 3.2rem); line-height: 1.15; margin-bottom: 8px; font-weight: 950; text-rendering: optimizeLegibility; letter-spacing: -1px;">
                             <%= __('hero_title') %>
                         </h1>
 
-                        <div style="background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(2rem, 4.5vw, 2.8rem); font-weight: 900; margin-bottom: 30px; letter-spacing: -0.5px; display: inline-block; text-shadow: 0 15px 30px rgba(16, 185, 129, 0.1);">
-                            أمان للمتعففين
+                        <div style="background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(1.35rem, 3.2vw, 1.9rem); font-weight: 900; margin-bottom: 14px; letter-spacing: -0.2px; display: inline-block; text-shadow: 0 12px 24px rgba(16, 185, 129, 0.1);">
+                            ربط مباشر. كرامة محفوظة.
                         </div>
 
-                        <div style="width: 70px; height: 4px; background: var(--secondary); border-radius: 10px; margin-bottom: 35px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);"></div>
+                        <div style="width: 56px; height: 3px; background: var(--secondary); border-radius: 10px; margin-bottom: 16px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);"></div>
 
-                        <p class="section-subtitle-luxury" style="margin-bottom: 45px; font-size: 1.15rem; color: #475569; max-width: 500px; line-height: 1.9; font-weight: 600;">
+                        <p class="section-subtitle-luxury hero-desc-clamp" style="margin-bottom: 14px; font-size: 0.94rem; color: #475569; max-width: 540px; line-height: 1.7; font-weight: 600;">
                             <%= __('hero_desc') %>
                         </p>
 
-                        <div class="hero-btn-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                            <a href="/cases" class="btn-lux btn-lux-primary btn-lg" style="padding: 15px 35px; border-radius: 50px; font-weight: 800; font-size: 1.05rem; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.25); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
+                        <div class="hero-btn-container" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <a href="/cases" class="btn-lux btn-lux-primary btn-lg" style="padding: 12px 24px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.25); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
                                 <%= __('btn_start_sponsorship') %> <i class="fas fa-seedling" style="font-size: 1.15rem;"></i>
                             </a>
-                            <a href="https://www.senabil-pal.org/ar/about" class="btn-lux btn-lux-outline" style="border: 2px solid rgba(10, 37, 64, 0.1); color: var(--primary); padding: 15px 35px; border-radius: 50px; font-weight: 800; font-size: 1.05rem; background: transparent; transition: all 0.4s ease; text-align: center;">
+                            <a href="https://www.senabil-pal.org/ar/about" class="btn-lux btn-lux-outline" style="border: 2px solid rgba(10, 37, 64, 0.1); color: var(--primary); padding: 12px 22px; border-radius: 50px; font-weight: 800; font-size: 0.92rem; background: transparent; transition: all 0.4s ease; text-align: center;">
                                 <%= __('about_us') %>
                             </a>
+                        </div>
+                        <div class="hero-trust-row">
+                            <span><i class="fas fa-badge-check"></i> <%= locals.currentLocale === 'ar' ? 'توثيق ميداني' : 'Field Verified' %></span>
+                            <span><i class="fas fa-shield-heart"></i> <%= locals.currentLocale === 'ar' ? 'خصوصية وكرامة' : 'Privacy & Dignity' %></span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Artistic Video Frame (YouTube API Implementation) -->
                 <div class="reveal-on-scroll" style="position: relative; z-index: 20;">
-                    <div class="royal-white-frame" style="transform: rotate(2deg); width: 100%; max-width: 380px; margin: 0 auto;">
+                    <div class="hero-video-halo"></div>
+                    <div class="hero-video-corner"></div>
+                    <div class="hero-video-corner hero-video-corner-bottom"></div>
+                    <div class="royal-white-frame hero-video-frame" style="transform: rotate(0deg); width: 100%; max-width: 355px; margin: 0 auto;">
                         <div style="border-radius: 30px; overflow: hidden; aspect-ratio: 9/16; background: #000; position: relative;">
                             <iframe 
                                 style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: none; pointer-events: none;"
@@ -68,8 +75,6 @@
                             <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,37,64,0.1), transparent); pointer-events: none;"></div>
                         </div>
                     </div>
-                    <!-- Decorative back element -->
-                    <div style="position: absolute; top: -20px; left: -20px; width: 100px; height: 100px; border-left: 2px solid var(--secondary); border-top: 2px solid var(--secondary); border-radius: 0; z-index: 5;"></div>
                 </div>
             </div>
         </div>
@@ -210,7 +215,7 @@
                         <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; border-inline-start: 4px solid #fff; flex: 1;">
                              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                                 <i class="fas fa-route" style="color: #fff; font-size: 1.5rem;"></i>
-                                <div style="font-weight: 900; font-size: 1.8rem; color: #fff;">DIRECT</div>
+                                <div style="font-weight: 900; font-size: 1.8rem; color: #fff;"><%= locals.currentLocale === 'ar' ? 'مباشر' : 'DIRECT' %></div>
                              </div>
                              <div style="color: #fff; font-size: 0.85rem; opacity: 0.8;"><%= __('index_feature_2_title') %></div>
                         </div>
@@ -321,7 +326,44 @@
 
 <style>
      /* Swiper Component Styles */
+     main {
+         background-image: radial-gradient(circle at 10% 0%, rgba(16, 185, 129, 0.04) 0%, transparent 30%);
+     }
+     .section-zen {
+         position: relative;
+     }
+     .section-zen::after {
+         content: "";
+         position: absolute;
+         left: 5%;
+         right: 5%;
+         bottom: 0;
+         height: 1px;
+         background: linear-gradient(to right, transparent, rgba(148,163,184,0.28), transparent);
+         pointer-events: none;
+     }
+     .section-zen:last-of-type::after {
+         display: none;
+     }
+     .section-title-luxury {
+         letter-spacing: -0.6px;
+         text-wrap: balance;
+     }
+     .section-subtitle-luxury {
+         max-width: 680px;
+     }
+     .btn-lux {
+         transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease, border-color .25s ease;
+     }
      .stories-swiper { overflow: visible !important; }
+     .hero-section-fit {
+         min-height: calc(100vh - 82px);
+         display: flex;
+         align-items: center;
+     }
+     .hero-grid-fit {
+         align-items: center !important;
+     }
      .story-card-wrapper { width: 300px !important; }
      .story-card { display: block; border-radius: 35px; overflow: hidden; position: relative; aspect-ratio: 9/16; box-shadow: 0 25px 60px rgba(10,37,64,0.15); transition: 0.5s var(--ease-out); border: 1px solid rgba(255,255,255,0.1); }
      .story-card:hover { transform: translateY(-15px) scale(1.02); }
@@ -330,8 +372,18 @@
      .story-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,37,64,0.9) 0%, rgba(10,37,64,0.1) 60%, transparent 100%); }
      .story-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 25px; z-index: 20; }
      .story-title { font-family: 'Cairo', sans-serif; font-size: 1.35rem; font-weight: 900; color: white; line-height: 1.3; margin: 0; text-shadow: 0 4px 15px rgba(0,0,0,0.9); }
+     .story-badge { backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); }
+     .story-card::after {
+         content: "";
+         position: absolute;
+         inset: 0;
+         border-radius: inherit;
+         border: 1px solid rgba(255,255,255,0.08);
+         pointer-events: none;
+     }
      
      .stories-nav-prev:hover, .stories-nav-next:hover { background: var(--secondary) !important; color: #fff !important; transform: translateY(-50%) scale(1.1); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3); border-color: transparent !important; }
+     .stories-nav-prev, .stories-nav-next { border: 1px solid rgba(10,37,64,0.08); }
      
      /* Micro-interactions for Stories */
      @keyframes pulse-soft {
@@ -342,11 +394,122 @@
      .play-pulse { animation: pulse-soft 2s infinite; }
      .progress-fill { transition: box-shadow 0.4s ease, width 0.4s ease; }
      .story-card:hover .progress-fill { box-shadow: 0 0 15px var(--secondary); }
+     .hero-text-bloom { box-shadow: 0 30px 80px rgba(10,37,64,0.09), 0 0 0 1px rgba(255,255,255,0.5) inset !important; }
+     .hero-text-bloom:hover { transform: translateY(-2px); transition: transform .35s ease; }
+     .hero-btn-container .btn-lux { letter-spacing: .1px; }
+     .hero-btn-container .btn-lux.btn-lux-outline:hover {
+         background: rgba(10, 37, 64, 0.06) !important;
+         border-color: rgba(10, 37, 64, 0.2) !important;
+         color: var(--primary) !important;
+     }
+     .hero-btn-container .btn-lux.btn-lux-primary {
+         box-shadow: 0 18px 38px rgba(16,185,129,0.30) !important;
+     }
+     .hero-btn-container .btn-lux.btn-lux-primary:hover {
+         transform: translateY(-3px) scale(1.015);
+         box-shadow: 0 24px 48px rgba(16,185,129,0.38) !important;
+     }
+     .hero-btn-container .btn-lux.btn-lux-outline {
+         border-color: rgba(10,37,64,0.16) !important;
+         color: #334155 !important;
+         background: rgba(255,255,255,0.55) !important;
+         box-shadow: none !important;
+     }
+     .hero-desc-clamp {
+         display: -webkit-box;
+         -webkit-line-clamp: 2;
+         -webkit-box-orient: vertical;
+         overflow: hidden;
+     }
+     .hero-trust-row {
+         margin-top: 8px;
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+     }
+     .hero-trust-row span {
+         display: inline-flex;
+         align-items: center;
+         gap: 7px;
+         padding: 8px 12px;
+         border-radius: 999px;
+         background: rgba(16, 185, 129, 0.08);
+         border: 1px solid rgba(16, 185, 129, 0.14);
+         color: #0f766e;
+         font-size: 0.78rem;
+         font-weight: 800;
+     }
+     .hero-video-frame {
+         box-shadow: 0 32px 80px rgba(10,37,64,0.18), 0 0 0 1px rgba(255,255,255,0.5) inset;
+     }
+     .hero-video-halo {
+         position: absolute;
+         inset: 50% auto auto 50%;
+         transform: translate(-50%, -50%);
+         width: 430px;
+         height: 430px;
+         background: radial-gradient(circle, rgba(16, 185, 129, 0.11) 0%, rgba(14, 165, 233, 0.07) 34%, rgba(10, 37, 64, 0.02) 58%, transparent 72%);
+         filter: blur(20px);
+         pointer-events: none;
+         z-index: 1;
+     }
+     .hero-video-frame::before {
+         content: "";
+         position: absolute;
+         inset: -1px;
+         border-radius: 40px;
+         background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35));
+         opacity: .55;
+         pointer-events: none;
+     }
+     .hero-video-corner {
+         position: absolute;
+         top: -12px;
+         left: calc(50% - 198px);
+         width: 70px;
+         height: 70px;
+         border-top: 2px solid rgba(16, 185, 129, 0.55);
+         border-left: 2px solid rgba(16, 185, 129, 0.55);
+         border-top-left-radius: 18px;
+         filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.15));
+         pointer-events: none;
+         z-index: 3;
+     }
+     .hero-video-corner-bottom {
+         top: auto;
+         left: auto;
+         bottom: -12px;
+         right: calc(50% - 198px);
+         border-top: none;
+         border-left: none;
+         border-bottom: 2px solid rgba(16, 185, 129, 0.55);
+         border-right: 2px solid rgba(16, 185, 129, 0.55);
+         border-top-left-radius: 0;
+         border-bottom-right-radius: 18px;
+     }
+     .hero-video-frame:hover {
+         transform: translateY(-3px) !important;
+         transition: transform .35s ease, box-shadow .35s ease;
+         box-shadow: 0 36px 80px rgba(10,37,64,0.17), 0 0 0 1px rgba(255,255,255,0.55) inset;
+     }
+     .hero-btn-container .btn-lux:focus-visible,
+     .story-card:focus-visible {
+         outline: 3px solid rgba(16, 185, 129, 0.35);
+         outline-offset: 3px;
+     }
      
      /* Testimonial Track */
      .testimonial-carousel-container { width: 100%; overflow: hidden; position: relative; padding: 20px 0; }
      .testimonial-track { display: flex; transition: transform 0.8s var(--ease-smooth); }
      .testimonial-item { flex: 0 0 33.333%; min-width: 33.333%; padding: 0 20px; }
+     .testimonial-item .luxury-card { transition: transform .35s ease, box-shadow .35s ease; }
+     .testimonial-item .luxury-card:hover { transform: translateY(-6px); box-shadow: 0 30px 70px rgba(10,37,64,0.10) !important; }
+     .testimonial-item p {
+         text-wrap: pretty;
+     }
+     .impact-number {
+         font-variant-numeric: tabular-nums;
+     }
      @media (max-width: 1200px) { .testimonial-item { flex: 0 0 50%; min-width: 50%; } }
      @media (max-width: 800px) { .testimonial-item { flex: 0 0 100%; min-width: 100%; } }
 
@@ -355,11 +518,36 @@
          .impact-card { border-inline: 1px solid #e2e8f0; }
      }
      @media (max-width: 768px) {
+         .hero-section-fit {
+             min-height: auto;
+             display: block;
+         }
          .hero-text-bloom { padding: 30px 20px !important; }
+         .hero-desc-clamp { -webkit-line-clamp: 3; }
+         .hero-btn-container { gap: 10px !important; }
+         .hero-btn-container .btn-lux { width: 100%; justify-content: center; }
+         .hero-trust-row { margin-top: 14px; gap: 8px; }
+         .hero-trust-row span { font-size: 0.78rem; padding: 7px 10px; }
+         .hero-video-halo { width: 330px; height: 330px; filter: blur(14px); }
+         .hero-video-corner {
+             width: 56px;
+             height: 56px;
+             top: -10px;
+             left: calc(50% - 176px);
+         }
+         .hero-video-corner-bottom {
+             top: auto;
+             left: auto;
+             right: calc(50% - 176px);
+             bottom: -10px;
+         }
          .stories-nav-prev, .stories-nav-next { display: none !important; }
          .section-zen { padding: 60px 0 !important; }
+         .section-zen::after { left: 20px; right: 20px; }
          .impact-card { border-inline: none; border-block: 1px solid #e2e8f0; padding-block: 25px; margin-block: 10px; }
          .royal-white-frame { max-width: 280px !important; margin: 20px auto !important; }
+         .story-card { border-radius: 26px; }
+         .story-content { padding: 28px 18px; }
      }
 </style>
 
