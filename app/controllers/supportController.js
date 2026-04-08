@@ -27,7 +27,7 @@ exports.getSupportPage = async (req, res) => {
         }
 
         res.render('pages/support/chat', {
-            title: isAdmin ? 'الرد على الاستفسارات' : 'الدعم الفني | رواف',
+            title: isAdmin ? 'الرد على الاستفسارات' : 'الدعم الفني | سُبُل',
             ticket,
             messages,
             user: req.user,

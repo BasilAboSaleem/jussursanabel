@@ -1,9 +1,9 @@
 <%- include('../../partials/header-top') %>
 
-<main style="min-height: 100vh; position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 120px 20px;">
+<main style="min-height: calc(100vh - 88px); position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 24px 20px;">
     <!-- Soft Atmospheric Background -->
     <div style="position: absolute; inset: 0; background: 
-        radial-gradient(circle at 80% 20%, rgba(226, 176, 100, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(34, 211, 238, 0.06) 0%, transparent 40%),
         radial-gradient(circle at 20% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
     </div>
     <div class="bg-mesh" style="opacity: 0.15;"></div>
@@ -21,7 +21,7 @@
         
         <!-- Step Indicator -->
         <div style="height: 6px; background: rgba(255,255,255,0.05); display: flex;">
-            <div id="progress-bar" style="width: 33.33%; background: var(--grad-gold); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="progress-bar" style="width: 33.33%; background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
         </div>
 
         <div style="padding: 45px 50px;">
@@ -32,7 +32,7 @@
                 <!-- STEP 1: IMPACT CHOICE -->
                 <div id="step-1" class="onboarding-step active">
                     <div style="text-align: center; margin-bottom: 40px;">
-                        <span class="section-badge" style="background: rgba(226, 176, 100, 0.1); color: var(--secondary); margin-bottom: 15px;">الخطوة 1 من 3</span>
+                        <span class="section-badge" style="background: rgba(34, 211, 238, 0.12); color: var(--secondary); margin-bottom: 15px;">الخطوة 1 من 3</span>
                         <h2 class="font-cairo" style="font-size: 2rem; color: #fff; margin-bottom: 12px; font-weight: 800;">كيف ترغب في المشاركة؟</h2>
                         <p id="typewriter-text" style="color: rgba(255,255,255,0.6); min-height: 1.5em;"></p>
                     </div>
@@ -44,7 +44,7 @@
                             <p>كفالة أيتام أو دعم حالات إنسانية</p>
                         </div>
                         <div class="role-card" onclick="selectRole('beneficiary')" id="card-beneficiary">
-                            <div class="role-icon"><i class="fas fa-home-heart"></i></div>
+                            <div class="role-icon"><i class="fas fa-house-user"></i></div>
                             <h4 class="font-cairo">أحتاج مساعدة</h4>
                             <p>تسجيل حالة يتيم أو طلب دعم أسرة</p>
                         </div>
@@ -122,7 +122,7 @@
                             <input type="text" name="altPhone" id="reg-altPhone" class="form-input-dark" placeholder="05XXXXXXXX">
                         </div>
 
-                        <div style="margin-top: 30px; padding: 20px; background: rgba(226, 176, 100, 0.05); border-radius: 20px; border: 1px solid rgba(226, 176, 100, 0.1);">
+                        <div style="margin-top: 30px; padding: 20px; background: rgba(34, 211, 238, 0.06); border-radius: 20px; border: 1px solid rgba(34, 211, 238, 0.14);">
                             <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 20px; font-size: 1.1rem;">
                                 <i class="fas fa-wallet" style="margin-left: 8px;"></i> بيانات الاستلام المالي
                                 <small style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 5px; font-weight: 400;">يجب إضافة وسيلة واحدة على الأقل</small>
@@ -190,6 +190,12 @@
 </main>
 
 <style>
+    :root {
+        --secondary: #22d3ee;
+        --secondary-light: #67e8f9;
+        --grad-gold: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+    }
+
     .onboarding-step {
         animation: slideIn 0.5s ease-out forwards;
     }
@@ -211,14 +217,14 @@
 
     .role-card:hover {
         background: rgba(255,255,255,0.06);
-        border-color: rgba(226, 176, 100, 0.3);
+        border-color: rgba(34, 211, 238, 0.35);
         transform: translateY(-5px);
     }
 
     .role-card.active {
-        background: rgba(226, 176, 100, 0.08);
+        background: rgba(34, 211, 238, 0.12);
         border-color: var(--secondary);
-        box-shadow: 0 15px 35px rgba(226, 176, 100, 0.15);
+        box-shadow: 0 15px 35px rgba(34, 211, 238, 0.15);
     }
 
     .role-icon {
@@ -265,7 +271,7 @@
     .form-input-dark:focus {
         background: rgba(0,0,0,0.3);
         border-color: var(--secondary);
-        box-shadow: 0 0 15px rgba(226, 176, 100, 0.1);
+        box-shadow: 0 0 15px rgba(34, 211, 238, 0.16);
         outline: none;
     }
 
@@ -283,7 +289,7 @@
     }
 
     @media (max-width: 768px) {
-        .onboarding-card { border-radius: 0; min-height: 100vh; }
+        .onboarding-card { border-radius: 0; min-height: auto; }
         .onboarding-card > div { padding: 30px 20px !important; }
         .onboarding-card h2 { font-size: 1.6rem !important; }
         .onboarding-card .role-card-grid { grid-template-columns: 1fr !important; }
@@ -522,4 +528,7 @@
     };
 </script>
 
-<%- include('../../partials/footer-bottom') %>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

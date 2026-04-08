@@ -55,7 +55,7 @@ exports.getHomepage = async (req, res) => {
             cases: preparedCases,
             testimonials: testimonials.length > 0 ? testimonials : [
                 {
-                    content: 'أجمل ما في رواف هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
+                    content: 'أجمل ما في سُبُل هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
                     user: { name: 'خالد عبد الله' },
                     locationAr: 'متبرع من الأردن',
                     rating: 5
