@@ -1,24 +1,49 @@
-# Jussur Sanabel - قائمة التحقق للإطلاق (Deployment Checklist)
+# Jussur Sanabel - Deployment + Security Go-Live Checklist
 
-يحتوي هذا المستند على المهام الحرجة التي يجب إكمالها قبل إطلاق النظام في بيئة الإنتاج.
+هذه النسخة محدثة لتطابق الهاردننغ الحالي في المشروع قبل الإطلاق العام.
 
-## 🔒 الحماية والأمان (Security & Protection)
-- [ ] **إعادة تفعيل حماية تسجيل الدخول (Login Rate Limiting)**: 
-    - الملف: `app/middlewares/rateLimiter.js`
-    - الإجراء: إعادة تعيين `max` في `authLimiter` من `10000` العودة للقيمة الأصلية `5` أو `10`.
-- [ ] **تحديث المتغيرات البيئية (Environment Variables)**: 
-    - تأكد من أن `NODE_ENV=production` في ملف `.env` الخاص بالإنتاج.
-    - تأكد من أن `SESSION_SECRET` و `JWT_SECRET` قوية ومحمية.
-- [ ] **حماية CSRF**: التأكد من تفعيل حماية `csurf` للمسارات الحساسة.
+## 1) Critical Secrets & Environment
+- [ ] `NODE_ENV=production`
+- [ ] تدوير وتحديث: `SESSION_SECRET`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, مفاتيح Cloudinary, SMTP.
+- [ ] تعيين `STRICT_ENV_VALIDATION=true` في الإنتاج النهائي.
+- [ ] التأكد أن `DISABLE_LOGIN=false`.
+- [ ] ضبط `CORS_ORIGINS` على الدومينات الرسمية فقط.
 
-## 🛠️ صيانة النظام (System Maintenance)
-- [ ] **إلغاء وضع الصيانة**: التأكد من أن `DISABLE_LOGIN` في `authController.js` بقيمة `false`.
-- [ ] **البريد الإلكتروني**: التأكد من صحة بيانات SMTP لإرسال رسائل الترحيب والإشعارات.
+## 2) Security Middleware Verification
+- [ ] `helmet` + CSP تعمل بدون أخطاء بالمتصفح.
+- [ ] `csurf` فعال للمسارات الحساسة (باستثناء webhook).
+- [ ] `hpp` و `sanitizeRequest` مفعّلان.
+- [ ] cookies تعمل بـ `secure=true` خلف proxy.
+- [ ] `x-powered-by` غير ظاهر في responses.
 
-## 📈 الأداء (Performance)
-- [ ] **الضغط (Compression)**: التأكد من تفعيل ضغط الاستجابة (Gzip).
-- [ ] **مراقبة PM2**: إعداد النظام لإعادة التشغيل التلقائي عبر PM2.
+## 3) Rate-Limit & Abuse Controls
+- [ ] تعيين قيم مناسبة في الإنتاج:
+  - `AUTH_RATE_LIMIT_MAX`
+  - `PAYMENT_RATE_LIMIT_MAX`
+  - `API_RATE_LIMIT_MAX`
+- [ ] `RATE_LIMIT_REDIS=true` مع Redis متاح.
+- [ ] اختبار عملي: بعد تجاوز الحد تظهر 429 على المسارات المقصودة.
 
----
-> [!IMPORTANT]
-> لا تقم بالنشر (Publish) قبل إتمام قسم الحماية والأمان.
+## 4) Realtime + Queue + Redis
+- [ ] `REDIS_URL` صحيح ويعمل.
+- [ ] `SOCKET_REDIS_ADAPTER=true` في multi-instance.
+- [ ] queue workers تعمل بدون job failures متكررة.
+- [ ] سياسة Redis `noeviction` في الإنتاج.
+
+## 5) Observability & Alerting
+- [ ] `/health` و `/health/ready` و `/metrics` تعمل.
+- [ ] تنبيهات مفعّلة (5xx, p95, readiness).
+- [ ] log retention مفعلة + rotation.
+
+## 6) Load Gate Before Public Launch
+- [ ] Baseline / Stress / Soak ناجحة وفق SLO:
+  - error rate < 1%
+  - p95 <= 1200ms للصفحات العامة
+  - لا crashes/restarts غير مخطط لها
+
+## 7) Final Go/No-Go
+- [ ] Backup + rollback path مجربان.
+- [ ] مراجعة صلاحيات admin/super_admin.
+- [ ] تأكيد عدم وجود مفاتيح حساسة في Git history.
+
+> لا يبدأ الإطلاق العام قبل اكتمال جميع بنود الأقسام 1-4 على الأقل.

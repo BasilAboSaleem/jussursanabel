@@ -11,7 +11,7 @@
     <!-- Open Graph (Facebook, WhatsApp, etc.) -->
     <meta property="og:title" content="<%= title %> — <%= __('hero_title') %>">
     <meta property="og:description" content="<%= locals.metaDescription || __('hero_desc') %>">
-    <meta property="og:image" content="<%= locals.ogImage || '/assets/images/logo.png' %>">
+    <meta property="og:image" content="<%= locals.ogImage || asset('/assets/images/logo.png') %>">
     <meta property="og:url" content="<%= locals.fullUrl || '' %>">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_AR">
@@ -19,7 +19,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<%= title %> — <%= __('hero_title') %>">
     <meta name="twitter:description" content="<%= locals.metaDescription || __('hero_desc') %>">
-    <meta name="twitter:image" content="<%= locals.ogImage || '/assets/images/logo.png' %>">
+    <meta name="twitter:image" content="<%= locals.ogImage || asset('/assets/images/logo.png') %>">
 
     <title><%= title %> — <%= __('hero_title') %></title>
 
@@ -31,13 +31,13 @@
         rel="stylesheet">
 
     <!-- PWA -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="<%= asset('/manifest.json') %>">
     <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="<%= asset('/icons/icon-192x192.png') %>">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('<%= asset('/sw.js') %>')
                     .then(reg => console.log('Service Worker Registered'))
                     .catch(err => console.log('Service Worker failed', err));
             });
@@ -48,7 +48,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Global CSS -->
-    <link rel="stylesheet" href="/assets/css/premium.css">
+    <link rel="stylesheet" href="<%= asset('/assets/css/premium.css') %>">
 
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />

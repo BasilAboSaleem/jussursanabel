@@ -9,7 +9,7 @@
                 <p style="line-height: 1.85; font-size: 1rem; color: rgba(255,255,255,0.55); margin-bottom: 35px;">
                     <%= __('footer_desc') %>
                 </p>
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <a href="https://www.facebook.com/senabilcharity?mibextid=wwXIfr&rdid=JHsWhvYJXH3ZokBr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1AraaUdVRC%2F%3Fmibextid%3DwwXIfr#" class="social-btn-lux" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #1877f2;"></i></a>
                     <a href="https://www.instagram.com/senabilcharity?utm_source=ig_web_button_share_sheet&igsh=MWhrZmxzNnNtdjY3cQ%3D%3D" class="social-btn-lux" aria-label="Instagram"><i class="fab fa-instagram" style="color: #e4405f;"></i></a>
                     <a href="https://www.youtube.com/@senabilcharity?themeRefresh=1" class="social-btn-lux" aria-label="YouTube"><i class="fab fa-youtube" style="color: #ff0000;"></i></a>
@@ -98,10 +98,6 @@
         transform: translateX(<%= locals.langDir === 'rtl' ? '-8px' : '8px' %>);
     }
 </style>
-
-        </div>
-    </div>
-</footer>
 
 <%- include('../partials/support-widget') %>
 

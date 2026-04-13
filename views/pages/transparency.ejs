@@ -15,6 +15,21 @@
             transform: translateY(-3px);
             box-shadow: 0 15px 30px rgba(10,37,64,0.15);
         }
+
+        @media (max-width: 768px) {
+            .report-card-vault {
+                padding: 30px 20px !important;
+                border-radius: 24px !important;
+            }
+
+            .trust-content-col {
+                min-width: 0 !important;
+            }
+
+            .trust-side-col {
+                flex: 1 1 100% !important;
+            }
+        }
     </style>
 
     <!-- 1. Majestic Hero Section -->
@@ -106,7 +121,7 @@
     <section class="section-luxury container" style="padding-bottom: 150px;">
         <div class="luxury-card" style="background: var(--grad-navy); color: white; padding: 80px 70px; border-radius: 50px; display: flex; align-items: center; gap: 60px; flex-wrap: wrap; position: relative; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.2);">
             <div class="bg-mesh" style="opacity: 0.3;"></div>
-            <div style="flex: 1; min-width: 300px; position: relative; z-index: 2;" class="reveal-on-scroll">
+            <div class="reveal-on-scroll trust-content-col" style="flex: 1; min-width: 300px; position: relative; z-index: 2;">
                 <h2 class="font-cairo" style="font-weight: 950; font-size: 3rem; margin-bottom: 25px; line-height: 1.2;"><%= __('transparency_trust_title') %></h2>
                 <p style="opacity: 0.8; line-height: 1.9; font-size: 1.2rem; margin-bottom: 40px; font-weight: 400;">
                     <%= __('transparency_trust_desc') %>
@@ -118,7 +133,7 @@
                     <p style="font-weight: 700; margin: 0; font-size: 1.1rem; color: var(--secondary-light);"><%= __('transparency_trust_policy') %></p>
                 </div>
             </div>
-            <div style="flex: 0 0 380px; position: relative; z-index: 2;" class="reveal-on-scroll" style="transition-delay: 0.3s;">
+            <div class="reveal-on-scroll trust-side-col" style="flex: 0 0 380px; position: relative; z-index: 2; transition-delay: 0.3s;">
                 <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 45px; border-radius: 40px; backdrop-filter: blur(25px); text-align: center;">
                     <h4 class="font-cairo" style="margin-bottom: 20px; font-size: 1.5rem; font-weight: 900;"><%= __('transparency_faq_title') %></h4>
                     <p style="font-size: 1rem; opacity: 0.7; margin-bottom: 30px; line-height: 1.6;"><%= __('transparency_faq_desc') %></p>

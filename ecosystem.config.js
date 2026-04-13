@@ -2,6 +2,24 @@ module.exports = {
   apps: [
     {
       name: "jussur-sanabel",
+      script: "server.js",
+      exec_mode: "cluster",
+      instances: process.env.PM2_INSTANCES || "max",
+      watch: false,
+      max_memory_restart: process.env.PM2_MAX_MEMORY || "600M",
+      env: {
+        NODE_ENV: "production",
+        PORT: process.env.PORT || 3000,
+        LOAD_TEST_MODE: process.env.LOAD_TEST_MODE || "false",
+      },
+    },
+  ],
+};
+
+module.exports = {
+  apps: [
+    {
+      name: "jussur-sanabel",
       script: "./server.js",
       instances: "max", // Utilize all available CPU cores
       exec_mode: "cluster",

@@ -9,7 +9,11 @@ exports.getHomepage = async (req, res) => {
             status: 'approved', 
             isHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
-        }).limit(10).sort({ createdAt: -1 });
+        })
+            .select('title type description image raisedAmount targetAmount storyVideo createdAt')
+            .sort({ createdAt: -1 })
+            .limit(Number(process.env.HOMEPAGE_CASES_LIMIT || 8))
+            .lean();
         
         // Mock data if DB is empty for initial run
         const demoCases = cases.length > 0 ? cases : [
@@ -35,8 +39,11 @@ exports.getHomepage = async (req, res) => {
 
         // Fetch approved testimonials
         const testimonials = await Testimonial.find({ status: 'approved' })
+            .select('content user locationAr rating createdAt')
             .populate('user', 'name avatar')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .limit(Number(process.env.HOMEPAGE_TESTIMONIALS_LIMIT || 12))
+            .lean();
 
         const preparedCases = demoCases.map((item) => {
             const plain = typeof item.toObject === 'function' ? item.toObject() : item;
@@ -110,11 +117,15 @@ exports.getStoriesHub = async (req, res) => {
             isHidden: { $ne: true },
             isStoryHidden: { $ne: true },
             storyVideo: { $exists: true, $ne: '' } 
-        }).sort({ createdAt: -1 });
+        })
+            .select('title type description image storyVideo createdAt')
+            .sort({ createdAt: -1 })
+            .limit(Number(process.env.STORIES_PAGE_LIMIT || 60))
+            .lean();
 
         const preparedStories = stories
             .map((story) => {
-                const plain = story.toObject();
+                const plain = story;
                 const storyVideoPlayable = getPlayableStoryVideoUrl(plain.storyVideo || '');
                 const ytId = storyVideoPlayable ? extractYouTubeId(storyVideoPlayable) : null;
                 return {

@@ -134,6 +134,32 @@
         border: 1px solid var(--danger);
         font-size: 0.85rem;
     }
+
+    @media (max-width: 992px) {
+        .proofs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .proofs-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .proof-card {
+            padding: 16px !important;
+        }
+
+        .proof-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .proof-actions {
+            flex-direction: column !important;
+        }
+    }
 </style>
 
 <script>

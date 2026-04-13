@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jussur Sanabel</string>
+    <string name="title_activity_main">Jussur Sanabel</string>
+    <string name="package_name">com.jussursanabel.app</string>
+    <string name="custom_url_scheme">com.jussursanabel.app</string>
+</resources>

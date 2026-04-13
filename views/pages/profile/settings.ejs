@@ -29,9 +29,9 @@
             <form action="/profile/update?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 
-                <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                <div class="profile-settings-top" style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
                     <!-- Avatar Upload -->
-                    <div style="text-align: center; flex: 0 0 180px;">
+                    <div class="profile-avatar-col" style="text-align: center; flex: 0 0 180px;">
                         <div style="position: relative; width: 150px; height: 150px; margin: 0 auto 15px;">
                             <img src="<%= user.avatar %>" id="avatarPreview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 25px; border: 4px solid white; box-shadow: var(--shadow-md);">
                             <% if (user.role !== 'admin' && user.role !== 'super_admin') { %>
@@ -51,7 +51,7 @@
                     </div>
 
                     <!-- Fields -->
-                    <div style="flex: 1; min-width: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="profile-fields-grid" style="flex: 1; min-width: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group-luxury">
                             <label>الاسم الكامل</label>
                             <input type="text" name="name" value="<%= user.name %>" required placeholder="أدخل اسمك الكامل">
@@ -88,7 +88,7 @@
             <form action="/profile/password" method="POST">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <div class="password-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                     <div class="form-group-luxury">
                         <label>كلمة المرور الحالية</label>
                         <input type="password" name="currentPassword" required placeholder="••••••••">
@@ -146,6 +146,28 @@
         border-color: var(--secondary);
         outline: none;
         box-shadow: 0 0 0 3px rgba(226, 176, 100, 0.1);
+    }
+
+    @media (max-width: 992px) {
+        .password-grid {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-settings-top {
+            gap: 20px !important;
+        }
+
+        .profile-avatar-col {
+            flex: 1 1 100% !important;
+        }
+
+        .profile-fields-grid,
+        .password-grid {
+            min-width: 0 !important;
+            grid-template-columns: 1fr !important;
+        }
     }
 </style>
 

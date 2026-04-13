@@ -1432,6 +1432,57 @@ tbody tr:hover {
     }
 }
 
+/* ── 13.1 Mobile Overflow Safeguards ───────────────────────────── */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .section-zen,
+    .section-luxury {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .premium-nav {
+        padding-left: 12px;
+        padding-right: 12px;
+        gap: 10px;
+    }
+
+    .logo-luxury {
+        min-width: 0;
+    }
+
+    .logo-luxury span {
+        font-size: 1.05rem !important;
+    }
+
+    .nav-links-luxury {
+        top: 82px;
+        max-height: calc(100vh - 82px);
+        overflow-y: auto;
+    }
+
+    /* Common inline min-width values that often break mobile layouts */
+    [style*="min-width: 300px"],
+    [style*="min-width: 250px"],
+    [style*="min-width: 200px"],
+    [style*="min-width: 180px"],
+    [style*="min-width: 150px"] {
+        min-width: 0 !important;
+    }
+
+    [style*="grid-template-columns: 1fr 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    [style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 /* ── 14. Homepage Enhancements ────────────────────────────────── */
 .float-element {
     animation: float 6s ease-in-out infinite;
@@ -1694,4 +1745,4 @@ tbody tr:hover {
         display: none !important;
     }
 }
-
+

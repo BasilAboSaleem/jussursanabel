@@ -2,10 +2,12 @@ services:
   - type: web
     name: jussur-sanabel-beta
     env: node
-    plan: free
+    plan: standard
     region: frankfurt
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: npm run start:pm2
+    autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -35,3 +37,35 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: jussur-sanabel-redis
+          property: connectionString
+      - key: SOCKET_REDIS_ADAPTER
+        value: "true"
+      - key: AUTH_RATE_LIMIT_MAX
+        value: "60"
+      - key: PAYMENT_RATE_LIMIT_MAX
+        value: "120"
+      - key: API_RATE_LIMIT_MAX
+        value: "12000"
+      - key: PM2_INSTANCES
+        value: "max"
+      - key: PM2_MAX_MEMORY
+        value: "700M"
+      - key: LOG_LEVEL
+        value: "warn"
+      - key: MONGO_MAX_POOL_SIZE
+        value: "100"
+      - key: MONGO_MIN_POOL_SIZE
+        value: "20"
+      - key: SERVER_KEEP_ALIVE_TIMEOUT_MS
+        value: "65000"
+      - key: SERVER_HEADERS_TIMEOUT_MS
+        value: "70000"
+
+  - type: redis
+    name: jussur-sanabel-redis
+    plan: standard
+    region: frankfurt

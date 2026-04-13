@@ -50,7 +50,7 @@
     <div class="nav-actions-luxury" style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
         <% if (user) { %>
             <div style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 6px 16px; border-radius: 50px; border: 1px solid rgba(16, 185, 129, 0.15);">
-                <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); white-space: nowrap;"><%= user.name %></span>
+                <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis;"><%= user.name %></span>
                 <a href="/dashboard" class="btn-lux btn-lux-primary btn-sm" style="padding: 8px 18px; font-size: 0.8rem; background: var(--grad-green);">
                     <i class="fas fa-user-circle"></i> <%= __('dashboard') %>
                 </a>

@@ -3,9 +3,115 @@ const Case = require('../models/Case');
 const Setting = require('../models/Setting');
 const Team = require('../models/Team');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const { logActivity } = require('../utils/logger');
 const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
+const Stripe = require('stripe');
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const stripeCurrency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+
+const toMinorUnits = (value) => Math.round(Number(value || 0) * 100);
+
+const verifyCaseIsDonatable = (foundCase, type) => {
+    if (foundCase.isSatisfied) {
+        return { ok: false, key: 'flash_case_satisfied_short' };
+    }
+    if (type === 'monthly' && foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date()) {
+        return { ok: false, key: 'flash_case_sponsored_short' };
+    }
+    return { ok: true };
+};
+
+const calculateFees = (baseAmount, institutionPercentage, gatewayPercentage, feeCovered) => {
+    const institutionFee = (baseAmount * institutionPercentage) / 100;
+    const gatewayFee = (baseAmount * gatewayPercentage) / 100;
+    const operationFee = institutionFee + gatewayFee;
+
+    const finalCaseAmount = feeCovered ? baseAmount : baseAmount - operationFee;
+    const totalAmountToCharge = feeCovered ? baseAmount + operationFee : baseAmount;
+
+    return {
+        institutionFee,
+        gatewayFee,
+        operationFee,
+        finalCaseAmount,
+        totalAmountToCharge
+    };
+};
+
+const finalizeVerifiedTransaction = async ({ transaction, foundCase, reqForLocale = null }) => {
+    if (transaction.status === 'verified') return;
+
+    transaction.status = 'verified';
+    transaction.verifiedAt = new Date();
+    await transaction.save();
+
+    // Increment team stats once after successful payment
+    if (transaction.team) {
+        await Team.findByIdAndUpdate(transaction.team, {
+            $inc: { totalRaised: transaction.amount, donorCount: 1 }
+        });
+    }
+
+    foundCase.raisedAmount += transaction.amount;
+    if (transaction.type === 'monthly') {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        foundCase.sponsorshipExpiryDate = expiryDate;
+        foundCase.currentSponsor = transaction.donor;
+    }
+    if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
+        foundCase.status = 'fully_sponsored';
+    }
+    await foundCase.save();
+
+    // Logging
+    await logActivity(
+        transaction.donor,
+        'transaction_create',
+        'Transaction',
+        transaction._id,
+        `تبرع ${transaction.type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${transaction.amount} للحالة: ${foundCase.title}`
+    );
+
+    // Notify beneficiary
+    if (foundCase.guardian) {
+        const notification = await Notification.create({
+            recipient: foundCase.guardian,
+            sender: transaction.donor,
+            title: reqForLocale ? reqForLocale.__('notif_donation_received_title') : 'تم استلام تبرع جديد',
+            message: reqForLocale
+                ? reqForLocale.__('notif_donation_received_msg', { amount: transaction.amount, title: foundCase.title })
+                : `تم استلام تبرع بقيمة ${transaction.amount} للحالة ${foundCase.title}`,
+            type: 'success',
+            targetType: 'specific',
+            link: `/cases/${foundCase._id}`
+        });
+
+        if (reqForLocale && reqForLocale.app) {
+            const io = reqForLocale.app.get('io');
+            if (io) io.to(foundCase.guardian.toString()).emit('newNotification', notification);
+        }
+    }
+
+    // Donation receipt email (best effort)
+    try {
+        const donor = await User.findById(transaction.donor).select("name email");
+        if (donor && donor.email) {
+            await sendEmail({
+                email: donor.email,
+                subject: 'إيصال تبرع - جسور سنابل',
+                html: donationReceipt(donor.name || 'Donor', transaction.amount, foundCase.title)
+            });
+        }
+    } catch (emailErr) {
+        console.error('Failed to send receipt email:', emailErr);
+    }
+};
 
 exports.getCheckout = async (req, res) => {
     try {
@@ -58,6 +164,11 @@ exports.getCheckout = async (req, res) => {
 
 exports.processDonation = async (req, res) => {
     try {
+        if (!stripe) {
+            req.flash('error', 'Stripe غير مهيأ على الخادم.');
+            return res.redirect('/cases');
+        }
+
         const { caseId, amount, type, isAnonymous, encouragementMessage, teamId } = req.body;
         const foundCase = await Case.findById(caseId);
 
@@ -66,14 +177,9 @@ exports.processDonation = async (req, res) => {
             return res.redirect('/cases');
         }
 
-        // Backend Validations
-        if (foundCase.isSatisfied) {
-            req.flash('error', res.__('flash_case_satisfied_short'));
-            return res.redirect(`/cases/${caseId}`);
-        }
-
-        if (type === 'monthly' && foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date()) {
-            req.flash('error', res.__('flash_case_sponsored_short'));
+        const donatableCheck = verifyCaseIsDonatable(foundCase, type);
+        if (!donatableCheck.ok) {
+            req.flash('error', res.__(donatableCheck.key));
             return res.redirect(`/cases/${caseId}`);
         }
         
@@ -86,22 +192,13 @@ exports.processDonation = async (req, res) => {
         const operationPercentage = institutionPercentage + gatewayPercentage;
         
         const baseAmount = Number(amount);
-        const institutionFee = (baseAmount * institutionPercentage) / 100;
-        const gatewayFee = (baseAmount * gatewayPercentage) / 100;
-        const operationFee = institutionFee + gatewayFee;
-        
         let finalCaseAmount, totalAmountToCharge;
         const feeCovered = req.body.isFeeCovered === 'true' || req.body.isFeeCovered === true;
+        const feeCalc = calculateFees(baseAmount, institutionPercentage, gatewayPercentage, feeCovered);
+        finalCaseAmount = feeCalc.finalCaseAmount;
+        totalAmountToCharge = feeCalc.totalAmountToCharge;
 
-        if (feeCovered) {
-            finalCaseAmount = baseAmount;
-            totalAmountToCharge = baseAmount + operationFee;
-        } else {
-            finalCaseAmount = baseAmount - operationFee;
-            totalAmountToCharge = baseAmount;
-        }
-
-        // Simulation of payment success
+        // Create pending transaction before redirecting to Stripe Checkout
         const transaction = new Transaction({
             donor: req.user._id,
             case: caseId,
@@ -109,85 +206,134 @@ exports.processDonation = async (req, res) => {
             institutionPercentage,
             gatewayPercentage,
             operationPercentage,
-            institutionFee: institutionFee,
-            gatewayFee: gatewayFee,
-            operationFee: operationFee,
+            institutionFee: feeCalc.institutionFee,
+            gatewayFee: feeCalc.gatewayFee,
+            operationFee: feeCalc.operationFee,
             totalAmount: totalAmountToCharge,
             type,
-            status: 'verified', // Auto-verified in "Fake" gateway simulation
-            paymentMethod: 'credit_card',
-            verifiedAt: new Date(),
-            verifiedBy: req.user._id, // Simulated system verification
+            status: 'pending',
+            paymentMethod: 'stripe_checkout',
             isAnonymous: !!isAnonymous,
             encouragementMessage: encouragementMessage,
             team: teamId || null
         });
 
         await transaction.save();
+        const session = await stripe.checkout.sessions.create({
+            mode: 'payment',
+            customer_email: req.user.email || undefined,
+            success_url: `${process.env.BASE_URL}/donations/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.BASE_URL}/donations/cancel?transactionId=${transaction._id}`,
+            metadata: {
+                transactionId: String(transaction._id),
+                caseId: String(caseId)
+            },
+            line_items: [
+                {
+                    quantity: 1,
+                    price_data: {
+                        currency: stripeCurrency,
+                        unit_amount: toMinorUnits(totalAmountToCharge),
+                        product_data: {
+                            name: foundCase.title || 'Donation',
+                            description: type === 'monthly' ? 'Monthly Sponsorship' : 'Direct Donation'
+                        }
+                    }
+                }
+            ]
+        });
 
-        // Increment team stats if applicable (Phase 3)
-        if (teamId) {
-            await Team.findByIdAndUpdate(teamId, {
-                $inc: { totalRaised: finalCaseAmount, donorCount: 1 }
-            });
-        }
+        transaction.stripeSessionId = session.id;
+        transaction.stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
+        await transaction.save();
 
-        // Update the case
-        foundCase.raisedAmount += finalCaseAmount;
-        
-        // Update Sponsorship if type is monthly
-        if (type === 'monthly') {
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 30);
-            foundCase.sponsorshipExpiryDate = expiryDate;
-            foundCase.currentSponsor = req.user._id;
-        }
-
-        // Check if fully sponsored (for items with fixed targets)
-        if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
-            foundCase.status = 'fully_sponsored';
-        }
-        
-        await foundCase.save();
-
-        // Log the activity
-        await logActivity(req.user._id, 'transaction_create', 'Transaction', transaction._id, 
-            `تبرع ${type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${finalCaseAmount} ليرة للحالة: ${foundCase.title}`);
-
-        // Notify Beneficiary (Guardian)
-        if (foundCase.guardian) {
-            const notification = await Notification.create({
-                recipient: foundCase.guardian,
-                sender: req.user._id,
-                title: res.__('notif_donation_received_title'),
-                message: res.__('notif_donation_received_msg', { amount: finalCaseAmount, title: foundCase.title }),
-                type: 'success',
-                targetType: 'specific',
-                link: `/cases/${foundCase._id}`
-            });
-
-            const io = req.app.get('io');
-            if (io) {
-                io.to(foundCase.guardian.toString()).emit('newNotification', notification);
-            }
-        }
-
-        // Send Donation Receipt Email
-        try {
-            await sendEmail({
-                email: req.user.email,
-                subject: 'إيصال تبرع - جسور سنابل',
-                html: donationReceipt(req.user.name, finalCaseAmount, foundCase.title)
-            });
-        } catch (emailErr) {
-            console.error('Failed to send receipt email:', emailErr);
-        }
-
-        req.flash('success', res.__('flash_donation_done'));
-        res.redirect(`/cases/${caseId}`); 
+        return res.redirect(303, session.url);
     } catch (err) {
         console.error(err);
         req.flash('error', res.__('flash_donation_process_error'));
         res.redirect('/');
+    }
+};
+
+exports.handleCheckoutSuccess = async (req, res) => {
+    try {
+        req.flash('success', 'تم استلام عملية الدفع، يجري التحقق منها الآن.');
+        return res.redirect('/dashboard');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'حدث خطأ أثناء العودة من بوابة الدفع.');
+        return res.redirect('/dashboard');
+    }
+};
+
+exports.handleCheckoutCancel = async (req, res) => {
+    try {
+        req.flash('error', 'تم إلغاء عملية الدفع قبل الإتمام.');
+        return res.redirect('/cases');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'حدث خطأ أثناء إلغاء عملية الدفع.');
+        return res.redirect('/cases');
+    }
+};
+
+exports.handleStripeWebhook = async (req, res) => {
+    if (!stripe || !stripeWebhookSecret) {
+        return res.status(400).send('Stripe webhook is not configured');
+    }
+
+    const signature = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, signature, stripeWebhookSecret);
+    } catch (err) {
+        console.error('Stripe webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    try {
+        if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
+            const session = event.data.object;
+            const transactionId = session.metadata && session.metadata.transactionId;
+            if (transactionId) {
+                const transaction = await Transaction.findById(transactionId);
+                if (transaction && transaction.status !== 'verified') {
+                    const foundCase = await Case.findById(transaction.case);
+                    if (foundCase) {
+                        transaction.stripeSessionId = session.id || transaction.stripeSessionId;
+                        if (typeof session.payment_intent === 'string') {
+                            transaction.stripePaymentIntentId = session.payment_intent;
+                        }
+                        await transaction.save();
+
+                        await finalizeVerifiedTransaction({ transaction, foundCase });
+                    }
+                }
+            }
+        }
+
+        if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
+            const payload = event.data.object;
+            let transaction = null;
+
+            if (payload.metadata && payload.metadata.transactionId) {
+                transaction = await Transaction.findById(payload.metadata.transactionId);
+            } else if (payload.id) {
+                transaction = await Transaction.findOne({
+                    $or: [{ stripeSessionId: payload.id }, { stripePaymentIntentId: payload.id }]
+                });
+            }
+
+            if (transaction && transaction.status === 'pending') {
+                transaction.status = 'failed';
+                await transaction.save();
+            }
+        }
+
+        return res.status(200).json({ received: true });
+    } catch (err) {
+        console.error('Stripe webhook handling failed:', err);
+        return res.status(500).json({ received: false });
     }
 };

@@ -8,5 +8,7 @@ router.use(protect);
 
 router.get('/checkout', transactionController.getCheckout);
 router.post('/process', upload.single('receipt'), transactionController.processDonation);
+router.get('/success', transactionController.handleCheckoutSuccess);
+router.get('/cancel', transactionController.handleCheckoutCancel);
 
 module.exports = router;

@@ -127,8 +127,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        // [TEMPORARY DISABLE] For system protection during development
-        const DISABLE_LOGIN = false; 
+        const DISABLE_LOGIN = process.env.DISABLE_LOGIN === 'true';
         if (DISABLE_LOGIN) {
             req.flash('error', res.__('flash_login_disabled_maintenance'));
             return res.redirect('/auth/login');

@@ -1,0 +1,39 @@
+groups:
+  - name: jussur-sanabel-api
+    rules:
+      - alert: HighHttp5xxRate
+        expr: |
+          (
+            sum(rate(http_request_duration_ms_count{status_code=~"5.."}[5m]))
+            /
+            sum(rate(http_request_duration_ms_count[5m]))
+          ) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP 5xx rate is above 2%"
+          description: "Error ratio over 5 minutes exceeded SLO threshold."
+
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_ms_bucket[10m])) by (le)
+          ) > 2000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency is above 2s"
+          description: "Latency SLO breached for 10 minutes."
+
+      - alert: ReadinessDown
+        expr: up{job="jussur-ready"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Readiness endpoint is down"
+          description: "Target is not passing readiness for at least 2 minutes."
+

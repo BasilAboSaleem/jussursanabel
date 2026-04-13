@@ -38,6 +38,41 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+    @media (max-width: 992px) {
+        .dist-main-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .distribution-container > div[style*="justify-content: space-between; align-items: flex-end"] {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+        }
+
+        #bankBatchInfo {
+            grid-template-columns: 1fr !important;
+        }
+
+        #recipientModal > div,
+        #payoutModal > div,
+        #bankConfirmModal > div,
+        #bankBatchModal > div {
+            width: calc(100vw - 20px) !important;
+            padding: 20px !important;
+            border-radius: 18px !important;
+            max-height: 90vh;
+        }
+
+        #recipientModal [style*="grid-template-columns: 1fr 1fr;"],
+        #payoutModal [style*="grid-template-columns: 1fr 1fr;"],
+        #bankBatchModal [style*="grid-template-columns: repeat(3, 1fr)"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
 </style>
 
     <!-- 4. Bank Batch Details Modal -->

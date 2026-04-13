@@ -11,6 +11,33 @@
 .msg-out { background: var(--secondary); color: white; margin-right: auto; border-bottom-right-radius: 4px; }
 .msg-in { background: #f1f5f9; color: var(--text-color); margin-left: auto; border-bottom-left-radius: 4px; }
 .msg-meta { font-size: 0.7rem; opacity: 0.8; margin-top: 5px; display: block; }
+
+@media (max-width: 992px) {
+    .monitor-wrapper {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: 520px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tab-btn {
+        padding: 10px 12px;
+        font-size: 0.88rem;
+        white-space: nowrap;
+    }
+
+    .msg-bubble {
+        max-width: 92%;
+        padding: 10px 12px;
+    }
+
+    #moderationModal .luxury-card,
+    #escalationModal .luxury-card {
+        width: calc(100vw - 24px) !important;
+        max-width: 520px;
+    }
+}
 </style>
 
 <div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">

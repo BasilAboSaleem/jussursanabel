@@ -146,8 +146,31 @@ exports.createCase = async (req, res) => {
 
 exports.getAllCases = async (req, res) => {
     try {
-        const cases = await Case.find({ status: 'approved', isHidden: { $ne: true } }).sort({ createdAt: -1 });
-        res.render('pages/cases/all-cases', { title: res.__('cases_list'), cases });
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 24, 1), 60);
+        const skip = (page - 1) * limit;
+        const filter = { status: 'approved', isHidden: { $ne: true } };
+
+        const [cases, totalCases] = await Promise.all([
+            Case.find(filter)
+                .select('title type description image location raisedAmount targetAmount createdAt status')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Case.countDocuments(filter)
+        ]);
+
+        res.render('pages/cases/all-cases', {
+            title: res.__('cases_list'),
+            cases,
+            pagination: {
+                page,
+                limit,
+                total: totalCases,
+                totalPages: Math.max(Math.ceil(totalCases / limit), 1)
+            }
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send(res.__('error_server'));
@@ -156,7 +179,7 @@ exports.getAllCases = async (req, res) => {
 
 exports.getCaseDetails = async (req, res) => {
     try {
-        const foundCase = await Case.findById(req.params.id).populate('guardian');
+        const foundCase = await Case.findById(req.params.id).populate('guardian').lean();
         if (!foundCase || foundCase.isHidden) {
             return res.status(404).render('errors/error', { title: '404', message: res.__('flash_case_not_found'), error: {} });
         }
@@ -166,12 +189,16 @@ exports.getCaseDetails = async (req, res) => {
             case: req.params.id, 
             status: 'verified' 
         })
+        .select('donor amount createdAt isAnonymous')
         .populate('donor', 'name avatar')
         .sort({ createdAt: -1 })
         .limit(10);
 
         // Fetch teams for this case (Phase 3)
-        const teams = await Team.find({ case: req.params.id }).sort({ totalRaised: -1 });
+        const teams = await Team.find({ case: req.params.id })
+            .select('name description totalRaised members createdAt')
+            .sort({ totalRaised: -1 })
+            .lean();
 
         // Phase 13: Check if current donor has a pending or approved chat request for this FAMILY
         let chatRequest = null;

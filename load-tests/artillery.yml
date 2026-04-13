@@ -1,0 +1,30 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 20
+      name: warmup
+    - duration: 120
+      arrivalRate: 80
+      name: ramp
+    - duration: 60
+      arrivalRate: 120
+      name: sustained
+  defaults:
+    headers:
+      User-Agent: "artillery-load-test"
+
+scenarios:
+  - name: public-pages-journey
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/cases"
+      - get:
+          url: "/stories"
+      - get:
+          url: "/contact"
+      - get:
+          url: "/health"
+

@@ -1,9 +1,23 @@
 const nodemailer = require('nodemailer');
+const { enqueueEmail } = require('./queue');
 
 const sendEmail = async (options) => {
     try {
-        let transporter;
+        const mailOptions = {
+            from: `جسور سنابل <${process.env.EMAIL_FROM || 'noreply@jussursanabel.org'}>`,
+            to: options.email,
+            subject: options.subject,
+            html: options.html
+        };
 
+        // If queue is available, offload sending to worker for better throughput.
+        const queued = await enqueueEmail(mailOptions);
+        if (queued) {
+            console.log(`Email queued for ${options.email}`);
+            return;
+        }
+
+        let transporter;
         if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
             transporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -27,13 +41,6 @@ const sendEmail = async (options) => {
                 }
             });
         }
-
-        const mailOptions = {
-            from: `جسور سنابل <${process.env.EMAIL_FROM || 'noreply@jussursanabel.org'}>`,
-            to: options.email,
-            subject: options.subject,
-            html: options.html
-        };
 
         const info = await transporter.sendMail(mailOptions);
         

@@ -5,15 +5,21 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const MongoStore = require("connect-mongo").default;
 const flash = require("connect-flash");
 const morgan = require("morgan");
 const cors = require("cors");
+const hpp = require("hpp");
 const path = require("path");
 const helmet = require("helmet");
 const compression = require("compression");
 const methodOverride = require("method-override");
 const i18n = require("i18n");
 const { cloudinaryEnabled } = require("./app/utils/storyVideo");
+const { connectRedisIfNeeded, redisClient } = require("./app/utils/redis");
+const { startQueueWorkers } = require("./app/utils/queue");
+const { metricsMiddleware, metricsHandler } = require("./app/utils/monitoring");
+const { sanitizeRequest } = require("./app/middlewares/securitySanitizer");
 
 i18n.configure({
   locales: ['ar', 'en'],
@@ -33,9 +39,50 @@ connectDB();
 const authMiddleware = require("./app/middlewares/auth");
 const { apiLimiter, authLimiter, paymentLimiter } = require("./app/middlewares/rateLimiter");
 const { systemLogger } = require("./app/utils/logger");
+const { sendAlert } = require("./app/utils/alerting");
 
 // App Initialization
 const app = express();
+app.disable("x-powered-by");
+const isProduction = process.env.NODE_ENV === "production";
+const rawCorsOrigins = process.env.CORS_ORIGINS || process.env.BASE_URL || "";
+const allowedOrigins = rawCorsOrigins
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+if (isProduction) {
+  app.set("trust proxy", Number(process.env.TRUST_PROXY || 1));
+}
+
+const assetBaseUrl = (process.env.CDN_BASE_URL || "").replace(/\/$/, "");
+app.locals.asset = (pathValue = "") => {
+  if (!assetBaseUrl) return pathValue;
+  if (pathValue.startsWith("http://") || pathValue.startsWith("https://")) return pathValue;
+  if (!pathValue.startsWith("/")) return `${assetBaseUrl}/${pathValue}`;
+  return `${assetBaseUrl}${pathValue}`;
+};
+
+// Lightweight endpoints should bypass expensive middleware.
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+app.get("/health/ready", async (req, res) => {
+  try {
+    const redisStatus = redisClient ? redisClient.status : "disabled";
+    return res.status(200).json({
+      ok: true,
+      redis: redisStatus,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/metrics", metricsHandler);
 
 // View Engine Setup
 app.set("view engine", "ejs");
@@ -44,18 +91,54 @@ app.set("views", path.join(__dirname, "views"));
 // app.set("layout", "layouts/main-layout");
 
 // Global Middleware
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+const bodyLimit = process.env.APP_BODY_LIMIT || "5mb";
+const jsonParser = express.json({ limit: bodyLimit });
+const urlEncodedParser = express.urlencoded({ extended: true, limit: bodyLimit });
+app.use((req, res, next) => {
+  if (req.originalUrl === "/donations/webhook") return next();
+  jsonParser(req, res, next);
+});
+app.use((req, res, next) => {
+  if (req.originalUrl === "/donations/webhook") return next();
+  urlEncodedParser(req, res, next);
+});
 app.use(cookieParser());
 app.use(i18n.init);
+app.use(hpp());
+app.use(sanitizeRequest);
 app.use(express.static(path.join(__dirname, "public"), { maxAge: "30d" }));
-app.use(cors({ origin: process.env.BASE_URL || "*", credentials: true }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (!isProduction) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(compression());
 app.use(methodOverride("_method"));
+app.use(metricsMiddleware);
 
 // Security
 app.use(helmet({ 
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://js.stripe.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+        imgSrc: ["'self'", "data:", "https:"],
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+        connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
+        frameSrc: ["'self'", "https://checkout.stripe.com", "https://js.stripe.com", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+        mediaSrc: ["'self'", "https:", "blob:"],
+      },
+    },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
 app.use(apiLimiter); // Apply global rate limiter
@@ -70,22 +153,41 @@ app.use(
     secret: process.env.SESSION_SECRET || "sanabelSecrets",
     resave: false,
     saveUninitialized: false,
+    proxy: isProduction,
+    store: process.env.MONGODB_URI
+      ? MongoStore.create({
+          mongoUrl: process.env.MONGODB_URI,
+          ttl: 60 * 60 * 24,
+          autoRemove: "native",
+          crypto: { secret: process.env.SESSION_SECRET || "sanabelSecrets" },
+        })
+      : undefined,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       maxAge: 1000 * 60 * 60 * 24,
-      sameSite: "lax",
+      sameSite: process.env.SESSION_SAME_SITE || "lax",
     },
   })
 );
 app.use(flash());
 
 // CSRF Protection
-const csrfProtection = csurf({ cookie: true });
+const csrfProtection = csurf({
+  cookie: {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: process.env.CSRF_SAME_SITE || "lax",
+  },
+});
 app.use((req, res, next) => {
   // Skip CSRF check for multipart uploads as multer needs to parse body first
   // and global csurf runs before route-specific multer
-  if (req.originalUrl.includes('/proof-of-impact') || req.originalUrl.includes('/updates')) {
+  if (
+    req.originalUrl.includes('/proof-of-impact') ||
+    req.originalUrl.includes('/updates') ||
+    req.originalUrl.includes('/donations/webhook')
+  ) {
     return next();
   }
   csrfProtection(req, res, next);
@@ -103,6 +205,7 @@ app.use((req, res, next) => {
   res.locals.langDir = req.getLocale() === 'ar' ? 'rtl' : 'ltr';
   res.locals.title = ""; // Default title to avoid ReferenceError
   res.locals.cloudinaryEnabled = cloudinaryEnabled;
+  res.locals.asset = app.locals.asset;
   next();
 });
 
@@ -117,11 +220,13 @@ const messageRoutes = require("./app/routes/messages");
 const profileRoutes = require("./app/routes/profile");
 const supportRoutes = require("./app/routes/support");
 const notificationRoutes = require("./app/routes/notifications");
+const transactionController = require("./app/controllers/transactionController");
 
 app.use("/", indexRoutes);
 app.use("/auth", authLimiter, authRoutes);
 app.use("/cases", caseRoutes);
 app.use("/admin", adminRoutes);
+app.post("/donations/webhook", express.raw({ type: "application/json" }), transactionController.handleStripeWebhook);
 app.use("/donations", paymentLimiter, donationRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/messages", messageRoutes);
@@ -129,9 +234,9 @@ app.use("/profile", profileRoutes);
 app.use("/support", supportRoutes);
 app.use("/notifications", notificationRoutes);
 
-// Health Check
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+// Initialize optional infrastructure in background
+connectRedisIfNeeded().then(() => {
+  startQueueWorkers();
 });
 
 // 404 Handler
@@ -148,6 +253,13 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   systemLogger.error(`[${req.method} ${req.originalUrl}] ${err.message}`, { stack: err.stack, ip: req.ip });
   const status = err.status || 500;
+  if (status >= 500) {
+    sendAlert("HTTP 500", {
+      method: req.method,
+      url: req.originalUrl,
+      message: err.message,
+    });
+  }
   res.status(status).render("errors/error", { 
       title: "خطأ في النظام",
       message: err.message || "حدث خطأ غير متوقع، يرجى المحاولة لاحقاً.",

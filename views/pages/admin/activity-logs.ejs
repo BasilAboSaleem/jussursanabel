@@ -1,7 +1,7 @@
 <%- include('../../partials/admin-layout-top') %>
 
 <div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--accent);">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="logs-head-row" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
             <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-file-signature"></i> <%= __('admin_activity_logs_title') %></h3>
             <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_activity_logs_desc') %></p>
@@ -61,6 +61,7 @@
 
 <!-- Logs Timeline/Table -->
 <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+    <div class="table-responsive">
     <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
             <tr>
@@ -145,10 +146,25 @@
             <% }) %>
         </tbody>
     </table>
+    </div>
 </div>
 
 <style>
     .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
+
+    @media (max-width: 992px) {
+        .logs-head-row {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 14px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive table {
+            min-width: 760px;
+        }
+    }
 </style>
 
 <%- include('../../partials/admin-layout-bottom') %>

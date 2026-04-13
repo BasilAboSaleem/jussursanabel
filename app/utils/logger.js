@@ -8,8 +8,10 @@ const logFormat = winston.format.combine(
   winston.format.json()
 );
 
+const loggerLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'warn' : 'info');
+
 const systemLogger = winston.createLogger({
-  level: 'info',
+  level: loggerLevel,
   format: logFormat,
   transports: [
     new winston.transports.DailyRotateFile({
@@ -54,6 +56,6 @@ exports.logActivity = async (userId, action, targetType, targetId, details, meta
             metadata
         });
     } catch (err) {
-        console.error('Failed to log activity:', err);
+        systemLogger.warn('Failed to log activity', { error: err.message });
     }
 };

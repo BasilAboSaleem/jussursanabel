@@ -15,6 +15,8 @@ const transactionSchema = new mongoose.Schema({
     netDonationAmount: { type: Number }, // The actual final amount assigned to case after any bank shortfalls
     type: { type: String, enum: ['direct', 'monthly'], required: true },
     paymentMethod: { type: String, default: 'receipt_upload' }, // For P2P
+    stripePaymentIntentId: { type: String, index: true, sparse: true },
+    stripeSessionId: { type: String, index: true, sparse: true },
     receiptImage: { type: String }, 
     status: { 
         type: String, 
@@ -34,5 +36,10 @@ const transactionSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now }
 });
+
+transactionSchema.index({ case: 1, status: 1, createdAt: -1 });
+transactionSchema.index({ donor: 1, createdAt: -1 });
+transactionSchema.index({ status: 1, disbursementStatus: 1, createdAt: -1 });
+transactionSchema.index({ type: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

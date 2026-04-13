@@ -3,12 +3,12 @@
 <main style="min-height: 100vh; background: #f1f5f9; padding-top: 100px;">
     <div class="container-fluid" style="padding: 0 40px;">
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div class="support-head-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
             <div style="text-align: right;">
                 <h2 class="font-cairo" style="font-size: 2.2rem; font-weight: 900; color: var(--primary);">مركز الدعم الموحد</h2>
                 <p style="color: var(--text-muted); margin: 0;">إدارة كافة طلبات الدعم الفني من المتبرعين والمستفيدين في مكان واحد.</p>
             </div>
-            <div style="display: flex; gap: 15px;">
+            <div class="support-stats-row" style="display: flex; gap: 15px;">
                 <div class="stat-card" style="padding: 15px 25px; min-width: 150px; text-align: center;">
                     <span style="display: block; font-size: 0.85rem; color: var(--text-light);">إجمالي التذاكر</span>
                     <strong style="font-size: 1.5rem;"><%= tickets.length %></strong>
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="grid-4" style="grid-template-columns: 350px 1fr; gap: 30px; height: 700px; align-items: stretch;">
+        <div class="grid-4 support-layout-grid" style="grid-template-columns: 350px 1fr; gap: 30px; height: 700px; align-items: stretch;">
             <!-- Tickets List -->
             <div class="luxury-card" style="padding: 0; background: white; overflow: hidden; display: flex; flex-direction: column;">
                 <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
@@ -120,6 +120,24 @@
     .badge-teal { background: #f0fdfa; color: #0f766e; }
     .badge-success { background: #f0fdf4; color: #166534; }
     .badge-navy { background: #f1f5f9; color: #475569; }
+
+    @media (max-width: 992px) {
+        .support-head-row {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 15px;
+            margin-bottom: 20px !important;
+        }
+
+        .support-stats-row {
+            flex-wrap: wrap;
+        }
+
+        .support-layout-grid {
+            grid-template-columns: 1fr !important;
+            height: auto !important;
+        }
+    }
 </style>
 
 <%- include('../../partials/footer-bottom') %>

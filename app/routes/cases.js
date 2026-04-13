@@ -3,6 +3,7 @@ const router = express.Router();
 const caseController = require('../controllers/caseController');
 const { protect, restrictTo } = require('../middlewares/auth');
 const { upload } = require('../utils/cloudinary');
+const { pageCache } = require('../middlewares/cache');
 
 // Protected (For beneficiaries and donors)
 router.get('/register', protect, restrictTo('beneficiary', 'family', 'guardian'), caseController.getRegisterCase);
@@ -11,7 +12,7 @@ router.post('/:id/follow', protect, caseController.toggleFollowCase);
 router.post('/:id/teams', protect, caseController.createTeam);
 
 // Public
-router.get('/', caseController.getAllCases);
-router.get('/:id', caseController.getCaseDetails);
+router.get('/', pageCache(60), caseController.getAllCases);
+router.get('/:id', pageCache(45), caseController.getCaseDetails);
 
 module.exports = router;

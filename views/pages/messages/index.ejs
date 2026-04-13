@@ -407,6 +407,54 @@
     .restricted-text h4 { margin: 0 0 5px; color: #92400e; font-weight: 800; }
     .restricted-text p { margin: 0 0 8px; color: #b45309; font-size: 0.9rem; line-height: 1.5; }
     .restricted-note { font-size: 0.8rem; color: #d97706; font-weight: 600; }
+
+    @media (max-width: 992px) {
+        .chat-wrapper-lux {
+            grid-template-columns: 1fr;
+            height: auto;
+            min-height: calc(100vh - 140px);
+        }
+
+        .chat-sidebar-lux {
+            max-height: 320px;
+            border-left: none;
+            border-bottom: 1px solid #edf2f7;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chat-wrapper-lux {
+            border-radius: 18px;
+            min-height: calc(100vh - 120px);
+        }
+
+        .chat-header-lux,
+        .chat-history-lux,
+        .chat-input-area-lux {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .msg-bubble {
+            max-width: 90%;
+        }
+
+        .header-actions {
+            display: none;
+        }
+
+        .chat-input-area-lux form {
+            gap: 6px;
+            padding: 8px 10px;
+        }
+
+        .emoji-picker-panel {
+            left: 8px;
+            right: 8px;
+            width: auto;
+            max-width: calc(100vw - 36px);
+        }
+    }
 </style>
 
 

@@ -5,3 +5,16 @@ uploads/
 createSuperAdmin.js
 seed-family.js
 seed.js
+logs/*.log
+logs/*-audit.json
+.cursor/
+tmp/*.tmp
+
+# Android (Capacitor) — احتفظ بالمشروع، لا ترفع مخرجات البناء
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
+*.apk
+*.aab

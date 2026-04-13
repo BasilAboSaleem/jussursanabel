@@ -208,6 +208,39 @@
         align-items: center;
         justify-content: center;
     }
+
+    @media (max-width: 992px) {
+        .monitor-wrapper {
+            grid-template-columns: 1fr;
+            height: auto;
+            min-height: calc(100vh - 120px);
+        }
+
+        .monitor-sidebar {
+            max-height: 300px;
+            border-left: none !important;
+            border-right: none !important;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .moderation-panel > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chat-header,
+        .chat-messages,
+        .moderation-panel {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        #moderationModal .luxury-card {
+            width: calc(100vw - 24px) !important;
+            max-width: 420px;
+        }
+    }
 </style>
 
 <div class="monitor-wrapper">
