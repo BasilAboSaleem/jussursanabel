@@ -357,7 +357,7 @@
 <!-- ── TOP BAR ── -->
 <div class="stories-topbar">
     <a href="/" class="stories-logo">
-        <img src="/assets/images/logo.png" alt="جسور السنابل" onerror="this.style.display='none'">
+        <img src="/logoSanabel.png" alt="جسور السنابل" class="header-logo-story">
         <div class="stories-logo-text">
             <span>جسور السنابل</span>
             <!-- ① Live Counter Badge -->
@@ -415,8 +415,7 @@
             src="<%= story.image || 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop' %>"
             alt="<%= story.title %>"
             class="story-thumb"
-            id="thumb-<%= index %>"
-            onload="hideSkeleton(<%= index %>)">
+            id="thumb-<%= index %>">
 
         <!-- Media -->
         <% if (isYT) { %>
@@ -446,13 +445,13 @@
 
         <!-- Right actions -->
         <div class="story-actions">
-            <button class="action-btn mute-action" onclick="toggleStoryMute(this, <%= index %>)" title="الصوت">
+            <button class="action-btn mute-action" data-idx="<%= index %>" title="الصوت">
                 <div class="action-btn-icon">
                     <i class="fas fa-volume-high" id="mute-icon-<%= index %>"></i>
                 </div>
                 <span id="mute-label-<%= index %>">صوت</span>
             </button>
-            <button class="action-btn" onclick="shareStory('<%= story.title %>', '/cases/<%= story._id %>')" title="مشاركة">
+            <button class="action-btn share-action" data-title="<%= story.title %>" data-path="/cases/<%= story._id %>" title="مشاركة">
                 <div class="action-btn-icon"><i class="fas fa-share-nodes"></i></div>
                 <span>مشاركة</span>
             </button>
@@ -584,6 +583,31 @@
         updateMuteUI(idx, muted);
         isGlobalMuted = muted;
     }
+    
+    // Setup listeners dynamically for CSP
+    document.querySelectorAll('.header-logo-story').forEach(img => {
+        img.addEventListener('error', function() { this.style.display = 'none'; });
+    });
+
+    document.querySelectorAll('.story-thumb').forEach((img, idx) => {
+        if (img.complete) window.hideSkeleton(idx);
+        else img.addEventListener('load', () => window.hideSkeleton(idx));
+    });
+
+    document.querySelectorAll('.mute-action').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.getAttribute('data-idx'));
+            window.toggleStoryMute(this, idx);
+        });
+    });
+
+    document.querySelectorAll('.share-action').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const title = this.getAttribute('data-title');
+            const path = this.getAttribute('data-path');
+            window.shareStory(title, path);
+        });
+    });
     function ytCmd(idx, func) {
         const f = getMedia(idx);
         if (f && f.contentWindow) {

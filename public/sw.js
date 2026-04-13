@@ -9,7 +9,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
-  );
+  ); 
 });
 
 self.addEventListener('fetch', (event) => {
@@ -17,5 +17,5 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     })
-  );
+  ); 
 });
