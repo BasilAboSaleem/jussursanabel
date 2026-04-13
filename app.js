@@ -137,6 +137,7 @@ app.use(helmet({
         connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
         frameSrc: ["'self'", "https://checkout.stripe.com", "https://js.stripe.com", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
         mediaSrc: ["'self'", "https:", "blob:"],
+        formAction: ["'self'", "https://checkout.stripe.com"],
       },
     },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" }

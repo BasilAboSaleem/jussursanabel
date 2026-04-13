@@ -80,7 +80,7 @@
         </div>
     </section>
 
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!-- 2. Minimalist Impact Ribbon (Zen Restore) -->
     <section class="section-zen" style="background: #f8fafc; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 60px 0; position: relative; z-index: 50; isolation: isolate;">
@@ -142,7 +142,7 @@
                                     <% } %>
                                     
                                     <div class="story-video-controls" style="position: absolute; top: 15px; left: 15px; z-index: 10; display: flex; gap: 8px;">
-                                        <button class="mute-btn" onclick="event.preventDefault(); toggleMute(this)" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); cursor: pointer; transition: all 0.3s; pointer-events: auto;">
+                                        <button type="button" class="mute-btn" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); cursor: pointer; transition: all 0.3s; pointer-events: auto;">
                                             <i class="fas fa-volume-xmark"></i>
                                         </button>
                                     </div>
@@ -687,6 +687,15 @@
                         }
                     });
                     card.setAttribute('data-muted', 'true');
+                    
+                    const muteBtn = card.querySelector('.mute-btn');
+                    if (muteBtn) {
+                        muteBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation(); // This prevents the click from triggering the <a> link wrapper
+                            window.toggleMute(muteBtn);
+                        });
+                    }
                 }
             });
         };

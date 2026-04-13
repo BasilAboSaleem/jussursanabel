@@ -492,18 +492,26 @@ exports.updateTransactionStatus = async (req, res) => {
         }
 
         if (status === 'verified' && transaction.status !== 'verified') {
-            const updateFields = { $inc: { raisedAmount: transaction.amount } };
-            
-            // Monthly sponsorship logic
-            if (transaction.type === 'monthly') {
-                const expiryDate = new Date();
-                expiryDate.setDate(expiryDate.getDate() + 30);
-                updateFields.sponsorshipExpiryDate = expiryDate;
-                updateFields.currentSponsor = transaction.donor;
-            }
+            const foundCase = await Case.findById(transaction.case);
+            if (foundCase) {
+                foundCase.raisedAmount += transaction.amount;
+                
+                // Monthly sponsorship logic
+                if (transaction.type === 'monthly') {
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    foundCase.sponsorshipExpiryDate = expiryDate;
+                    foundCase.currentSponsor = transaction.donor;
+                }
 
-            // Update Case
-            await Case.findByIdAndUpdate(transaction.case, updateFields);
+                // Check if target is reached
+                if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
+                    foundCase.status = 'fully_sponsored';
+                    foundCase.isSatisfied = true;
+                    foundCase.satisfiedBy = 'admin';
+                }
+                await foundCase.save();
+            }
         }
 
         transaction.status = status;

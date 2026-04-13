@@ -1,9 +1,7 @@
 const CACHE_NAME = 'sanabel-v1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/assets/css/premium.css',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/assets/css/premium.css'
 ];
 
 self.addEventListener('install', (event) => {

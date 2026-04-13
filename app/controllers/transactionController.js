@@ -9,7 +9,7 @@ const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
 const Stripe = require('stripe');
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.TEST_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripeCurrency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
@@ -17,7 +17,7 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const toMinorUnits = (value) => Math.round(Number(value || 0) * 100);
 
 const verifyCaseIsDonatable = (foundCase, type) => {
-    if (foundCase.isSatisfied) {
+    if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') {
         return { ok: false, key: 'flash_case_satisfied_short' };
     }
     if (type === 'monthly' && foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date()) {
@@ -66,6 +66,8 @@ const finalizeVerifiedTransaction = async ({ transaction, foundCase, reqForLocal
     }
     if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
         foundCase.status = 'fully_sponsored';
+        foundCase.isSatisfied = true;
+        foundCase.satisfiedBy = 'admin';
     }
     await foundCase.save();
 
@@ -124,7 +126,7 @@ exports.getCheckout = async (req, res) => {
         }
 
         // 1. Check if Case is Satisfied
-        if (foundCase.isSatisfied) {
+        if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') {
             req.flash('error', res.__('flash_case_satisfied'));
             return res.redirect(`/cases/${caseId}`);
         }

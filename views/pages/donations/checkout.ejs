@@ -29,14 +29,14 @@
                 <div class="checkout-block">
                     <label class="form-label-luxury">نوع المساهمة</label>
                     <div class="type-selector-luxury">
-                        <div class="type-option <%= type === 'monthly' ? 'active' : '' %>" id="typeMonthly" onclick="setDonationType('monthly')">
+                        <div class="type-option <%= type === 'monthly' ? 'active' : '' %>" id="typeMonthly">
                             <i class="fas fa-calendar-check"></i>
                             <div>
                                 <span class="type-title">كفالة شهرية</span>
                                 <span class="type-desc">دعم مستمر كل شهر</span>
                             </div>
                         </div>
-                        <div class="type-option <%= type !== 'monthly' ? 'active' : '' %>" id="typeDirect" onclick="setDonationType('direct')">
+                        <div class="type-option <%= type !== 'monthly' ? 'active' : '' %>" id="typeDirect">
                             <i class="fas fa-bolt"></i>
                             <div>
                                 <span class="type-title">تبرع لمرة واحدة</span>
@@ -50,13 +50,13 @@
                 <div class="checkout-block">
                     <label class="form-label-luxury">حدد مبلغ المساهمة ($)</label>
                     <div class="amount-presets">
-                        <div class="preset-btn" onclick="setAmount(10)">$10</div>
-                        <div class="preset-btn <%= amount == 50 ? 'active' : '' %>" onclick="setAmount(50)">$50</div>
-                        <div class="preset-btn <%= amount == 100 ? 'active' : '' %>" onclick="setAmount(100)">$100</div>
-                        <div class="preset-btn" onclick="focusCustom()">آخر</div>
+                        <div class="preset-btn preset-amount" data-amount="10">$10</div>
+                        <div class="preset-btn preset-amount <%= amount == 50 ? 'active' : '' %>" data-amount="50">$50</div>
+                        <div class="preset-btn preset-amount <%= amount == 100 ? 'active' : '' %>" data-amount="100">$100</div>
+                        <div class="preset-btn preset-custom">آخر</div>
                     </div>
                     <div class="custom-amount-group" id="customAmountGroup">
-                        <input type="number" id="customAmountInput" class="form-input" placeholder="أدخل مبلغاً مخصصاً..." value="<%= amount %>" oninput="updateAmountFromInput(this.value)">
+                        <input type="number" id="customAmountInput" class="form-input" placeholder="أدخل مبلغاً مخصصاً..." value="<%= amount %>">
                         <span class="currency-label">$</span>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
                     </div>
 
                     <!-- Phase 3: Cover Fees Toggle -->
-                    <div class="checkout-cover-fees" onclick="toggleCoverFees()">
+                    <div class="checkout-cover-fees" id="coverFeesBtn">
                         <div id="feeToggleTrack" class="fee-toggle-track">
                             <div id="feeToggleCircle" class="fee-toggle-circle"></div>
                         </div>
@@ -121,7 +121,7 @@
                     </div>
                 </div>
 
-                <button type="submit" onclick="showInvoicePreview(event)" class="btn-lux btn-lux-primary checkout-submit-btn">
+                <button type="button" id="submitDonationBtn" class="btn-lux btn-lux-primary checkout-submit-btn">
                     <i class="fas fa-heart"></i> تأكيد العطاء الإنساني
                 </button>
             </form>
@@ -603,64 +603,82 @@
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <button onclick="closeInvoiceModal()" class="btn-lux btn-lux-navy" style="justify-content: center; padding: 12px;">إلغاء</button>
-                <button onclick="confirmDonation()" class="btn-lux btn-lux-primary" style="justify-content: center; padding: 12px;">تأكيد الدفع</button>
+                <button id="cancelModalBtn" class="btn-lux btn-lux-navy" style="justify-content: center; padding: 12px;">إلغاء</button>
+                <button id="confirmModalBtn" class="btn-lux btn-lux-primary" style="justify-content: center; padding: 12px;">تأكيد الدفع</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Safeguard for EJS variable rendering
+    // Robust variable initialization
     let currentType = '<%= typeof type !== "undefined" ? type : "direct" %>';
-    let currentAmount = Number('<%= typeof amount !== "undefined" ? amount : 0 %>') || 0;
+    let currentAmount = Number('<%= typeof amount !== "undefined" ? amount : 50 %>') || 50;
     const jsInstPercentage = Number('<%= typeof institutionPercentage !== "undefined" ? institutionPercentage : 0 %>') || 0;
     const jsGatePercentage = Number('<%= typeof gatewayPercentage !== "undefined" ? gatewayPercentage : 0 %>') || 0;
     const jsOperationPercentage = jsInstPercentage + jsGatePercentage;
-
     let isFeeCovered = true;
+
+    // Core Calculation & UI Update
+    function calculateTotal() {
+        const fee = (currentAmount * jsOperationPercentage) / 100;
+        let total = isFeeCovered ? (currentAmount + fee) : currentAmount;
+        
+        // Update Summary Labels
+        const feeLabel = document.getElementById('summaryFeeAmount');
+        if (feeLabel) {
+            if (isFeeCovered) {
+                feeLabel.innerText = '$' + fee.toFixed(2);
+                feeLabel.style.color = 'var(--secondary)';
+            } else {
+                feeLabel.innerText = 'خصم من التبرع (-$' + fee.toFixed(2) + ')';
+                feeLabel.style.color = '#ef4444';
+            }
+        }
+        
+        const totalLabel = document.getElementById('summaryTotalAmount');
+        if (totalLabel) totalLabel.innerText = '$' + total.toFixed(2);
+        
+        const amountLabel = document.getElementById('summaryAmountLabel');
+        if (amountLabel) amountLabel.innerText = '$' + currentAmount.toFixed(2);
+        
+        // Update Hidden Field
+        const finalAmountInput = document.getElementById('finalAmount');
+        if (finalAmountInput) finalAmountInput.value = currentAmount;
+    }
 
     function toggleCoverFees() {
         isFeeCovered = !isFeeCovered;
-        document.getElementById('coverFeesCheckbox').checked = isFeeCovered;
+        const checkbox = document.getElementById('coverFeesCheckbox');
+        if (checkbox) checkbox.checked = isFeeCovered;
         
-        // UI Toggle
+        // UI Toggle Animation/Style
         const track = document.getElementById('feeToggleTrack');
         const circle = document.getElementById('feeToggleCircle');
-        track.style.background = isFeeCovered ? 'var(--secondary)' : '#cbd5e1';
-        circle.style.left = isFeeCovered ? '22px' : '2px';
+        if (track && circle) {
+            track.style.background = isFeeCovered ? 'var(--secondary)' : '#cbd5e1';
+            circle.style.left = isFeeCovered ? '22px' : '2px';
+        }
         
         calculateTotal();
     }
 
-    function calculateTotal() {
-        const fee = (currentAmount * jsOperationPercentage) / 100;
-        let total;
-        
-        if (isFeeCovered) {
-            total = currentAmount + fee;
-            document.getElementById('summaryFeeAmount').innerText = '$' + fee.toFixed(2);
-            document.getElementById('summaryFeeAmount').style.color = 'var(--secondary)';
-        } else {
-            total = currentAmount;
-            document.getElementById('summaryFeeAmount').innerText = 'خصم من التبرع (-$' + fee.toFixed(2) + ')';
-            document.getElementById('summaryFeeAmount').style.color = '#ef4444';
-        }
-        
-        document.getElementById('summaryTotalAmount').innerText = '$' + total.toFixed(2);
-        document.getElementById('finalAmount').value = currentAmount;
-    }
-
     function setDonationType(type) {
         currentType = type;
-        document.getElementById('finalType').value = type;
+        const typeInput = document.getElementById('finalType');
+        if (typeInput) typeInput.value = type;
         
-        // Update UI
-        document.getElementById('typeMonthly').classList.toggle('active', type === 'monthly');
-        document.getElementById('typeDirect').classList.toggle('active', type === 'direct');
-        document.getElementById('summaryTypeLabel').innerText = (type === 'monthly') ? 'كفالة شهرية' : 'تبرع مباشر';
+        // Update UI Tabs
+        const typeMonthly = document.getElementById('typeMonthly');
+        if (typeMonthly) typeMonthly.classList.toggle('active', type === 'monthly');
         
-        // Manage note
+        const typeDirect = document.getElementById('typeDirect');
+        if (typeDirect) typeDirect.classList.toggle('active', type === 'direct');
+        
+        const typeLabel = document.getElementById('summaryTypeLabel');
+        if (typeLabel) typeLabel.innerText = (type === 'monthly') ? 'كفالة شهرية' : 'تبرع مباشر';
+        
+        // Monthly Note Management
         const note = document.getElementById('monthlyNote');
         if (type === 'monthly' && !note) {
             const newNote = document.createElement('div');
@@ -668,7 +686,8 @@
             newNote.className = 'summary-row';
             newNote.style = 'font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed #eee; padding-top: 10px; margin-top: 10px;';
             newNote.innerHTML = '<i class="fas fa-info-circle"></i> سيتم استقطاع هذا المبلغ شهرياً لدعم الحالة.';
-            document.querySelector('.summary-details').appendChild(newNote);
+            const summaryDetails = document.querySelector('.summary-details');
+            if (summaryDetails) summaryDetails.appendChild(newNote);
         } else if (type === 'direct' && note) {
             note.remove();
         }
@@ -676,74 +695,119 @@
     }
 
     function setAmount(amount) {
-        currentAmount = amount;
-        document.getElementById('customAmountInput').value = amount;
-        document.getElementById('summaryAmountLabel').innerText = '$' + amount;
+        currentAmount = Number(amount);
+        const customInput = document.getElementById('customAmountInput');
+        if (customInput) customInput.value = currentAmount;
         
-        // Update presets UI
+        // Update Presets UI
         document.querySelectorAll('.preset-btn').forEach(btn => {
-            if (btn.innerText === '$' + amount) btn.classList.add('active');
-            else btn.classList.remove('active');
+            const btnVal = btn.innerText.replace('$', '').trim();
+            btn.classList.toggle('active', Number(btnVal) === currentAmount);
         });
+        
         calculateTotal();
     }
 
     function updateAmountFromInput(val) {
-        const amount = Number(val) || 0;
-        currentAmount = amount;
-        document.getElementById('summaryAmountLabel').innerText = '$' + amount;
-        
-        // Reset presets
+        currentAmount = Number(val) || 0;
+        // Clear preset selection when custom input is used and doesn't match a preset
         document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
         calculateTotal();
     }
 
     function focusCustom() {
-        document.getElementById('customAmountInput').focus();
+        const input = document.getElementById('customAmountInput');
+        if (input) input.focus();
     }
 
-    // Invoice Modal Logic
+    // Modal Confirmation Logic
     function showInvoicePreview(e) {
-        e.preventDefault();
+        if (e) e.preventDefault();
         
         if (currentAmount <= 0) {
-            alert('يرجى تحديد مبلغ التبرع');
-            return;
+            alert('يرجى تحديد مبلغ التبرع بشكل صحيح');
+            return false;
         }
 
         const instFee = (currentAmount * jsInstPercentage) / 100;
         const gateFee = (currentAmount * jsGatePercentage) / 100;
         const totalFee = instFee + gateFee;
-        let total;
+        let finalDisplayTotal = isFeeCovered ? (currentAmount + totalFee) : currentAmount;
 
-        if (isFeeCovered) {
-            total = currentAmount + totalFee;
-        } else {
-            total = currentAmount;
-        }
+        // Populate Modal Fields
+        const modalBase = document.getElementById('modalBaseAmount');
+        const modalInst = document.getElementById('modalInstFeeAmount');
+        const modalGate = document.getElementById('modalGateFeeAmount');
+        const modalFee = document.getElementById('modalFeeAmount');
+        const modalTotal = document.getElementById('modalTotalAmount');
+        const modalType = document.getElementById('modalType');
 
-        document.getElementById('modalBaseAmount').innerText = '$' + currentAmount.toFixed(2);
-        document.getElementById('modalInstFeeAmount').innerText = '$' + instFee.toFixed(2);
-        document.getElementById('modalGateFeeAmount').innerText = '$' + gateFee.toFixed(2);
-        document.getElementById('modalFeeAmount').innerText = '$' + totalFee.toFixed(2) + (isFeeCovered ? '' : ' (سيتم خصمها)');
-        document.getElementById('modalTotalAmount').innerText = '$' + total.toFixed(2);
-        document.getElementById('modalType').innerText = currentType === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر';
+        if (modalBase) modalBase.innerText = '$' + currentAmount.toFixed(2);
+        if (modalInst) modalInst.innerText = '$' + instFee.toFixed(2);
+        if (modalGate) modalGate.innerText = '$' + gateFee.toFixed(2);
+        if (modalFee) modalFee.innerText = '$' + totalFee.toFixed(2) + (isFeeCovered ? '' : ' (سيتم خصمها)');
+        if (modalTotal) modalTotal.innerText = '$' + finalDisplayTotal.toFixed(2);
+        if (modalType) modalType.innerText = currentType === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر';
         
-        console.log('Showing modal for amount:', currentAmount, 'Total:', total);
-        document.getElementById('invoiceModal').style.display = 'flex';
+        // Show Modal
+        const modal = document.getElementById('invoiceModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
     }
 
     function closeInvoiceModal() {
-        document.getElementById('invoiceModal').style.display = 'none';
+        const modal = document.getElementById('invoiceModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
     }
 
     function confirmDonation() {
         document.getElementById('payment-form').submit();
     }
 
-    // Initial calculation
-    calculateTotal();
+    // Initialize UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+        calculateTotal();
 
+        // Attach Event Listeners to comply with CSP (No inline scripts)
+        const typeMonthlyBtn = document.getElementById('typeMonthly');
+        if (typeMonthlyBtn) typeMonthlyBtn.addEventListener('click', () => setDonationType('monthly'));
+        
+        const typeDirectBtn = document.getElementById('typeDirect');
+        if (typeDirectBtn) typeDirectBtn.addEventListener('click', () => setDonationType('direct'));
+
+        document.querySelectorAll('.preset-amount').forEach(btn => {
+            btn.addEventListener('click', function() {
+                setAmount(this.getAttribute('data-amount'));
+            });
+        });
+
+        const presetCustomBtn = document.querySelector('.preset-custom');
+        if (presetCustomBtn) presetCustomBtn.addEventListener('click', focusCustom);
+
+        const customInputEl = document.getElementById('customAmountInput');
+        if (customInputEl) {
+            customInputEl.addEventListener('input', function() {
+                updateAmountFromInput(this.value);
+            });
+        }
+
+        const coverFeesBtn = document.getElementById('coverFeesBtn');
+        if (coverFeesBtn) coverFeesBtn.addEventListener('click', toggleCoverFees);
+
+        const submitDonBtn = document.getElementById('submitDonationBtn');
+        if (submitDonBtn) submitDonBtn.addEventListener('click', showInvoicePreview);
+
+        const cancelModBtn = document.getElementById('cancelModalBtn');
+        if (cancelModBtn) cancelModBtn.addEventListener('click', closeInvoiceModal);
+
+        const confirmModBtn = document.getElementById('confirmModalBtn');
+        if (confirmModBtn) confirmModBtn.addEventListener('click', confirmDonation);
+    });
 </script>
 
 <%- include('../../partials/footer-bottom') %>
