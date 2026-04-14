@@ -48,7 +48,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const rawCorsOrigins = process.env.CORS_ORIGINS || process.env.BASE_URL || "";
 const allowedOrigins = rawCorsOrigins
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
 if (isProduction) {
@@ -107,12 +107,31 @@ app.use(i18n.init);
 app.use(hpp());
 app.use(sanitizeRequest);
 app.use(express.static(path.join(__dirname, "public"), { maxAge: "30d" }));
+
 app.use(
   cors({
     origin(origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
+      
+      // In development, allow everything
       if (!isProduction) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      
+      // Sanitize the incoming origin
+      const sanitizedOrigin = origin.trim().replace(/\/$/, "");
+      
+      // Check if it's in our allowed list
+      if (allowedOrigins.some(o => o === sanitizedOrigin)) {
+        return callback(null, true);
+      }
+      
+      // Fallback: If it's the same origin as BASE_URL, allow it
+      const baseUrlSanitized = (process.env.BASE_URL || "").trim().replace(/\/$/, "");
+      if (sanitizedOrigin === baseUrlSanitized) {
+        return callback(null, true);
+      }
+
+      console.error(`[CORS Error] Origin blocked: ${origin}`);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
