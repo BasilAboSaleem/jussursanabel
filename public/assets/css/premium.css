@@ -77,6 +77,19 @@ body {
     overflow-x: hidden;
     direction: rtl;
     font-size: 16px;
+    /* Reserve space for fixed navbar */
+    padding-top: 72px;
+}
+
+/* Don't add extra body padding in dashboard or full-screen layouts */
+body.admin-layout,
+body.dashboard-main,
+body.sidebar-premium,
+body.stories-page,
+body:has(.admin-layout),
+body:has(.dashboard-main),
+body:has(.sidebar-premium) {
+    padding-top: 0 !important;
 }
 
 img,
@@ -117,59 +130,121 @@ button {
     left: 0;
     right: 0;
     z-index: 1000;
-    height: 82px;
+    height: 72px;
     display: flex;
-    align-items: center;
-    padding: 0 5%;
-    gap: 20px;
+    align-items: stretch;
+    padding: 0;
+    padding-inline-end: 5%;
+    gap: 0;
     transition: var(--transition);
-    background: rgba(248, 250, 252, 0.65);
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    /* NO overflow:hidden — it breaks backdrop-filter on iOS/Android */
 }
 
 .premium-nav.scrolled {
-    height: 68px;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: var(--shadow-md);
+    height: 62px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(25px) saturate(200%);
+    -webkit-backdrop-filter: blur(25px) saturate(200%);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
+/* Logo block — Artistic Floating Shield (Subul Signature) */
 .logo-luxury {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     font-family: 'Cairo', sans-serif;
     font-weight: 900;
-    font-size: 1.55rem;
-    color: var(--primary);
+    font-size: 1.5rem;
+    color: #ffffff;
     white-space: nowrap;
-    transition: var(--transition-fast);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: linear-gradient(135deg, #051423 0%, #0A2540 100%);
+    padding: 0 35px;
+    align-self: center; /* Floating state */
+    margin-inline-start: 15px;
+    height: 52px; /* Fixed height for consistent shield shape */
+    border-radius: 14px 14px 14px 65px; /* Organic leaf/shield shape — flipped to left */
+    box-shadow: 0 12px 30px rgba(10,37,64,0.2), 
+                0 0 15px rgba(16, 185, 129, 0.12);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer;
 }
 
 .logo-luxury:hover {
-    opacity: 0.85;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(10,37,64,0.3), 
+                0 0 25px rgba(16, 185, 129, 0.2);
+    border-color: rgba(255,255,255,0.25);
+}
+
+.logo-luxury::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(52, 211, 153, 0.15) 0%, transparent 75%);
+    pointer-events: none;
+}
+
+/* Subul Signature Shine */
+.logo-luxury::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: skewX(-25deg);
+    animation: logo-glow 10s infinite ease-in-out;
+}
+
+@keyframes logo-glow {
+    0% { left: -150%; }
+    20%, 100% { left: 150%; }
+}
+
+.logo-luxury:hover {
+    opacity: 0.9;
+}
+
+.logo-luxury img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .logo-luxury i {
     font-size: 1.6rem;
 }
 
+/* Nav links (desktop) */
 .nav-links-luxury {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-right: auto;
+    gap: 4px;
+    margin-inline-end: auto;
+    padding-inline-start: 20px;
+    flex: 1;
 }
 
 .nav-link-luxury {
     position: relative;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.96rem;
-    padding: 8px 14px;
+    font-size: 0.95rem;
+    padding: 8px 13px;
     border-radius: var(--radius-sm);
     transition: var(--transition-fast);
+    white-space: nowrap;
 }
 
 .nav-link-luxury:hover {
@@ -200,11 +275,12 @@ button {
     display: none;
     background: none;
     border: none;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     color: var(--primary);
-    padding: 8px;
+    padding: 8px 10px;
     border-radius: var(--radius-sm);
     transition: var(--transition-fast);
+    flex-shrink: 0;
 }
 
 .mobile-toggle:hover,
@@ -212,48 +288,62 @@ button {
     background: var(--bg-subtle);
 }
 
+/* ── Tablet / Mobile ≤ 992px ── */
 @media (max-width: 992px) {
     .premium-nav {
         justify-content: space-between;
+        padding-inline-end: 12px;
+        gap: 0;
     }
 
     .mobile-toggle,
     .mobile-menu-toggle {
         display: flex;
         align-items: center;
-        margin-right: auto;
     }
 
     .nav-actions-luxury {
         display: none !important;
     }
 
+    /* Drop-down mobile menu panel */
     .nav-links-luxury {
         position: fixed;
-        top: 68px;
+        top: 72px;
         left: 0;
         right: 0;
         flex-direction: column;
         align-items: stretch;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(32px);
-        padding: 24px 5% 32px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 20px 5% 28px;
         gap: 4px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-110%);
-        transition: transform 0.45s var(--ease-spring);
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        /* Use visibility + opacity + transform: avoids shadow bleed on mobile */
+        transform: translateY(-8px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
         z-index: 999;
-        margin-right: 0;
+        margin-inline-end: 0;
+        flex: none;
+        padding-inline-start: 5%;
     }
 
     .nav-links-luxury.active {
         transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s linear 0s;
     }
 
     .nav-link-luxury {
-        font-size: 1.1rem;
-        padding: 12px 16px;
+        font-size: 1.05rem;
+        padding: 11px 14px;
     }
 
     .mobile-only-actions {
@@ -262,6 +352,51 @@ button {
         gap: 10px;
         width: 100%;
         margin-top: 12px;
+    }
+
+    /* Mobile menu action buttons — full width, reasonable size */
+    .mobile-only-actions .btn-lux {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 13px 20px !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+/* ── Small phone ≤ 480px ── */
+@media (max-width: 480px) {
+    .premium-nav {
+        height: 62px;
+    }
+
+    .logo-luxury {
+        font-size: 1.1rem;
+        padding: 0 14px;
+        border-bottom-inline-end-radius: 24px;
+    }
+
+    .logo-luxury img {
+        height: 34px;
+    }
+
+    .logo-luxury span {
+        /* keep title visible but smaller */
+        font-size: 1rem !important;
+    }
+
+    .mobile-menu-toggle {
+        font-size: 1.15rem;
+        padding: 6px 8px;
+    }
+
+    /* Mobile lang button */
+    #mobileLangToggleBtn {
+        font-size: 1.1rem !important;
+        padding: 4px !important;
+    }
+
+    .nav-links-luxury {
+        top: 62px;
     }
 }
 
@@ -530,6 +665,7 @@ button {
     position: relative;
     overflow: hidden;
     isolation: isolate;
+    white-space: nowrap;
 }
 
 .btn-lux::after {
@@ -621,6 +757,35 @@ button {
 .btn-lg {
     padding: 18px 48px;
     font-size: 1.15rem;
+}
+
+/* ── Mobile Button Normalisation ── */
+@media (max-width: 768px) {
+    /* General: shrink oversized buttons on mobile */
+    .btn-lux {
+        padding: 12px 24px;
+        font-size: 0.93rem;
+        gap: 8px;
+    }
+    .btn-lux.btn-lg {
+        padding: 14px 30px;
+        font-size: 1rem;
+    }
+    .btn-lux.btn-sm {
+        padding: 9px 18px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-lux {
+        padding: 11px 20px;
+        font-size: 0.88rem;
+    }
+    .btn-lux.btn-lg {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
 }
 
 /* ── 8. Cards ──────────────────────────────────────────────────── */
@@ -1445,23 +1610,13 @@ tbody tr:hover {
         padding-right: 16px !important;
     }
 
-    .premium-nav {
-        padding-left: 12px;
-        padding-right: 12px;
-        gap: 10px;
-    }
-
     .logo-luxury {
         min-width: 0;
     }
 
-    .logo-luxury span {
-        font-size: 1.05rem !important;
-    }
-
     .nav-links-luxury {
-        top: 82px;
-        max-height: calc(100vh - 82px);
+        top: 72px;
+        max-height: calc(100vh - 72px);
         overflow-y: auto;
     }
 
@@ -1480,6 +1635,13 @@ tbody tr:hover {
 
     [style*="grid-template-columns: 1fr 1fr"] {
         grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-links-luxury {
+        top: 62px;
+        max-height: calc(100vh - 62px);
     }
 }
 

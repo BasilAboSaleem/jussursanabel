@@ -352,15 +352,15 @@
         }
     </style>
 </head>
-<body>
+<body class="stories-page">
 
 <!-- ── TOP BAR ── -->
 <div class="stories-topbar">
     <a href="/" class="stories-logo">
-        <img src="/logoSanabel.png" alt="جسور السنابل" class="header-logo-story">
+        <img src="/logoSanabel.png" alt="سُبُل" class="header-logo-story">
         <div class="stories-logo-text">
-            <span>جسور السنابل</span>
-            <!-- ① Live Counter Badge -->
+            <span>سُبُل</span>
+            <!-- ① Live Counter Badge -->   
             <span class="stories-live-badge">
                 <span class="live-dot"></span>
                 <span id="live-count"><%= stories ? stories.length : 0 %></span> قصة حية
@@ -497,19 +497,7 @@
             </div>
             <% } %>
 
-            <!-- Donation bar -->
-            <div class="story-donation-bar">
-                <div class="story-amounts">
-                    <div class="story-raised">
-                        <span>$<%= (story.raisedAmount || 0).toLocaleString() %></span>
-                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.55); font-weight:600;"> جُمع</span>
-                    </div>
-                    <div class="story-target">الهدف: $<%= (story.targetAmount || 0).toLocaleString() %></div>
-                </div>
-                <div class="story-bar-track">
-                    <div class="story-bar-fill" style="width:<%= pct %>%;"></div>
-                </div>
-            </div>
+       
 
             <!-- CTA -->
             <a href="/cases/<%= story._id %>" class="story-cta-btn">

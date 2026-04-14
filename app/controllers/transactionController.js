@@ -9,7 +9,7 @@ const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
 const Stripe = require('stripe');
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.TEST_SECRET_KEY;
+const stripeSecretKey = process.env.Live_Secret_KEY || process.env.STRIPE_SECRET_KEY || process.env.TEST_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripeCurrency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;

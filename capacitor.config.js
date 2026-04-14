@@ -17,8 +17,8 @@ if (!process.env.CAPACITOR_SERVER_URL) {
 }
 
 module.exports = {
-  appId: "com.jussursanabel.app",
-  appName: "Jussur Sanabel",
+  appId: "com.subul.app",
+  appName: "Subul Platform",
   webDir: "capacitor/www",
   server: {
     url: serverUrl,

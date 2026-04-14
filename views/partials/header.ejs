@@ -1,11 +1,11 @@
-<header class="premium-nav" style="padding-<%= locals.langDir === 'ltr' ? 'left' : 'right' %>: 0;">
-    <a href="/" class="logo-luxury" style="flex-shrink: 0; background: var(--primary); color: white; height: 100%; display: flex; align-items: center; padding: 0 clamp(20px, 5%, 40px); border-bottom-<%= locals.langDir === 'ltr' ? 'right' : 'left' %>-radius: 40px; box-shadow: 2px 0 20px rgba(10,37,64,0.15);">
-        <img src="/logoSanabel.png" alt="سُبُل" style="height: 55px; width: auto; object-fit: contain;">
-        <span class="font-cairo" style="margin-inline-start: 10px; font-weight: 900; letter-spacing: -0.5px; font-size: 1.5rem;"><%= __('hero_title') %></span>
+<header class="premium-nav">
+    <a href="/" class="logo-luxury">
+        <img src="/logoSanabel.png" alt="سُبُل">
+        <span class="font-cairo"><%= __('hero_title') %></span>
     </a>
 
     <!-- Mobile Menu Toggle & Lang Switcher -->
-    <div style="display: flex; align-items: center; gap: 15px; margin-right: auto; order: 2;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-inline-start: auto;">
         <style>
             .mobile-lang-wrapper { display: none; }
             @media (max-width: 992px) { .mobile-lang-wrapper { display: block; } }

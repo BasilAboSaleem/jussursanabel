@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "jussur-sanabel",
+      name: "subul-platform",
       script: "server.js",
       exec_mode: "cluster",
       instances: process.env.PM2_INSTANCES || "max",
@@ -19,7 +19,7 @@ module.exports = {
 module.exports = {
   apps: [
     {
-      name: "jussur-sanabel",
+      name: "subul-platform",
       script: "./server.js",
       instances: "max", // Utilize all available CPU cores
       exec_mode: "cluster",

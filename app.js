@@ -1,5 +1,5 @@
 // ===========================
-// Jussur Sanabel System - app.js
+// Subul Platform System - app.js
 // ===========================
 
 const express = require("express");
@@ -135,7 +135,7 @@ app.use(helmet({
         imgSrc: ["'self'", "data:", "https:"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
         connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
-        frameSrc: ["'self'", "https://checkout.stripe.com", "https://js.stripe.com", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+        frameSrc: ["'self'", "https://checkout.stripe.com", "https://js.stripe.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"],
         mediaSrc: ["'self'", "https:", "blob:"],
         formAction: ["'self'", "https://checkout.stripe.com"],
       },
@@ -151,7 +151,7 @@ if (process.env.NODE_ENV !== "production") {
 // Session + Flash 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "sanabelSecrets",
+    secret: process.env.SESSION_SECRET || (isProduction ? undefined : "subulDevSecrets"),
     resave: false,
     saveUninitialized: false,
     proxy: isProduction,
@@ -160,7 +160,7 @@ app.use(
           mongoUrl: process.env.MONGODB_URI,
           ttl: 60 * 60 * 24,
           autoRemove: "native",
-          crypto: { secret: process.env.SESSION_SECRET || "sanabelSecrets" },
+          crypto: { secret: process.env.SESSION_SECRET || (isProduction ? undefined : "subulDevSecrets") },
         })
       : undefined,
     cookie: {

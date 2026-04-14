@@ -102,6 +102,35 @@ exports.getContact = (req, res) => {
     });
 };
 
+exports.postContact = async (req, res) => {
+    const { name, email, subject, message } = req.body;
+    
+    // Simple validation
+    if (!name || !email || !message) {
+        req.flash('error', 'يرجى ملء جميع الحقول المطلوبة.');
+        return res.redirect('/contact');
+    }
+
+    try {
+        const sendEmail = require('../utils/emailSender');
+        const { contactFormEmail } = require('../utils/emailTemplates');
+        
+        // Send email to foundation
+        await sendEmail({
+            email: process.env.EMAIL_USERNAME || 'pal-gaza@senabilcharity.org',
+            subject: `رسالة تواصل جديدة: ${subject || 'بدون عنوان'}`,
+            html: contactFormEmail(name, email, subject || 'بدون عنوان', message)
+        });
+
+        req.flash('success', 'شكراً لك! تم استلام رسالتك وسيتواصل معك فريقنا في أقرب وقت ممكن.');
+        res.redirect('/contact');
+    } catch (err) {
+        console.error('Contact Form Error:', err);
+        req.flash('error', 'نعتذر، حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى لاحقاً.');
+        res.redirect('/contact');
+    }
+};
+
 exports.getTransparency = (req, res) => {
     res.render('pages/transparency', { 
         title: res.__('navbar_transparency'),

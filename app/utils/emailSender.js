@@ -4,7 +4,7 @@ const { enqueueEmail } = require('./queue');
 const sendEmail = async (options) => {
     try {
         const mailOptions = {
-            from: `جسور سنابل <${process.env.EMAIL_FROM || 'noreply@jussursanabel.org'}>`,
+            from: `منصة سُبُل <${process.env.EMAIL_FROM || 'pal-gaza@senabilcharity.org'}>`,
             to: options.email,
             subject: options.subject,
             html: options.html
@@ -19,13 +19,21 @@ const sendEmail = async (options) => {
 
         let transporter;
         if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
+            const port = parseInt(process.env.EMAIL_PORT, 10) || 465;
+            // secure: true for port 465, false for other ports (like 587 for Outlook/Gmail STARTTLS)
+            const isSecure = port === 465;
+
             transporter = nodemailer.createTransport({
-                host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-                port: process.env.EMAIL_PORT || 465,
-                secure: true,
+                host: process.env.EMAIL_HOST || 'smtp-mail.outlook.com',
+                port: port,
+                secure: isSecure,
                 auth: {
                     user: process.env.EMAIL_USERNAME,
                     pass: process.env.EMAIL_PASSWORD
+                },
+                // Recommended for modern Node environments to avoid handshake issues on some servers
+                tls: {
+                    rejectUnauthorized: false
                 }
             });
         } else {

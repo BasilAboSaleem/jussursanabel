@@ -2,7 +2,7 @@
 
 <main style="overflow: hidden; background: #fff;">
     <!-- 1. Majestic Hero Section -->
-    <section class="hero-luxury" style="min-height: 55vh; padding: 160px 0 100px; display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
+    <section class="hero-luxury" style="min-height: 55vh; padding: 90px 0 100px; display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
         <!-- Brand Gradient Overlay -->
         <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25) 0%, transparent 70%);"></div>
         <div class="bg-mesh" style="opacity: 0.6;"></div>
@@ -57,7 +57,7 @@
                         </div>
                         <div class="contact-text-wrapper">
                             <h4 class="font-cairo" style="font-weight: 950;"><%= __('contact_email_title') %></h4>
-                            <p>info@jussursanabel.ps</p>
+                            <p>pal-gaza@senabilcharity.org</p>
                         </div>
                     </div>
 
@@ -75,10 +75,10 @@
 
                 <!-- Social Media Links (Unified Circular Style) -->
                 <div style="margin-top: 50px; display: flex; gap: 15px;">
-                    <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-btn"><i class="fab fa-x-twitter"></i></a>
-                    <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.facebook.com/senabilcharity?mibextid=wwXIfr&rdid=JHsWhvYJXH3ZokBr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1AraaUdVRC%2F%3Fmibextid%3DwwXIfr#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/senabilcharity?utm_source=ig_web_button_share_sheet&igsh=MWhrZmxzNnNtdjY3cQ%3D%3D" class="social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="https://x.com/senabilcharity?t=LzwyuxUTObXuD2N1EgKrSg&s=08" class="social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="https://www.youtube.com/@senabilcharity?themeRefresh=1" class="social-btn"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
 
@@ -88,12 +88,13 @@
                     <h3 class="font-cairo" style="font-weight: 950; margin-bottom: 10px; color: var(--primary); font-size: 1.8rem;"><%= __('contact_form_title') %></h3>
                     <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 35px; font-weight: 500;"><%= __('contact_form_desc') %></p>
                     
-                    <form action="#" method="POST" class="premium-form">
+                    <form action="/contact" method="POST" class="premium-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <div class="form-group-lux">
                             <label class="form-label-lux"><%= __('contact_form_name') %></label>
                             <div class="input-wrapper-lux">
                                 <i class="fas fa-user input-icon"></i>
-                                <input type="text" class="form-input-lux" placeholder="<%= __('contact_form_name_placeholder') %>" required>
+                                <input type="text" name="name" class="form-input-lux" placeholder="<%= __('contact_form_name_placeholder') %>" required>
                             </div>
                         </div>
 
@@ -101,7 +102,7 @@
                             <label class="form-label-lux"><%= __('contact_email_title') %></label>
                             <div class="input-wrapper-lux">
                                 <i class="fas fa-at input-icon"></i>
-                                <input type="email" class="form-input-lux" placeholder="example@mail.com" required>
+                                <input type="email" name="email" class="form-input-lux" placeholder="example@mail.com" required>
                             </div>
                         </div>
 
@@ -109,18 +110,18 @@
                             <label class="form-label-lux"><%= __('contact_form_subject') %></label>
                             <div class="input-wrapper-lux">
                                 <i class="fas fa-tag input-icon"></i>
-                                <select class="form-input-lux" style="appearance: none;">
-                                    <option><%= __('contact_form_subject_donation') %></option>
-                                    <option><%= __('contact_form_subject_orphan') %></option>
-                                    <option><%= __('contact_form_subject_complaint') %></option>
-                                    <option><%= __('contact_form_subject_other') %></option>
+                                <select name="subject" class="form-input-lux" style="appearance: none;">
+                                    <option value="<%= __('contact_form_subject_donation') %>"><%= __('contact_form_subject_donation') %></option>
+                                    <option value="<%= __('contact_form_subject_orphan') %>"><%= __('contact_form_subject_orphan') %></option>
+                                    <option value="<%= __('contact_form_subject_complaint') %>"><%= __('contact_form_subject_complaint') %></option>
+                                    <option value="<%= __('contact_form_subject_other') %>"><%= __('contact_form_subject_other') %></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-group-lux">
                             <label class="form-label-lux"><%= __('contact_form_message') %></label>
-                            <textarea class="form-input-lux" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
+                            <textarea name="message" class="form-input-lux" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
                         </div>
 
                         <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px; height: 65px; font-size: 1.2rem; background: var(--grad-green); color: #fff; border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3); font-weight: 800;">
@@ -153,7 +154,7 @@
             <!-- Live Google Map Iframe -->
             <div style="height: 450px; width: 100%; border-top: 1px solid #f1f5f9;">
                 <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3408.8354!2d34.3414!3d31.4239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14fd83e7456789%3A0x123456789abcdef!2sDeir%20al-Balah!5e0!3m2!1sen!2sps!4v1712396600000!5m2!1sen!2sps" 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1152.483!2d34.348582!3d31.419307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI1JzA5LjUiTiAzNMKwMjAnNTQuOSJF!5e0!3m2!1sar!2sps!4v1712396600000!5m2!1sar!2sps" 
                     width="100%" 
                     height="100%" 
                     style="border:0; filter: contrast(1.05) brightness(0.98);" 
@@ -164,8 +165,8 @@
             </div>
             
             <div style="padding: 25px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: center;">
-                <a href="https://maps.google.com/?q=31.4239,34.3414" target="_blank" class="btn-lux btn-lux-navy btn-sm" style="padding: 12px 30px; border-radius: 15px;">
-                    <i class="fas fa-external-link-alt" style="margin-inline-end: 8px;"></i> <%= __('contact_office_title') %> (فتح في خرائط جوجل)
+                <a href="https://maps.google.com/?q=31.419307,34.348582" target="_blank" class="btn-lux btn-lux-navy btn-sm" style="padding: 12px 30px; border-radius: 15px;">
+                    <i class="fas fa-external-link-alt" style="margin-inline-end: 8px;"></i> المقر الرئيسي (فتح في خرائط جوجل)
                 </a>
             </div>
         </div>
