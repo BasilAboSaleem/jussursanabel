@@ -144,7 +144,7 @@
                         <span><%= __('admin_settings_fee_label') %> (<%= operationPercentage %>%):</span>
                         <strong id="summaryFeeAmount">$0.00</strong>
                     </div>
-                    <div id="feeBreakdown" class="checkout-fee-breakdown" style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+                    <div id="feeBreakdown" class="checkout-fee-breakdown">
                         (<%= institutionPercentage %>% <%= __('admin_settings_institution_fee_label').replace(' (%)', '') %> + <%= gatewayPercentage %>% <%= __('admin_settings_gateway_fee_label').replace(' (%)', '') %>)
                     </div>
                     <div class="summary-row" style="border-top: 2px solid rgba(0,0,0,0.05); padding-top: 10px; margin-top: 10px;">
@@ -378,6 +378,12 @@
         margin-bottom: 10px;
         opacity: 0.8;
     }
+    html[dir="rtl"] .checkout-fee-breakdown {
+        text-align: left;
+    }
+    html[dir="ltr"] .checkout-fee-breakdown {
+        text-align: right;
+    }
     .checkout-trust {
         margin-top: 30px;
         text-align: center;
@@ -589,7 +595,7 @@
                     <span style="color: var(--text-muted);"><%= __('admin_settings_gateway_fee_label') %> (<%= gatewayPercentage %>%):</span>
                     <strong id="modalGateFeeAmount" style="color: var(--primary);">$0.00</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; border-top: 1px solid #f1f5f9; pt-2;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; border-top: 1px solid #f1f5f9; padding-top: 0.5rem;">
                     <span style="color: var(--text-muted); font-weight: 700;"><%= __('admin_settings_fee_label') %> (<%= operationPercentage %>%):</span>
                     <strong id="modalFeeAmount" style="color: var(--secondary); font-weight: 800;">$0.00</strong>
                 </div>

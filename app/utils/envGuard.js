@@ -1,4 +1,4 @@
-/*const { systemLogger } = require("./logger");
+const { systemLogger } = require("./logger");
 
 const REQUIRED_IN_PROD = [
   "SESSION_SECRET",
@@ -22,5 +22,3 @@ function verifyProductionEnv() {
 }
 
 module.exports = { verifyProductionEnv };
-
- */

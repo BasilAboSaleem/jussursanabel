@@ -41,6 +41,9 @@ const authMiddleware = require("./app/middlewares/auth");
 const { apiLimiter, authLimiter, paymentLimiter } = require("./app/middlewares/rateLimiter");
 const { systemLogger } = require("./app/utils/logger");
 const { sendAlert } = require("./app/utils/alerting");
+const { verifyProductionEnv } = require("./app/utils/envGuard");
+
+verifyProductionEnv();
 
 // App Initialization
 const app = express();

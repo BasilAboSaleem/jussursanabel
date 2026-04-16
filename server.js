@@ -20,6 +20,11 @@ process.on('unhandledRejection', (err) => {
 // --------- Environment ----------
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const isProduction = process.env.NODE_ENV === "production";
+const socketCorsOrigins = (process.env.CORS_ORIGINS || process.env.BASE_URL || BASE_URL)
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
 
 // --------- Create HTTP Server ----------
 const server = http.createServer(app);
@@ -28,8 +33,9 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: isProduction ? socketCorsOrigins : true,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
