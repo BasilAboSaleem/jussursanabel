@@ -26,7 +26,8 @@ i18n.configure({
   directory: path.join(__dirname, 'locales'),
   defaultLocale: 'ar',
   cookie: 'lang',
-  objectNotation: true
+  objectNotation: true,
+  updateFiles: false
 });
 
 const csurf = require("csurf");
@@ -150,6 +151,7 @@ app.use(helmet({
         objectSrc: ["'none'"],
         frameAncestors: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://js.stripe.com"],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
         imgSrc: ["'self'", "data:", "https:"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],

@@ -134,7 +134,7 @@
             </div>
 
             <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-list"></i> <%= __('admin_oversight_outgoing_ops') %></h4>
-            <div style="overflow-x: auto; margin-bottom: 30px;">
+            <div class="table-responsive" style="margin-bottom: 30px;">
                 <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                     <thead style="background: rgba(0,0,0,0.03);">
                         <tr>
@@ -159,7 +159,7 @@
             </div>
 
             <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-list"></i> <%= __('admin_oversight_incoming_ops') %></h4>
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                     <thead style="background: rgba(0,0,0,0.03);">
                         <tr>
@@ -187,7 +187,7 @@
         <!-- Cases Tab -->
         <div id="cases" class="tab-content">
             <h4 style="color: var(--primary); margin-bottom: 15px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;"><i class="fas fa-folder-open"></i> <%= __('admin_oversight_case_details') %></h4>
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                     <thead style="background: rgba(0,0,0,0.03);">
                         <tr>
@@ -522,7 +522,7 @@ function showDiscussion(index) {
     const navItem = document.getElementById('nav-item-' + index);
     if(navItem) {
         navItem.style.background = 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)';
-        navItem.style.borderColor = '#eab308';
+        navItem.style.borderColor = '#10b981';
     }
 }
 

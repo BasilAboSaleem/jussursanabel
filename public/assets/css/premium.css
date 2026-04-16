@@ -18,7 +18,7 @@
     --gray-dark: #475569;
     --danger: #ef4444;
     --success: #10B981;
-    --grad-gold: linear-gradient(135deg, #E2B064 0%, #FBBF24 100%);
+    --grad-gold: linear-gradient(135deg, #34D399 0%, #10B981 100%);
     --grad-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
 
     /* Backgrounds */
@@ -75,7 +75,7 @@ body {
     color: var(--text-main);
     line-height: 1.75;
     overflow-x: hidden;
-    direction: rtl;
+    direction: inherit;
     font-size: 16px;
     /* Reserve space for fixed navbar */
     padding-top: 72px;
@@ -90,6 +90,7 @@ body:has(.admin-layout),
 body:has(.dashboard-main),
 body:has(.sidebar-premium) {
     padding-top: 0 !important;
+    overflow-x: visible !important; /* CRITICAL: Allow horizontal scrolling for inner robust components on mobile */
 }
 
 img,
@@ -430,9 +431,9 @@ button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(226, 176, 100, 0.1);
+    background: rgba(16, 185, 129, 0.1);
     color: var(--secondary);
-    border: 1px solid rgba(226, 176, 100, 0.25);
+    border: 1px solid rgba(16, 185, 129, 0.25);
     padding: 8px 20px;
     border-radius: var(--radius-pill);
     font-weight: 700;
@@ -1428,7 +1429,9 @@ tbody tr:hover {
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    height: 100vh;
     background: #f1f5f9;
+    overflow: hidden;
 }
 
 .admin-sidebar {
@@ -1441,7 +1444,7 @@ tbody tr:hover {
     right: 0;
     display: flex;
     flex-direction: column;
-    z-index: 1001;
+    z-index: 2000;
     transition: var(--transition);
     border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -1500,6 +1503,8 @@ tbody tr:hover {
     margin-right: 280px;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .admin-top-bar {
@@ -1510,21 +1515,62 @@ tbody tr:hover {
     justify-content: space-between;
     padding: 0 40px;
     border-bottom: 1px solid #e2e8f0;
-    position: sticky;
-    top: 0;
+    flex-shrink: 0;
     z-index: 1000;
 }
 
 .admin-page-content {
     padding: 40px;
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar-close-btn {
+    display: none;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 2001;
+}
+
+html[dir="ltr"] .sidebar-close-btn {
+    left: auto;
+    right: 20px;
 }
 
 @media (max-width: 1024px) {
     .admin-sidebar {
         transform: translateX(100%); /* RTL Default */
         width: 280px;
-        box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+        box-shadow: -10px 0 40px rgba(0,0,0,0.3);
     }
     
     html[dir="ltr"] .admin-sidebar {
@@ -1535,12 +1581,17 @@ tbody tr:hover {
         transform: translateX(0) !important;
     }
 
+    .sidebar-close-btn {
+        display: flex;
+    }
+
     .admin-main {
         margin-right: 0 !important;
         margin-left: 0 !important;
         width: 100%;
         max-width: 100vw;
-        overflow-x: hidden;
+        height: 100vh;
+        overflow: hidden;
     }
 
     .mobile-sidebar-toggle {
@@ -1549,44 +1600,58 @@ tbody tr:hover {
 
     .admin-top-bar {
         padding: 0 15px;
+        flex-shrink: 0;
     }
 
     .admin-page-content {
         padding: 15px;
         width: 100%;
+        overflow-y: auto;
         overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        min-height: 0; /* Critical for flex overflow to work */
     }
 }
 
 @media (max-width: 768px) {
+    .admin-top-bar .admin-top-bar-date,
+    .admin-top-bar .admin-active-mode-badge {
+        display: none !important;
+    }
+
+    /* Cards should NOT scroll - only table-responsive scrolls */
     .admin-page-content .luxury-card, 
     .dashboard-container-lux .luxury-card,
     .table-card-lux {
         padding: 15px !important;
+        overflow: visible !important;
+        border-radius: var(--radius-md);
+        width: 100%;
+    }
+
+    /* Only table-responsive gets horizontal scroll */
+    .table-responsive {
         overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 !important;
     }
     
     .admin-page-content table, 
     .dashboard-container-lux table,
-    .premium-table-lux {
-        min-width: 700px;
+    .premium-table-lux,
+    .table {
+        min-width: 800px !important; /* Force scroll trigger earlier */
+        margin-bottom: 0px !important;
     }
     
-    /* Make header and filters stack properly */
-    .admin-page-content > div > div {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    
-    .admin-top-bar {
-        flex-wrap: wrap;
-        height: auto;
-        padding: 10px 15px;
-        gap: 15px;
-    }
-
-    .table-responsive {
-        overflow-x: auto !important;
+    /* Ensure table headers are readable */
+    th {
+        white-space: nowrap !important;
     }
 }
 
@@ -1643,6 +1708,55 @@ tbody tr:hover {
         top: 62px;
         max-height: calc(100vh - 62px);
     }
+}
+
+/* ── 13.2 Global Responsive Grid Utils ───────────────────────── */
+.grid-auto-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px !important;
+}
+
+.grid-auto-3 {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 25px !important;
+}
+
+.grid-auto-2 {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 30px !important;
+}
+
+@media (max-width: 1200px) {
+    .grid-auto-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 1024px) {
+    .grid-auto-3 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 768px) {
+    .grid-auto-4, 
+    .grid-auto-3, 
+    .grid-auto-2 { 
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    .responsive-hide { display: none !important; }
+    .responsive-stack { 
+        flex-direction: column !important; 
+        align-items: stretch !important; 
+        gap: 15px !important; 
+    }
+}
+
+.modal-overlay,
+.modal-overlay-lux,
+.modal-overlay-luxury {
+    z-index: 3000 !important;
 }
 
 /* ── 14. Homepage Enhancements ────────────────────────────────── */
@@ -1707,7 +1821,7 @@ tbody tr:hover {
 }
 
 .shimmer-text {
-    background: linear-gradient(90deg, #fff, #fbbf24, #fff);
+    background: linear-gradient(90deg, #fff, #10b981, #fff);
     background-size: 200% auto;
     color: #000;
     -webkit-background-clip: text;
@@ -1874,7 +1988,7 @@ tbody tr:hover {
     opacity: 0.4;
     background: 
         radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.1) 0, transparent 50%), 
-        radial-gradient(at 50% 0%, rgba(217, 119, 6, 0.1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.1) 0, transparent 50%), 
         radial-gradient(at 100% 0%, rgba(30, 64, 175, 0.1) 0, transparent 50%);
 }
 
@@ -1902,9 +2016,106 @@ tbody tr:hover {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-@media (max-width: 1024px) {
     div[style*="border-bottom: 2px dashed rgba(16, 185, 129, 0.4)"] {
         display: none !important;
     }
 }
 
+/* ── 15. Admin Dashboard Responsiveness Fixes ────────────────── */
+@media (max-width: 992px) {
+    .grid-2, .grid-3, .grid-4, .grid-auto-2, .grid-auto-3, .grid-auto-4,
+    [style*="grid-template-columns: 1fr 1fr"],
+    [style*="grid-template-columns: 2fr 1fr"],
+    [style*="grid-template-columns: 1.5fr 1fr"],
+    [style*="grid-template-columns: repeat"],
+    [style*="grid-template-columns: repeat(4, 1fr)"],
+    [style*="grid-template-columns: repeat(3, 1fr)"] {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .section-header-luxury,
+    .dashboard-header-flex,
+    .analytics-container .responsive-stack,
+    .dashboard-container-lux .responsive-stack {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+        text-align: inherit !important;
+    }
+
+    /* RTL specific overrides for header stacking */
+    [lang="ar"] .section-header-luxury,
+    [dir="rtl"] .section-header-luxury,
+    [lang="ar"] .responsive-stack,
+    [dir="rtl"] .responsive-stack {
+        text-align: right !important;
+    }
+    
+    [lang="ar"] .section-header-luxury > a,
+    [dir="rtl"] .section-header-luxury > a,
+    [lang="ar"] .responsive-stack > a,
+    [dir="rtl"] .responsive-stack > a {
+        align-self: flex-start !important;
+    }
+
+    .luxury-card, .glass-panel {
+        max-width: 100vw !important;
+        overflow-x: visible !important;
+    }
+
+    /* Force horizontal scroll for responsive tables only */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 1.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--secondary) transparent;
+    }
+
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border-radius: 10px;
+}
+
+/* Mobile-Specific Section Refinements */
+@media (max-width: 768px) {
+    .section-zen {
+        padding: 40px 0 !important;
+    }
+    
+    .grid-lux-mobile-stack {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .mobile-padding-sm {
+        padding: 20px !important;
+    }
+
+    .mobile-text-center {
+        text-align: center !important;
+    }
+}
+
+    .table-responsive > table {
+        min-width: 800px !important;
+    }
+
+    /* General Mobile Refinements */
+    .section-zen { padding: 60px 0 !important; }
+    .section-title-luxury { font-size: 1.8rem !important; }
+    .luxury-card { padding: 20px !important; }
+    
+    /* Ensure grids stack correctly on small screens */
+    .grid-2, .grid-3, .grid-4 { 
+        grid-template-columns: 1fr !important; 
+        gap: 15px !important; 
+    }
+}

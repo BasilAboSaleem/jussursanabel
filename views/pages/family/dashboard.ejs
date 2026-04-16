@@ -3,12 +3,13 @@
 <!-- Main Responsive Container -->
 <div class="dashboard-container-lux">
     <!-- Family Header Info -->
-    <div class="luxury-card glass-panel dashboard-header-card" style="border-radius: 20px; overflow: hidden; position: relative;">
+    <!-- Family Header Info -->
+    <div class="luxury-card glass-panel dashboard-header-card responsive-stack" style="border-radius: 20px; overflow: hidden; position: relative; display: flex; justify-content: space-between; align-items: center; gap: 25px;">
         <!-- Background Accent -->
-        <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: var(--grad-gold);"></div>
+        <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: var(--grad-green);"></div>
         
         <div class="header-info-group">
-            <span class="section-badge" style="background: rgba(212, 175, 55, 0.1); color: var(--secondary);"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين الرقمية</span>
+            <span class="section-badge" style="background: rgba(16, 185, 129, 0.1); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2);"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين الرقمية</span>
             <h2 class="font-cairo" style="margin-top: 10px;">أهلاً بك، <%= user ? user.name : 'ضيفنا العزيز' %></h2>
             <p class="text-muted" style="margin: 0;">نحن هنا لخدمتكم وتقديم الدعم اللازم بكل احترافية وخصوصية.</p>
         </div>
@@ -32,7 +33,7 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="stats-grid-lux">
+    <div class="grid-auto-3" style="margin-bottom: 40px;">
         <div class="luxury-card glass-panel stat-card-lux secondary-active">
             <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
             <div class="stat-label">الحالات النشطة (الموثقة)</div>
@@ -50,7 +51,7 @@
         </div>
     </div>
 
-    <div class="content-grid-lux" id="cases">
+    <div class="grid-auto-2" style="grid-template-columns: 2fr 1fr !important;" id="cases">
         <!-- Cases Management -->
         <div class="main-content-column">
             <div class="section-header-compact">
@@ -71,7 +72,7 @@
                             <tbody>
                                 <% myCases.forEach(c => { %>
                                     <tr class="<%= c.isSatisfied ? 'row-satisfied' : '' %>">
-                                        <td>
+                                        <td data-label="اسم الحالة">
                                             <div class="case-info-cell">
                                                 <img src="<%= c.image || '/assets/images/default-case.jpg' %>" class="case-thumb-lux">
                                                 <div>
@@ -85,15 +86,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="المبلغ المحصل">
                                             <div class="amount-cell">
                                                 <span class="amount-text">$<%= c.raisedAmount %></span>
                                                 <div class="progress-track-lux">
-                                                    <div class="progress-fill-lux" style="width: <%= Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) %>%"></div>
+                                                    <div class="progress-fill-lux" style="<%= 'width: ' + Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) + '%' %>"></div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="حالة التوثيق">
                                             <div class="status-cell">
                                                 <span class="badge <%= 
                                                     c.status === 'approved' ? 'badge-teal' : 
@@ -113,7 +114,7 @@
                                                 </span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="الإجراءات">
                                             <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-start;">
                                                 <a href="/cases/<%= c._id %>" class="btn-action-lux" title="عرض التفاصيل"><i class="fas fa-eye"></i></a>
                                                 <button onclick="viewDonations('<%= c._id %>', '<%= c.title %>')" class="btn-action-lux success" title="سجل التبرعات"><i class="fas fa-receipt"></i></button>
@@ -130,7 +131,7 @@
                                                     <button type="submit" 
                                                         class="btn-action-lux <%= c.isSatisfied ? 'active' : 'warning' %>" 
                                                         title="<%= btnTitle %>"
-                                                        <%= isAdminSatisfied ? 'disabled style="opacity: 0.5; cursor: not-allowed; grayscale(1);"' : '' %>>
+                                                        <%= isAdminSatisfied ? 'disabled style="opacity: 0.5; cursor: not-allowed; filter: grayscale(1);"' : '' %> >
                                                         <i class="fas <%= c.isSatisfied ? 'fa-heart-circle-check' : 'fa-hand-holding-heart' %>"></i>
                                                     </button>
                                                 </form>
@@ -233,17 +234,17 @@
                     <tbody>
                         <% myUpdates.forEach(update => { %>
                             <tr>
-                                <td>
+                                <td data-label="تفاصيل الإثبات">
                                     <div style="font-weight: 700; color: var(--primary);"><%= update.title %></div>
                                     <div style="font-size: 0.8rem; color: var(--text-muted);"><%= update.images ? update.images.length : 0 %> مرفقات</div>
                                 </td>
-                                <td>
+                                <td data-label="الحالة المرتبطة">
                                     <span style="font-size: 0.85rem; font-weight: 600;"><%= update.case ? update.case.title : '---' %></span>
                                 </td>
-                                <td>
+                                <td data-label="تاريخ الرفع">
                                     <span style="font-size: 0.85rem; color: var(--text-muted);"><%= new Date(update.createdAt).toLocaleDateString('ar-EG') %></span>
                                 </td>
-                                <td>
+                                <td data-label="حالة الإثبات">
                                     <% if (update.status === 'approved') { %>
                                         <span class="badge badge-teal"><i class="fas fa-check-circle"></i> مقبول وموثق</span>
                                     <% } else if (update.status === 'rejected') { %>
@@ -252,7 +253,7 @@
                                         <span class="badge badge-gold"><i class="fas fa-clock"></i> قيد المراجعة</span>
                                     <% } %>
                                 </td>
-                                <td>
+                                <td data-label="ملاحظات الإدارة">
                                     <% if (update.status === 'rejected' && update.rejectionReason) { %>
                                         <span class="rejection-reason-text" style="display: block; max-width: 250px;"><%= update.rejectionReason %></span>
                                     <% } else if (update.status === 'approved') { %>
@@ -362,7 +363,7 @@
         box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
     }
     .countdown-label-lux { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-    .countdown-timer-lux { font-size: 1.6rem; font-weight: 900; color: #fbbf24; line-height: 1; }
+    .countdown-timer-lux { font-size: 1.6rem; font-weight: 900; color: var(--secondary); line-height: 1; }
     .countdown-sub-lux { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
 
     /* Activity Timeline (Premium Add-on) */
@@ -409,7 +410,6 @@
     /* Table Styles */
     .table-card-lux {
         padding: 0 !important;
-        overflow: hidden;
         border: 1px solid rgba(0,0,0,0.05);
     }
 
@@ -538,9 +538,9 @@
         gap: 8px;
     }
     .btn-satisfaction-lux.needs-support {
-        background: rgba(212, 175, 55, 0.1);
+        background: rgba(16, 185, 129, 0.1);
         color: var(--secondary);
-        border: 2px solid rgba(212, 175, 55, 0.2);
+        border: 2px solid rgba(16, 185, 129, 0.2);
     }
     .btn-satisfaction-lux.needs-support:hover {
         background: var(--secondary);
@@ -582,16 +582,16 @@
 
     .satisfied-label-mini {
         font-size: 0.65rem;
-        background: rgba(212, 175, 55, 0.1);
+        background: rgba(16, 185, 129, 0.1);
         color: var(--secondary);
         padding: 2px 8px;
         border-radius: 20px;
         font-weight: 800;
         margin-right: 5px;
-        border: 1px solid rgba(212, 175, 55, 0.2);
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
-    .row-satisfied { background: rgba(212, 175, 55, 0.02); }
+    .row-satisfied { background: rgba(16, 185, 129, 0.02); }
     .row-satisfied .case-title-lux { opacity: 0.8; }
 
     /* Modal Styles */
@@ -649,7 +649,7 @@
     }
 
     .help-item.teal-border { background: rgba(20, 184, 166, 0.04); border-right: 4px solid var(--accent); }
-    .help-item.gold-border { background: rgba(217, 119, 6, 0.04); border-right: 4px solid var(--secondary); }
+    .help-item.gold-border { background: rgba(16, 185, 129, 0.04); border-right: 4px solid var(--secondary); }
 
     .help-item h5 { margin-bottom: 5px; color: var(--primary); font-weight: 800; }
     .help-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
@@ -689,15 +689,531 @@
     }
 
     @media (max-width: 768px) {
+        .dashboard-container-lux > * {
+            margin-bottom: 16px !important;
+        }
+
+        .dashboard-container-lux > *:last-child {
+            margin-bottom: 0 !important;
+        }
+
         .side-content-column {
             grid-template-columns: 1fr;
+            order: 0;
+            gap: 14px !important;
         }
+        #cases {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+        }
+
+        #cases > .main-content-column,
+        #cases > .side-content-column {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .dashboard-container-lux .table-responsive > .premium-table-lux {
+            min-width: 0 !important;
+            width: 100% !important;
+            table-layout: fixed;
+        }
+
+        .dashboard-container-lux .table-responsive > .premium-table-lux thead {
+            display: none;
+        }
+
+        .dashboard-container-lux .premium-table-lux tbody tr {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .dashboard-container-lux .premium-table-lux td {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0;
+            border-top: 0;
+            align-items: stretch;
+        }
+
+        .dashboard-container-lux .premium-table-lux td::before {
+            flex: none;
+            margin-bottom: 2px;
+            width: 100%;
+        }
+
+        .dashboard-container-lux .premium-table-lux td > * {
+            width: 100%;
+        }
+
+        .dashboard-container-lux .premium-table-lux td:last-child > div {
+            display: grid !important;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .dashboard-container-lux .premium-table-lux td:last-child > div > * {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .dashboard-container-lux .premium-table-lux td:last-child > div form {
+            margin: 0;
+            display: block;
+        }
+
+        .dashboard-container-lux .premium-table-lux td:last-child > div .btn-action-lux {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .dashboard-container-lux .case-info-cell {
+            gap: 12px;
+            align-items: center;
+        }
+
+        .dashboard-container-lux .amount-cell,
+        .dashboard-container-lux .status-cell {
+            align-items: stretch;
+        }
+
+        .dashboard-container-lux .badge {
+            width: fit-content;
+            max-width: 100%;
+            white-space: normal;
+            line-height: 1.45;
+        }
+
         .dashboard-header-card {
             text-align: center;
             justify-content: center;
+            padding: 18px !important;
+            gap: 16px !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
         }
         .header-actions-group {
             justify-content: center;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .header-actions-group .btn-lux {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dashboard-container-lux {
+            padding-bottom: 24px;
+        }
+
+        .dashboard-header-card .header-info-group,
+        .dashboard-header-card .comm-countdown-card-lux,
+        .dashboard-header-card .header-actions-group {
+            width: 100%;
+        }
+
+        .comm-countdown-card-lux {
+            min-width: 0 !important;
+            width: 100% !important;
+            padding: 14px 16px !important;
+        }
+
+        .countdown-timer-lux {
+            font-size: 1.25rem !important;
+        }
+
+        .stats-grid-lux {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            margin-bottom: 24px;
+        }
+
+        .stat-card-lux {
+            padding: 14px 14px 12px !important;
+        }
+
+        .stat-card-lux .stat-icon {
+            font-size: 1.7rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card-lux .stat-label {
+            font-size: 0.76rem;
+            margin-bottom: 6px;
+            line-height: 1.45;
+        }
+
+        .stat-value {
+            font-size: 1.3rem !important;
+            line-height: 1.1;
+        }
+
+        .content-grid-lux {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+        }
+
+        .main-content-column,
+        .side-content-column {
+            width: 100%;
+        }
+
+        .section-header-compact {
+            margin-bottom: 14px !important;
+            padding-right: 10px !important;
+        }
+
+        .section-header-compact h3 {
+            font-size: 1.05rem !important;
+            line-height: 1.4;
+        }
+
+        .table-card-lux {
+            padding: 12px !important;
+        }
+
+        .table-responsive {
+            overflow-x: visible !important;
+        }
+
+        .premium-table-lux,
+        .premium-table-lux thead,
+        .premium-table-lux tbody,
+        .premium-table-lux tr,
+        .premium-table-lux th,
+        .premium-table-lux td {
+            display: block;
+            width: 100%;
+        }
+
+        .premium-table-lux {
+            min-width: 0 !important;
+            width: 100% !important;
+            table-layout: fixed;
+        }
+
+        .premium-table-lux thead {
+            display: none;
+        }
+
+        .premium-table-lux tbody tr {
+            background: #fff;
+            border: 1px solid #eef2f7;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 20px rgba(10,37,64,0.05);
+        }
+
+        .premium-table-lux td {
+            border: 0;
+            padding: 8px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .premium-table-lux td + td {
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .premium-table-lux td::before {
+            content: attr(data-label);
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+            flex: none;
+            width: 100%;
+            line-height: 1.4;
+        }
+
+        .premium-table-lux td > * {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .case-info-cell {
+            align-items: center;
+            gap: 10px;
+        }
+
+        .case-thumb-lux {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+        }
+
+        .case-title-lux {
+            font-size: 0.92rem;
+        }
+
+        .case-type-lux,
+        .amount-text,
+        .rejection-reason-text {
+            font-size: 0.74rem !important;
+        }
+
+        .progress-track-lux {
+            max-width: 100% !important;
+        }
+
+        .btn-action-lux {
+            width: 100%;
+            height: 40px;
+            flex-shrink: 0;
+        }
+
+        .dashboard-container-lux .help-card-lux {
+            padding: 18px !important;
+        }
+
+        .dashboard-container-lux .help-item {
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .help-card-lux {
+            padding: 16px !important;
+        }
+
+        .support-CTA-lux {
+            padding: 18px !important;
+        }
+
+        .dashboard-container-lux .support-CTA-lux {
+            margin-top: 12px;
+        }
+
+        .support-CTA-lux h5 {
+            font-size: 0.98rem !important;
+        }
+
+        .support-CTA-lux p,
+        .help-item p {
+            font-size: 0.8rem !important;
+            line-height: 1.55 !important;
+        }
+
+        .activity-timeline-lux {
+            gap: 14px !important;
+        }
+
+        .activity-item-lux {
+            gap: 10px !important;
+        }
+
+        .activity-item-lux:not(:last-child)::after {
+            right: 15px;
+        }
+
+        .act-title {
+            font-size: 0.8rem !important;
+        }
+
+        .act-meta {
+            font-size: 0.7rem !important;
+        }
+
+        .empty-state-lux {
+            padding: 36px 18px !important;
+        }
+
+        .empty-state-lux p {
+            font-size: 0.95rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-container-lux {
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        .dashboard-header-card {
+            padding: 14px !important;
+        }
+
+        .dashboard-header-card h2 {
+            font-size: 1.2rem !important;
+        }
+
+        .header-info-group p {
+            font-size: 0.8rem !important;
+        }
+
+        .comm-countdown-card-lux {
+            padding: 12px 14px !important;
+        }
+
+        .countdown-label-lux {
+            font-size: 0.68rem !important;
+        }
+
+        .countdown-timer-lux {
+            font-size: 1.05rem !important;
+        }
+
+        .countdown-sub-lux {
+            font-size: 0.65rem !important;
+        }
+
+        .premium-table-lux td::before {
+            font-size: 0.68rem;
+        }
+
+        .premium-table-lux tbody tr {
+            padding: 12px;
+            border-radius: 16px;
+        }
+
+        .premium-table-lux td {
+            padding: 0;
+        }
+
+        .case-title-lux {
+            font-size: 0.88rem;
+        }
+
+        .btn-action-lux {
+            width: 100%;
+            height: 38px;
+        }
+
+        .section-header-compact h3 {
+            font-size: 0.98rem !important;
+        }
+
+        .stat-card-lux {
+            padding: 12px 12px 10px !important;
+            border-radius: 18px !important;
+        }
+
+        .stat-card-lux .stat-icon {
+            font-size: 1.45rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-card-lux .stat-label {
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.15rem !important;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .dashboard-container-lux {
+            padding-left: 4px;
+            padding-right: 4px;
+            padding-bottom: 16px;
+        }
+
+        .dashboard-container-lux > * {
+            margin-bottom: 12px !important;
+        }
+
+        .dashboard-header-card {
+            padding: 12px !important;
+            gap: 12px !important;
+        }
+
+        .dashboard-header-card h2 {
+            font-size: 1.08rem !important;
+            margin-top: 6px !important;
+        }
+
+        .header-info-group p {
+            font-size: 0.75rem !important;
+            line-height: 1.5;
+        }
+
+        .section-header-compact {
+            margin-bottom: 10px !important;
+            padding-right: 8px !important;
+        }
+
+        .section-header-compact h3 {
+            font-size: 0.9rem !important;
+            line-height: 1.35;
+        }
+
+        .table-card-lux,
+        .help-card-lux {
+            padding: 10px !important;
+        }
+
+        .premium-table-lux tbody tr {
+            padding: 10px;
+            border-radius: 14px;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .case-info-cell {
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .case-thumb-lux {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+
+        .case-title-lux {
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        .case-type-lux,
+        .amount-text,
+        .rejection-reason-text,
+        .act-meta,
+        .help-item p,
+        .support-CTA-lux p {
+            font-size: 0.69rem !important;
+        }
+
+        .act-title,
+        .help-item h5,
+        .support-CTA-lux h5 {
+            font-size: 0.82rem !important;
+        }
+
+        .btn-action-lux {
+            height: 34px;
+            border-radius: 8px;
+        }
+
+        .stat-card-lux {
+            padding: 10px !important;
+            border-radius: 14px !important;
+        }
+
+        .stat-card-lux .stat-icon {
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+        }
+
+        .stat-card-lux .stat-label {
+            font-size: 0.65rem;
+            margin-bottom: 2px;
+            line-height: 1.35;
+        }
+
+        .stat-value {
+            font-size: 1.02rem !important;
         }
     }
 </style>

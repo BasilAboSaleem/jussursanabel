@@ -8,7 +8,7 @@
 </div>
 
     <!-- Executive Stats -->
-    <div class="<%= user.role === 'super_admin' ? 'grid-4' : 'grid-3' %>" style="gap: 20px; margin-bottom: 50px; display: grid; grid-template-columns: repeat(<%= user.role === 'super_admin' ? 4 : 3 %>, 1fr);">
+    <div class="<%= user.role === 'super_admin' ? 'grid-auto-4' : 'grid-auto-3' %>" style="margin-bottom: 50px;">
         <div class="luxury-card glass-panel" style="padding: 30px 15px; text-align: center; border-bottom: 4px solid var(--secondary);">
             <div style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px;"><i class="fas fa-vault"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_dashboard_total_donations') %></div>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Pending Reviews -->
-    <div class="grid-2" style="gap: 40px; grid-template-columns: 1fr 1fr;">
+    <div class="grid-auto-2">
         <!-- Cases to Approve -->
         <div>
             <div class="section-header-luxury" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
@@ -45,8 +45,9 @@
                 <a href="/admin/cases-manager" style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);"><%= __('admin_common_view_all') %> <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i></a>
             </div>
             <% if (pendingCases.length > 0) { %>
-                <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                <div class="luxury-card glass-panel" style="padding: 0;">
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse; text-align: right;">
                         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
                             <tr>
                                 <th style="padding: 15px 20px;"><%= __('admin_dashboard_table_case') %></th>
@@ -70,6 +71,7 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
             <% } else { %>
                 <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-check-double" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
@@ -80,12 +82,14 @@
 
         <!-- Transactions to Verify -->
         <div>
-            <div class="section-header-luxury" style="margin-bottom: 25px;">
-                <h3 class="font-cairo"><i class="fas fa-money-bill-transfer"></i> <%= __('admin_dashboard_pending_transactions') %></h3>
+            <div class="section-header-luxury" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-money-bill-transfer"></i> <%= __('admin_dashboard_pending_transactions') %></h3>
+                <a href="/admin/distribution" style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);"><%= __('admin_common_view_all') %> <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i></a>
             </div>
             <% if (pendingTransactions.length > 0) { %>
-                <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                <div class="luxury-card glass-panel" style="padding: 0;">
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse; text-align: right;">
                         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
                             <tr>
                                 <th style="padding: 15px 20px;"><%= __('admin_dashboard_table_amount') %></th>
@@ -113,7 +117,8 @@
                         </tbody>
                     </table>
                 </div>
-            <% } else { %>
+            </div>
+<% } else { %>
                 <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-coins" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
                     <p><%= __('admin_dashboard_empty_transactions') %></p>
@@ -130,8 +135,9 @@
         </div>
         
         <% if (pendingImpactProofs && pendingImpactProofs.length > 0) { %>
-            <div class="luxury-card glass-panel" style="padding: 0; overflow: hidden;">
-                <table style="width: 100%; border-collapse: collapse; text-align: right;">
+            <div class="luxury-card glass-panel" style="padding: 0;">
+                <div class="table-responsive">
+                    <table style="width: 100%; border-collapse: collapse; text-align: right;">
                     <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
                         <tr>
                             <th style="padding: 15px 20px;"><%= __('admin_dashboard_table_title') %></th>
@@ -154,6 +160,7 @@
                     </tbody>
                 </table>
             </div>
+        </div>
         <% } else { %>
             <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
                 <i class="fas fa-shield-check" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>

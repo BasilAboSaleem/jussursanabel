@@ -4,20 +4,20 @@
 
 <div class="analytics-container" style="padding-bottom: 50px;">
     <!-- Header with context -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <!-- Header with context -->
+    <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <div>
             <h2 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 900; font-size: 2.2rem;"><%= __('admin_analytics_title') %></h2>
             <p style="color: #64748b; margin-top: 5px; font-size: 1.1rem;"><%= __('admin_analytics_desc') %></p>
         </div>
-        <div style="background: white; padding: 12px 25px; border-radius: 15px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div class="responsive-hide" style="background: white; padding: 12px 25px; border-radius: 15px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
             <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;"><%= __('admin_analytics_last_update') %></div>
             <div style="font-weight: 800; color: var(--primary); font-size: 1.1rem;"><%= new Date().toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
         </div>
     </div>
 
     <!-- KPI Ribbon -->
-    <!-- KPI Ribbon -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="grid-auto-4" style="margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <div class="kpi-card-lux" style="background: linear-gradient(135deg, var(--primary), var(--grad-navy)); color: white;">
             <div class="kpi-icon"><i class="fas fa-coins"></i></div>
             <div class="kpi-value">$<%= stats.kpis.total.toLocaleString() %></div>
@@ -45,12 +45,12 @@
     </div>
 
     <!-- Main Charts Section -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <div class="grid-auto-2" style="grid-template-columns: 2fr 1fr !important; margin-bottom: 40px;">
         <!-- 1. Revenue Timeline -->
         <div class="chart-container-lux">
             <div class="chart-header">
                 <h5 class="font-cairo"><i class="fas fa-chart-line"></i> <%= __('admin_analytics_revenue_timeline') %></h5>
-                <span class="badge badge-soft-primary"><%= __('admin_analytics_last_12m') %></span>
+                <span class="badge badge-soft-primary responsive-hide"><%= __('admin_analytics_last_12m') %></span>
             </div>
             <div style="height: 350px;">
                 <canvas id="revenueChart"></canvas>
@@ -70,13 +70,12 @@
                     <span style="color: #64748b;"><%= __('admin_analytics_fees_collected') %></span>
                     <strong style="color: var(--secondary);">$<%= stats.kpis.fees.toLocaleString() %></strong>
                 </div>
-                <div style="font-size: 0.75rem; color: #94a3b8;"><%= __('admin_analytics_fees_note') %></div>
             </div>
         </div>
     </div>
 
     <!-- Second Row: Users & Locations -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="grid-auto-3" style="margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <div class="chart-container-lux">
             <div class="chart-header"><h6 class="font-cairo"><%= __('admin_analytics_user_distribution') %></h6></div>
             <canvas id="userDistChart" height="280"></canvas>
@@ -92,11 +91,11 @@
     </div>
 
     <!-- Bottom Row: Tables & Funnels -->
-    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
+    <div class="grid-auto-2" style="grid-template-columns: 1.5fr 1fr !important;">
         <!-- Top Donors Table -->
         <div class="chart-container-lux">
             <div class="chart-header">
-                <h5 class="font-cairo"><i class="fas fa-trophy" style="color: #eab308;"></i> <%= __('admin_analytics_top_donors_title') %></h5>
+                <h5 class="font-cairo"><i class="fas fa-trophy" style="color: #10b981;"></i> <%= __('admin_analytics_top_donors_title') %></h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle" style="margin-top: 10px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
@@ -237,7 +236,7 @@
             labels: ['<%= __("admin_analytics_js_direct_donations") %>', '<%= __("admin_analytics_active_sponsorships") %>'],
             datasets: [{
                 data: [stats.kpis.count - stats.activeSponsorships, stats.activeSponsorships],
-                backgroundColor: ['#1e40af', '#eab308'],
+                backgroundColor: ['#1e40af', '#10b981'],
                 borderWidth: 0,
                 hoverOffset: 15
             }]
@@ -317,7 +316,7 @@
             labels: stats.chatReqStats.map(s => chatMap[s._id] || s._id),
             datasets: [{
                 data: stats.chatReqStats.map(s => s.count),
-                backgroundColor: ['#10b981', '#eab308', '#ef4444']
+                backgroundColor: ['#10b981', '#10b981', '#ef4444']
             }]
         },
         options: { plugins: { legend: { position: 'right' } } }

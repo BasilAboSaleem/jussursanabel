@@ -60,7 +60,7 @@
 </div>
 
 <!-- Logs Timeline/Table -->
-<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+<div class="luxury-card glass-panel" style="padding: 0; border: 1px solid rgba(0,0,0,0.05);">
     <div class="table-responsive">
     <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -110,7 +110,7 @@
                             if (log.action === 'login') { icon = 'fa-sign-in-alt'; color = '#6366f1'; actionLabel = __('admin_log_action_login'); }
                             if (log.action === 'logout') { icon = 'fa-sign-out-alt'; color = '#94a3b8'; actionLabel = __('admin_log_action_logout'); }
                             if (log.action === 'profile_update') { icon = 'fa-user-edit'; color = '#ec4899'; actionLabel = __('admin_log_action_profile_update'); }
-                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#f59e0b'; actionLabel = __('admin_log_action_case_create'); }
+                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#10b981'; actionLabel = __('admin_log_action_case_create'); }
                             if (log.action === 'case_update') { icon = 'fa-edit'; color = '#3b82f6'; actionLabel = __('admin_log_action_case_update'); }
                             if (log.action === 'case_delete') { icon = 'fa-trash'; color = '#ef4444'; actionLabel = __('admin_log_action_case_delete'); }
                             if (log.action === 'transaction_create') { icon = 'fa-hand-holding-heart'; color = '#10b981'; actionLabel = __('admin_log_action_transaction_create'); }
@@ -150,7 +150,7 @@
 </div>
 
 <style>
-    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
+    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
 
     @media (max-width: 992px) {
         .logs-head-row {

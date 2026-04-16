@@ -13,8 +13,9 @@
     </div>
 </div>
 
-<div class="luxury-card" style="padding: 0; overflow: hidden;">
-    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+<div class="luxury-card" style="padding: 0;">
+    <div class="table-responsive">
+    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; vertical-align: middle;">
         <thead>
             <tr style="background: var(--bg-subtle); border-bottom: 2px solid rgba(0,0,0,0.05);">
                 <th style="padding: 20px;"><%= __('common_date') %></th>
@@ -62,6 +63,7 @@
             <% }) %>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div style="margin-top: 30px; text-align: center;">

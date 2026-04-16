@@ -85,15 +85,16 @@
     <!-- 2. Minimalist Impact Ribbon (Zen Restore) -->
     <section class="section-zen" style="background: #f8fafc; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 60px 0; position: relative; z-index: 50; isolation: isolate;">
         <div class="container">
-            <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 40px;">
-                <div class="reveal-on-scroll text-center" style="flex: 1; min-width: 200px;">
+            <div class="impact-mobile-carousel" id="impactCarousel">
+                <div class="impact-track" id="impactTrack" style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 40px;">
+                <div class="reveal-on-scroll text-center impact-slide" style="flex: 1; min-width: 200px;">
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(16, 185, 129, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-hand-holding-heart" style="color: var(--secondary); font-size: 1.5rem;"></i>
                     </div>
                     <div class="impact-number" data-target="1400" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(16, 185, 129, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_cases') %></div>
                 </div>
-                <div class="reveal-on-scroll text-center impact-card" style="flex: 1; min-width: 200px; position: relative;">
+                <div class="reveal-on-scroll text-center impact-card impact-slide" style="flex: 1; min-width: 200px; position: relative;">
                     <!-- Border replaced by CSS so it vanishes on mobile -->
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(16, 185, 129, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-vault" style="color: var(--secondary); font-size: 1.5rem;"></i>
@@ -101,12 +102,18 @@
                     <div class="impact-number" data-target="2500" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(16, 185, 129, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_donations') %></div>
                 </div>
-                <div class="reveal-on-scroll text-center" style="flex: 1; min-width: 200px;">
+                <div class="reveal-on-scroll text-center impact-slide" style="flex: 1; min-width: 200px;">
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(16, 185, 129, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-gem" style="color: var(--secondary); font-size: 1.5rem;"></i>
                     </div>
                     <div class="impact-number" data-target="98" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(16, 185, 129, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_transparency') %></div>
+                </div>
+                </div>
+                <div class="impact-dots" id="impactDots" aria-hidden="true">
+                    <button type="button" class="impact-dot active" data-index="0"></button>
+                    <button type="button" class="impact-dot" data-index="1"></button>
+                    <button type="button" class="impact-dot" data-index="2"></button>
                 </div>
             </div>
         </div>
@@ -198,8 +205,8 @@
     <!-- 4. Empathy Split Section (Zen Restore) -->
     <section class="section-zen">
         <div class="container">
-            <div class="grid-2 align-items-stretch" style="gap: 0; background: var(--primary); border-radius: 40px; overflow: hidden; min-height: 550px; box-shadow: 0 40px 100px rgba(10,37,64,0.15);">
-                <div class="reveal-on-scroll" style="padding: 70px; display: flex; flex-direction: column; justify-content: center;">
+            <div class="grid-2 grid-lux-mobile-stack align-items-stretch" style="gap: 0; background: var(--primary); border-radius: 40px; overflow: hidden; min-height: 550px; box-shadow: 0 40px 100px rgba(10,37,64,0.15);">
+                <div class="reveal-on-scroll mobile-padding-sm" style="padding: 70px; display: flex; flex-direction: column; justify-content: center;">
                     <h2 class="section-title-luxury" style="color: #fff; font-size: 2.8rem; margin-bottom: 25px;"><%= __('index_vision_title') %></h2>
                     <p style="color: rgba(255,255,255,0.7); font-size: 1.15rem; line-height: 1.8; margin-bottom: 40px;">
                         <%= __('index_vision_desc') %>
@@ -221,9 +228,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="reveal-on-scroll" style="position: relative;">
+                <div class="reveal-on-scroll" style="position: relative; min-height: 300px;">
                     <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div style="position: absolute; inset: 0; background: linear-gradient(to right, var(--primary) 0%, transparent 60%);"></div>
+                    <div class="vision-fade-mobile" style="position: absolute; inset: 0; background: linear-gradient(to <%= locals.langDir === 'rtl' ? 'left' : 'right' %>, var(--primary) 0%, transparent 60%);"></div>
                 </div>
             </div>
         </div>
@@ -236,7 +243,7 @@
 
         <div class="container" style="position: relative; z-index: 2;">
             <div class="section-header-luxury reveal-on-scroll" style="text-align: center; margin-bottom: 80px;">
-                <span class="section-badge"><i class="fas fa-sparkles"></i> <%= __('index_how_it_works_badge') %></span>
+                <span class="section-badge" style="background: rgba(16, 185, 129, 0.08); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2);"><i class="fas fa-sparkles"></i> <%= __('index_how_it_works_badge') %></span>
                 <h2 class="section-title-luxury" style="font-weight: 950; margin-top: 15px; font-size: 3.2rem;"><%= __('index_how_it_works_title') %></h2>
             </div>
             
@@ -275,7 +282,7 @@
     <section class="section-zen" style="background: #fafafa; padding-bottom: 150px;">
         <div class="container">
             <div class="section-header-luxury reveal-on-scroll" style="text-align: center; margin-bottom: 60px;">
-                <span class="section-badge"><i class="fas fa-quote-right"></i> <%= __('index_testimonials_badge') %></span>
+                <span class="section-badge" style="background: rgba(16, 185, 129, 0.08); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2);"><i class="fas fa-quote-right"></i> <%= __('index_testimonials_badge') %></span>
                 <h2 class="section-title-luxury" style="font-weight: 950; margin-top: 15px;"><%= __('index_testimonials_title') %></h2>
             </div>
             
@@ -418,6 +425,7 @@
      .hero-desc-clamp {
          display: -webkit-box;
          -webkit-line-clamp: 2;
+         line-clamp: 2;
          -webkit-box-orient: vertical;
          overflow: hidden;
      }
@@ -523,7 +531,10 @@
              display: block;
          }
          .hero-text-bloom { padding: 30px 20px !important; }
-         .hero-desc-clamp { -webkit-line-clamp: 3; }
+         .hero-desc-clamp {
+             -webkit-line-clamp: 3;
+             line-clamp: 3;
+         }
          .hero-btn-container { gap: 10px !important; }
          .hero-btn-container .btn-lux { width: 100%; justify-content: center; }
          .hero-trust-row { margin-top: 14px; gap: 8px; }
@@ -548,6 +559,118 @@
          .royal-white-frame { max-width: 280px !important; margin: 20px auto !important; }
          .story-card { border-radius: 26px; }
          .story-content { padding: 28px 18px; }
+         .grid-lux-mobile-stack { min-height: auto !important; }
+         .vision-fade-mobile { background: linear-gradient(to bottom, var(--primary) 0%, transparent 60%) !important; }
+         .hero-title-luxury { text-align: center; }
+         .hero-desc-clamp { text-align: center; margin-inline: auto; }
+     }
+
+     @media (max-width: 992px) {
+         .impact-mobile-carousel {
+             position: relative;
+             overflow: hidden;
+             padding: 8px 0 30px;
+         }
+         .impact-track {
+             display: flex !important;
+             flex-wrap: nowrap !important;
+             gap: 0 !important;
+             transition: transform 0.6s ease;
+             will-change: transform;
+         }
+         .impact-slide {
+             flex: 0 0 100% !important;
+             min-width: 100% !important;
+             max-width: 100% !important;
+             padding: 18px 10px;
+             opacity: 1 !important;
+             transform: none !important;
+         }
+         .impact-dots {
+             position: absolute;
+             bottom: 0;
+             left: 50%;
+             transform: translateX(-50%);
+             display: flex;
+             gap: 8px;
+             align-items: center;
+         }
+         .impact-dot {
+             width: 9px;
+             height: 9px;
+             border-radius: 50%;
+             border: none;
+             background: #cbd5e1;
+             padding: 0;
+             cursor: pointer;
+         }
+         .impact-dot.active {
+             width: 26px;
+             border-radius: 999px;
+             background: var(--secondary);
+         }
+
+         .section-title-luxury { font-size: clamp(1.75rem, 5.6vw, 2.25rem) !important; }
+         .section-subtitle-luxury { font-size: 0.98rem !important; line-height: 1.75 !important; }
+         .journey-card-couture { padding: 45px 24px !important; border-radius: 30px !important; }
+         .testimonial-item .luxury-card { padding: 30px 22px !important; border-radius: 26px !important; }
+         .grid-lux-mobile-stack {
+             min-height: auto !important;
+             border-radius: 28px !important;
+         }
+         .grid-lux-mobile-stack > div:first-child {
+             padding: 30px 18px !important;
+         }
+         .grid-lux-mobile-stack > div:last-child {
+             min-height: 180px !important;
+             max-height: 220px;
+         }
+         .grid-lux-mobile-stack > div:last-child img {
+             height: 100% !important;
+         }
+         .grid-lux-mobile-stack .section-title-luxury {
+             font-size: clamp(1.55rem, 6.4vw, 2rem) !important;
+             margin-bottom: 14px !important;
+         }
+         .grid-lux-mobile-stack p {
+             font-size: 0.96rem !important;
+             line-height: 1.75 !important;
+             margin-bottom: 22px !important;
+             display: -webkit-box;
+             -webkit-line-clamp: 4;
+             line-clamp: 4;
+             -webkit-box-orient: vertical;
+             overflow: hidden;
+         }
+         .flex-wrap-mobile {
+             gap: 12px !important;
+         }
+         .flex-wrap-mobile > div {
+             padding: 16px !important;
+             border-radius: 14px !important;
+             min-width: 0 !important;
+         }
+         .flex-wrap-mobile > div > div:first-child {
+             margin-bottom: 8px !important;
+         }
+         .flex-wrap-mobile > div > div:first-child > div {
+             font-size: 1.45rem !important;
+         }
+         .btn-lux.btn-lg { width: 100%; justify-content: center; }
+     }
+
+     @media (max-width: 576px) {
+         .grid-lux-mobile-stack > div:first-child {
+             padding: 24px 14px !important;
+         }
+         .grid-lux-mobile-stack > div:last-child {
+             min-height: 140px !important;
+             max-height: 160px;
+         }
+         .grid-lux-mobile-stack p {
+             -webkit-line-clamp: 3;
+             line-clamp: 3;
+         }
      }
 </style>
 
@@ -568,6 +691,19 @@
 
         // 2. Counter animation
         const initCounters = () => {
+            const impactEls = Array.from(document.querySelectorAll('.impact-number'));
+
+            const setCounterValue = (el) => {
+                const target = parseInt(el.getAttribute('data-target') || '0', 10);
+                el.innerHTML = target.toLocaleString() + (target === 98 ? '%' : '+');
+            };
+
+            // On mobile/tablet sliders, values should always be present even when slides are off-canvas.
+            if (window.innerWidth <= 992) {
+                impactEls.forEach(setCounterValue);
+                return;
+            }
+
             const counterObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -588,7 +724,7 @@
                 };
                 window.requestAnimationFrame(step);
             }
-            document.querySelectorAll('.impact-number').forEach(el => counterObserver.observe(el));
+            impactEls.forEach(el => counterObserver.observe(el));
         };
 
         // 3. Swiper Init
@@ -613,6 +749,84 @@
             } else {
                 setTimeout(initSwipers, 250);
             }
+        };
+
+        // 3.1 Impact carousel for mobile/tablet only
+        const initImpactCarousel = () => {
+            const carousel = document.getElementById('impactCarousel');
+            const track = document.getElementById('impactTrack');
+            const dotsWrap = document.getElementById('impactDots');
+            if (!carousel || !track || !dotsWrap) return;
+
+            // These cards are inside a slider viewport; keep them visible regardless of intersection observer timing.
+            track.querySelectorAll('.impact-slide.reveal-on-scroll').forEach((el) => el.classList.add('active'));
+
+            const dots = Array.from(dotsWrap.querySelectorAll('.impact-dot'));
+            let index = 0;
+            let direction = 1;
+            let timer = null;
+
+            // Keep slider geometry predictable in RTL/LTR pages.
+            track.style.direction = 'ltr';
+            const pageDir = (document.documentElement.getAttribute('dir') || 'rtl') === 'ltr' ? 'ltr' : 'rtl';
+            track.querySelectorAll('.impact-slide').forEach((slide) => {
+                slide.style.direction = pageDir;
+            });
+
+            const isMobileOrTablet = () => window.innerWidth <= 992;
+
+            const update = (nextIndex) => {
+                index = nextIndex;
+                track.style.transform = `translateX(-${index * 100}%)`;
+                dots.forEach((d, i) => d.classList.toggle('active', i === index));
+            };
+
+            const start = () => {
+                if (!isMobileOrTablet()) {
+                    track.style.transform = 'translateX(0)';
+                    dotsWrap.style.display = 'none';
+                    clearInterval(timer);
+                    timer = null;
+                    return;
+                }
+
+                dotsWrap.style.display = 'flex';
+                if (timer) return;
+                timer = setInterval(() => {
+                    if (index === dots.length - 1) direction = -1;
+                    if (index === 0) direction = 1;
+                    update(index + direction);
+                }, 3000);
+            };
+
+            const stop = () => {
+                clearInterval(timer);
+                timer = null;
+            };
+
+            dots.forEach((dot) => {
+                dot.addEventListener('click', () => {
+                    stop();
+                    update(Number(dot.dataset.index));
+                    start();
+                });
+            });
+
+            carousel.addEventListener('mouseenter', stop);
+            carousel.addEventListener('mouseleave', start);
+            carousel.addEventListener('touchstart', stop, { passive: true });
+            carousel.addEventListener('touchend', start, { passive: true });
+
+            window.addEventListener('resize', () => {
+                if (!isMobileOrTablet()) {
+                    index = 0;
+                    update(0);
+                }
+                start();
+            });
+
+            update(0);
+            start();
         };
 
         // 4. Hover-to-Play logic for video stories
@@ -739,10 +953,10 @@
         // Execution
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                initObserver(); initCounters(); initSwipers(); initVideoHover();
+                initObserver(); initCounters(); initSwipers(); initImpactCarousel(); initVideoHover();
             });
         } else {
-            initObserver(); initCounters(); initSwipers(); initVideoHover();
+            initObserver(); initCounters(); initSwipers(); initImpactCarousel(); initVideoHover();
         }
 
         // Testimonial Track (RTL)

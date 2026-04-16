@@ -21,6 +21,7 @@
 <body class="admin-layout" data-user-id="<%= locals.user ? user._id : '' %>" data-user-role="<%= locals.user ? user.role : '' %>">
     
     <%- include('./admin-sidebar') %>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
     <main class="admin-main">
         <header class="admin-top-bar">
@@ -32,15 +33,14 @@
             </div>
             
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                <div class="admin-top-bar-date" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
                     <i class="far fa-calendar-alt"></i> <%= new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
                 </div>
-                <div class="glass-panel" style="padding: 5px 15px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; color: var(--secondary);">
+                <div class="admin-active-mode-badge glass-panel" style="padding: 5px 15px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; color: var(--secondary);">
                     <i class="fas fa-shield-alt"></i> <%= __('admin_active_mode') %>
                 </div>
                 <!-- Notifications -->
                 <%- include('./notifications-dropdown') %>
-            </div>
             </div>
         </header>
 

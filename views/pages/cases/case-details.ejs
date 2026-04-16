@@ -64,7 +64,7 @@
                     
                     <% const heroProgress = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
                     <div class="case-hero-progress-track">
-                        <div class="case-hero-progress-fill" style="width: <%= heroProgress %>%;"></div>
+                        <div class="case-hero-progress-fill" style="<%= 'width: ' + heroProgress + '%' %>"></div>
                     </div>
                     
                     <% if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') { %>
@@ -1069,7 +1069,7 @@
         padding: 26px;
         border-radius: 26px;
         background: #fffbeb;
-        border: 1px solid rgba(251, 191, 36, 0.35);
+        border: 1px solid rgba(16, 185, 129, 0.35);
     }
     .case-subblock {
         margin-bottom: 22px;
@@ -1470,13 +1470,13 @@
     .case-impact-desc { color: var(--text-muted); }
 
     .case-sponsorship {
-        background: linear-gradient(to bottom right, #fffbeb, #ffffff);
-        border: 2px dashed rgba(251, 191, 36, 0.75);
+        background: linear-gradient(to bottom right, #ecfdf5, #ffffff);
+        border: 2px dashed rgba(16, 185, 129, 0.75);
         text-align: center;
     }
     .case-sponsorship-title {
         font-size: 0.95rem;
-        color: #b45309;
+        color: #047857;
         margin-bottom: 8px;
         font-weight: 950;
     }
@@ -1729,7 +1729,7 @@
         background: #fffbeb;
         padding: 10px 12px;
         border-radius: 14px;
-        border: 1px solid rgba(251, 191, 36, 0.25);
+        border: 1px solid rgba(16, 185, 129, 0.25);
         position: relative;
         margin-top: 8px;
         line-height: 1.55;

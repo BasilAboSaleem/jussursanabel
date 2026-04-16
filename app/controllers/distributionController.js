@@ -491,12 +491,12 @@ exports.generatePayout = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Wait! One or more transactions in this batch are already marked as disbursed.' });
         }
 
-        // 2. Case Guard: Check if the case has already received a payout (as requested: "distribution to the case is done only once")
+        // 2. Case Guard: Super Admin can override one-payout-per-case rule
         const existingPayout = await Payout.findOne({ case: caseId });
-        if (existingPayout) {
+        if (existingPayout && req.user.role !== 'super_admin') {
             return res.status(400).json({ 
                 success: false, 
-                message: res.__('msg_case_already_paid') || 'Error: Individual cases can only receive one total distribution payout in this system.' 
+                message: res.__('msg_case_already_paid') || 'Error: Individual cases can only receive one total distribution payout in this system. Please contact a Super Admin for overrides.' 
             });
         }
 

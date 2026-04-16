@@ -89,6 +89,7 @@ const caseSchema = new mongoose.Schema({
 });
 
 caseSchema.index({ status: 1, isHidden: 1, createdAt: -1 });
+caseSchema.index({ status: 1, isHidden: 1, type: 1, createdAt: -1 });
 caseSchema.index({ status: 1, isHidden: 1, isStoryHidden: 1, createdAt: -1 });
 caseSchema.index({ guardian: 1, status: 1, isSatisfied: 1 });
 caseSchema.index({ currentSponsor: 1, sponsorshipExpiryDate: 1 });

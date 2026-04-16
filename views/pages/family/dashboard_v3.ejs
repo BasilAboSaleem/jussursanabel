@@ -65,7 +65,7 @@
                                         <td style="padding: 15px 20px;">
                                             <div style="font-size: 0.9rem; font-weight: 800; color: var(--secondary);">$<%= c.raisedAmount %></div>
                                             <div class="progress-track" style="height: 6px; margin-top: 5px; width: 100px;">
-                                                <div class="progress-fill" style="width: <%= Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) %>%"></div>
+                                                <div class="progress-fill" style="<%= 'width: ' + Math.min((c.raisedAmount / (c.targetAmount || 1)) * 100, 100) + '%' %>"></div>
                                             </div>
                                         </td>
                                         <td style="padding: 15px 20px;">
@@ -116,7 +116,7 @@
                     <h5 style="color: var(--accent); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-clipboard-check"></i> فهم مراحل الطلب</h5>
                     <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">بعد التقديم، يمر الطلب بمراجعة إدارية ثم مسح ميداني للتوثيق من صحة البيانات لضمان كفالة سريعة.</p>
                 </div>
-                <div style="padding: 18px; background: rgba(217, 119, 6, 0.04); border-radius: 15px; border-right: 4px solid var(--secondary); margin-bottom: 20px;">
+                <div style="padding: 18px; background: rgba(16, 185, 129, 0.04); border-radius: 15px; border-right: 4px solid var(--secondary); margin-bottom: 20px;">
                     <h5 style="color: var(--secondary); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-message"></i> التواصل مع الكفلاء</h5>
                     <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">نظام الرسائل يتيح لكم شكر الكفلاء والتواصل معهم بخصوص احتياجات الحالة الموثقة.</p>
                 </div>

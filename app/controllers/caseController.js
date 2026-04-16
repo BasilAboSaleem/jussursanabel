@@ -146,29 +146,36 @@ exports.createCase = async (req, res) => {
 
 exports.getAllCases = async (req, res) => {
     try {
-        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const requestedPage = Math.max(parseInt(req.query.page, 10) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 24, 1), 60);
-        const skip = (page - 1) * limit;
+        const selectedType = ['orphan', 'family'].includes(req.query.type) ? req.query.type : 'all';
         const filter = { status: 'approved', isHidden: { $ne: true } };
 
-        const [cases, totalCases] = await Promise.all([
-            Case.find(filter)
-                .select('title type description image location raisedAmount targetAmount createdAt status')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Case.countDocuments(filter)
-        ]);
+        if (selectedType !== 'all') {
+            filter.type = selectedType;
+        }
+
+        const totalCases = await Case.countDocuments(filter);
+        const totalPages = Math.max(Math.ceil(totalCases / limit), 1);
+        const page = Math.min(requestedPage, totalPages);
+        const skip = (page - 1) * limit;
+
+        const cases = await Case.find(filter)
+            .select('title type description image location raisedAmount targetAmount createdAt status')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
 
         res.render('pages/cases/all-cases', {
             title: res.__('cases_list'),
             cases,
+            selectedType,
             pagination: {
                 page,
                 limit,
                 total: totalCases,
-                totalPages: Math.max(Math.ceil(totalCases / limit), 1)
+                totalPages
             }
         });
     } catch (err) {

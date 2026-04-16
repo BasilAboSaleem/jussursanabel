@@ -1,12 +1,12 @@
 <%- include('../../partials/admin-layout-top') %>
 
 <div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-users"></i> <%= __('admin_all_users_title') %></h3>
             <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_all_users_desc') %></p>
         </div>
-        <div style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
+        <div class="responsive-hide" style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
             <div style="font-size: 0.8rem; color: var(--text-muted);"><%= __('admin_all_users_total_count') %></div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= users.length %></div>
         </div>
@@ -15,7 +15,7 @@
 
 <!-- Filters Bar -->
 <div class="luxury-card glass-panel" style="padding: 20px; margin-bottom: 30px; background: rgba(255,255,255,0.05);">
-    <form action="/admin/all-users" method="GET" id="filterForm" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+    <form action="/admin/all-users" method="GET" id="filterForm" class="responsive-stack" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
         <div class="form-group" style="flex: 1; min-width: 150px;">
             <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_role') %></label>
             <select name="role" class="form-input" onchange="toggleFiltersVisibility(this.value)">
@@ -54,8 +54,8 @@
             </select>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 25px;">
+        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px;">
+            <button type="submit" class="btn-lux btn-lux-primary" style="flex: 1; padding: 12px 25px;">
                 <i class="fas fa-filter"></i> <%= __('common_filter') %>
             </button>
             <a href="/admin/all-users" class="btn-lux btn-lux-outline-white" style="padding: 12px 15px;">
@@ -66,8 +66,9 @@
 </div>
 
 <!-- Users Table -->
-<div class="luxury-card glass-panel" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
-    <table style="width: 100%; border-collapse: collapse; text-align: right;">
+<div class="luxury-card glass-panel" style="padding: 0; border: 1px solid rgba(0,0,0,0.05);">
+    <div class="table-responsive">
+        <table style="width: 100%; border-collapse: collapse; text-align: right;">
         <thead style="background: rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.05);">
             <tr>
                 <th style="padding: 20px;"><%= __('common_user') %></th>

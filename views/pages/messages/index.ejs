@@ -62,6 +62,9 @@
             <!-- Chat Header -->
             <div class="chat-header-lux">
                 <div class="header-user-lux">
+                    <button type="button" class="chat-back-mobile" id="chatBackBtn" aria-label="العودة لقائمة المحادثات">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                     <img src="<%= activeContact ? (activeContact.avatar || '/assets/images/default-avatar.png') : '/assets/images/default-avatar.png' %>" class="avatar-sm-lux" id="activeAvatar">
                     <div>
                         <h4 class="font-cairo" id="activeName">
@@ -376,6 +379,20 @@
         gap: 8px;
     }
 
+    .chat-back-mobile {
+        display: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: var(--primary);
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
     /* ===== BAN BANNER ===== */
     .ban-policy-banner {
         background: #fff1f2;
@@ -403,10 +420,10 @@
         flex-shrink: 0;
     }
     .restricted-content { display: flex; align-items: center; gap: 20px; max-width: 600px; }
-    .restricted-icon { font-size: 2.5rem; color: #d97706; }
-    .restricted-text h4 { margin: 0 0 5px; color: #92400e; font-weight: 800; }
-    .restricted-text p { margin: 0 0 8px; color: #b45309; font-size: 0.9rem; line-height: 1.5; }
-    .restricted-note { font-size: 0.8rem; color: #d97706; font-weight: 600; }
+    .restricted-icon { font-size: 2.5rem; color: #10b981; }
+    .restricted-text h4 { margin: 0 0 5px; color: #047857; font-weight: 800; }
+    .restricted-text p { margin: 0 0 8px; color: #065f46; font-size: 0.9rem; line-height: 1.5; }
+    .restricted-note { font-size: 0.8rem; color: #10b981; font-weight: 600; }
 
     @media (max-width: 992px) {
         .chat-wrapper-lux {
@@ -424,8 +441,68 @@
 
     @media (max-width: 768px) {
         .chat-wrapper-lux {
+            min-height: calc(100vh - 115px);
+            height: calc(100vh - 115px);
+            display: block;
+            position: relative;
+        }
+
+        .chat-sidebar-lux,
+        .chat-main-lux {
+            height: 100%;
+        }
+
+        .chat-main-lux {
+            display: none;
+        }
+
+        .chat-wrapper-lux.mobile-chat-open .chat-sidebar-lux {
+            display: none;
+        }
+
+        .chat-wrapper-lux.mobile-chat-open .chat-main-lux {
+            display: flex;
+        }
+
+        .chat-back-mobile {
+            display: inline-flex;
+        }
+
+        .chat-sidebar-lux {
+            max-height: none;
+            border-bottom: none;
+        }
+
+        .sidebar-header-lux {
+            padding: 16px 14px;
+        }
+
+        .sidebar-header-lux h3 {
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+        }
+
+        .contact-item-lux {
+            padding: 12px 14px;
+            gap: 10px;
+        }
+
+        .avatar-lux {
+            width: 44px;
+            height: 44px;
+        }
+
+        .contact-name {
+            font-size: 0.88rem;
+        }
+
+        .last-message {
+            font-size: 0.75rem;
+        }
+
+        .chat-wrapper-lux {
             border-radius: 18px;
-            min-height: calc(100vh - 120px);
+            min-height: calc(100vh - 115px);
         }
 
         .chat-header-lux,
@@ -435,8 +512,60 @@
             padding-right: 12px;
         }
 
+        .chat-header-lux {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            gap: 8px;
+        }
+
+        .header-user-lux {
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .header-user-lux h4 {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 42vw;
+        }
+
+        .user-meta-lux {
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .support-badge,
+        .status-lux,
+        .typing-indicator-header {
+            font-size: 0.66rem !important;
+        }
+
+        .monitoring-notice {
+            padding: 8px 12px;
+            font-size: 0.72rem;
+        }
+
+        .chat-history-lux {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            gap: 10px;
+        }
+
         .msg-bubble {
             max-width: 90%;
+            padding: 10px 12px;
+            border-radius: 14px;
+        }
+
+        .msg-bubble p {
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .msg-time {
+            font-size: 0.66rem;
         }
 
         .header-actions {
@@ -446,6 +575,12 @@
         .chat-input-area-lux form {
             gap: 6px;
             padding: 8px 10px;
+            border-radius: 16px;
+        }
+
+        .chat-input-area-lux input[type="text"] {
+            font-size: 16px;
+            padding: 5px 0;
         }
 
         .emoji-picker-panel {
@@ -453,6 +588,85 @@
             right: 8px;
             width: auto;
             max-width: calc(100vw - 36px);
+        }
+
+        .ban-policy-banner,
+        .chat-restricted-banner,
+        .monitoring-consent-lock {
+            padding: 14px 12px;
+        }
+
+        .ban-content,
+        .restricted-content {
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .ban-icon,
+        .restricted-icon {
+            font-size: 1.5rem;
+            margin-top: 2px;
+        }
+
+        .ban-text h4,
+        .restricted-text h4 {
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .ban-text p,
+        .restricted-text p,
+        .ban-appeal,
+        .restricted-note,
+        .lock-content p {
+            font-size: 0.75rem;
+            line-height: 1.45;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .chat-wrapper-lux {
+            border-radius: 14px;
+            min-height: calc(100vh - 105px);
+            height: calc(100vh - 105px);
+        }
+
+        .sidebar-header-lux,
+        .chat-header-lux,
+        .chat-history-lux,
+        .chat-input-area-lux {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .contact-item-lux {
+            padding: 10px 8px;
+        }
+
+        .avatar-lux {
+            width: 40px;
+            height: 40px;
+        }
+
+        .chat-back-mobile {
+            width: 30px;
+            height: 30px;
+        }
+
+        .msg-bubble {
+            max-width: 94%;
+            padding: 9px 10px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.95rem;
+        }
+
+        .btn-send-lux {
+            width: 36px;
+            height: 36px;
         }
     }
 </style>
@@ -480,6 +694,22 @@
     const consentArea = document.getElementById('consentRequiredArea');
     const consentText = document.getElementById('consentStatusText');
     const mainAgreeBtn = document.getElementById('mainAgreeBtn');
+    const chatWrapper = document.querySelector('.chat-wrapper-lux');
+    const chatBackBtn = document.getElementById('chatBackBtn');
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function openMobileChatMode() {
+        if (!chatWrapper || !isMobileViewport()) return;
+        chatWrapper.classList.add('mobile-chat-open');
+    }
+
+    function closeMobileChatMode() {
+        if (!chatWrapper) return;
+        chatWrapper.classList.remove('mobile-chat-open');
+    }
 
     socket.on('connect', () => {
         console.log('🔌 Connected to chat server');
@@ -511,6 +741,7 @@
         // Clear and prepare
         chatPlaceholder.style.display = 'none';
         activeChatUI.style.display = 'flex';
+        openMobileChatMode();
         chatHistoryEl.innerHTML = '<div class="loading-history" style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المحادثة...</div>';
 
         // Clear deduplication set on switch
@@ -801,6 +1032,23 @@
         // On initial page load, always show placeholder - no conversation selected
         chatPlaceholder.style.display = 'flex';
         activeChatUI.style.display = 'none';
+        closeMobileChatMode();
+    });
+
+    if (chatBackBtn) {
+        chatBackBtn.addEventListener('click', () => {
+            activeReceiverId = '';
+            activeChatUI.style.display = 'none';
+            chatPlaceholder.style.display = 'flex';
+            document.querySelectorAll('.contact-item-lux').forEach(el => el.classList.remove('active'));
+            closeMobileChatMode();
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        if (!isMobileViewport()) {
+            closeMobileChatMode();
+        }
     });
 
     const searchInput = document.getElementById('contactSearch');

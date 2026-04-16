@@ -1,4 +1,7 @@
-<aside class="admin-sidebar" id="familySidebar">
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-close-btn" id="sidebarClose">
+        <i class="fas fa-times"></i>
+    </div>
     <div class="admin-sidebar-header">
         <a href="/" class="logo-luxury" style="color: white; font-size: 1.3rem;">
             <img src="/logoSanabel.png" alt="سُبُل" style="height: 32px; width: auto; border-radius: 8px;">
@@ -60,3 +63,70 @@
         <% } %>
     </div>
 </aside>
+
+<style>
+    @media (max-width: 768px) {
+        .admin-sidebar {
+            width: min(88vw, 320px);
+            padding: 24px 14px;
+        }
+
+        .admin-sidebar-header {
+            padding-bottom: 16px;
+        }
+
+        .admin-sidebar-nav {
+            gap: 6px;
+        }
+
+        .admin-nav-group-label {
+            margin: 14px 0 8px;
+            font-size: 0.72rem !important;
+        }
+
+        .admin-nav-item {
+            padding: 12px 10px;
+            font-size: 0.88rem;
+            border-radius: 12px;
+        }
+
+        .admin-nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .admin-sidebar-footer {
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .admin-sidebar-footer > div {
+            align-items: flex-start !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .admin-sidebar {
+            width: 92vw;
+            max-width: 290px;
+            padding: 20px 12px;
+        }
+
+        .logo-luxury {
+            font-size: 1.1rem !important;
+            gap: 8px;
+        }
+
+        .logo-luxury img {
+            height: 28px !important;
+        }
+
+        .admin-nav-item {
+            padding: 11px 9px;
+        }
+
+        .admin-sidebar-footer {
+            font-size: 0.8rem;
+        }
+    }
+</style>

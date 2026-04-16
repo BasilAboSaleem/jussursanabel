@@ -11,8 +11,8 @@
     --soft: #9a9a9a;
     --border: #e8e2d9;
     --red-soft: #e05c5c;
-    --gold: #c49a3c;
-    --gold-light: #f5e6c0;
+    --gold: #10b981;
+    --gold-light: #d1fae5;
     --shadow-sm: 0 2px 8px rgba(74, 103, 65, 0.08);
     --shadow-md: 0 8px 32px rgba(74, 103, 65, 0.12);
     --shadow-lg: 0 20px 60px rgba(74, 103, 65, 0.15);
@@ -31,8 +31,8 @@ body {
     font-family: 'Tajawal', sans-serif;
     background: var(--cream);
     color: var(--charcoal);
-    direction: rtl;
-    overflow-x: hidden;
+    direction: inherit;
+    overflow-x: visible; /* CRITICAL: Must be visible to allow horizontal pan gestures on mobile tables */
 }
 
 /* ===== NAVIGATION ===== */
@@ -167,9 +167,9 @@ nav {
 }
 
 .btn-gold:hover {
-    background: #b8892e;
+    background: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(196, 154, 60, 0.3);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
 }
 
 .btn-ghost {
@@ -212,7 +212,7 @@ nav {
     left: -20%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(196, 154, 60, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
     border-radius: 50%;
 }
 
@@ -243,8 +243,8 @@ nav {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(196, 154, 60, 0.2);
-    border: 1px solid rgba(196, 154, 60, 0.4);
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
     color: var(--gold-light);
     padding: 0.4rem 1rem;
     border-radius: 50px;
@@ -1104,6 +1104,8 @@ textarea {
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .sidebar {
@@ -1182,7 +1184,10 @@ textarea {
     flex: 1;
     padding: 2rem;
     background: var(--cream);
-    overflow: auto;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-top {
@@ -1445,7 +1450,8 @@ footer {
     }
 
     .admin-layout {
-        flex-direction: column;
+        flex-direction: row;
+        overflow: hidden;
     }
 
     .sidebar {
@@ -1584,7 +1590,7 @@ footer {
     right: -20px;
     width: 280px;
     height: 280px;
-    background: radial-gradient(circle, rgba(196, 154, 60, .15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(16, 185, 129, .15) 0%, transparent 70%);
     border-radius: 50%;
 }
 
@@ -1632,9 +1638,9 @@ footer {
 }
 
 .cp-badge-gold {
-    background: rgba(196, 154, 60, .3);
-    color: #fde9a8;
-    border: 1px solid rgba(253, 233, 168, .3);
+    background: rgba(16, 185, 129, .3);
+    color: #dcfce7;
+    border: 1px solid rgba(167, 243, 208, .3);
 }
 
 .case-av-row {
@@ -1938,7 +1944,7 @@ footer {
     gap: .6rem;
     margin-top: .9rem;
     background: var(--gold-light);
-    border: 1px solid rgba(196, 154, 60, .2);
+    border: 1px solid rgba(16, 185, 129, .2);
     border-radius: 8px;
     padding: .75rem;
     font-size: .8rem;
@@ -2003,7 +2009,7 @@ footer {
     font-weight: 800;
     padding: .2rem .6rem;
     border-radius: 50px;
-    border: 1px solid rgba(196, 154, 60, .2);
+    border: 1px solid rgba(16, 185, 129, .2);
 }
 
 .msg-feed {
@@ -2039,7 +2045,7 @@ footer {
 .msg-sys-warn {
     background: var(--gold-light);
     color: var(--earth);
-    border-color: rgba(196, 154, 60, .2);
+    border-color: rgba(16, 185, 129, .2);
 }
 
 .msg-row-c {
@@ -2418,7 +2424,7 @@ footer {
 
 .proof-conf-box {
     background: var(--gold-light);
-    border: 1.5px solid rgba(196, 154, 60, .25);
+    border: 1.5px solid rgba(16, 185, 129, .25);
     border-radius: var(--radius-sm);
     padding: 1rem;
     margin-top: .75rem;
@@ -2795,7 +2801,7 @@ footer {
 .cp-alert-warn {
     background: var(--gold-light);
     color: var(--earth);
-    border: 1px solid rgba(196, 154, 60, .2);
+    border: 1px solid rgba(16, 185, 129, .2);
 }
 
 .cp-alert-icon {

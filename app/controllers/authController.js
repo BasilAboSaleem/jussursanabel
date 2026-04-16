@@ -11,6 +11,22 @@ const signToken = (id) => {
     });
 };
 
+const getDashboardPathByRole = (role) => {
+    if (role === 'admin' || role === 'super_admin' || role === 'regulator') {
+        return '/admin/dashboard';
+    }
+
+    if (role === 'support') {
+        return '/support/admin/dashboard';
+    }
+
+    if (role === 'donor' || role === 'beneficiary' || role === 'family' || role === 'guardian') {
+        return '/dashboard';
+    }
+
+    return '/dashboard';
+};
+
 const createSendToken = (user, statusCode, req, res) => {
     const token = signToken(user._id);
 
@@ -24,14 +40,8 @@ const createSendToken = (user, statusCode, req, res) => {
     // Remove password from output
     user.password = undefined;
 
-    // Role-specific redirection (Phase 4 Improvement)
-    if (user.role === 'beneficiary' || user.role === 'family' || user.role === 'guardian') {
-        res.redirect('/cases/register');
-    } else if (user.role === 'donor') {
-        res.redirect('/cases');
-    } else {
-        res.redirect('/');
-    }
+    // Redirect immediately to role-specific dashboard
+    res.redirect(getDashboardPathByRole(user.role));
 };
 
 exports.getLogin = (req, res) => {
