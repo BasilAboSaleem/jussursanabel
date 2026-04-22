@@ -10,8 +10,8 @@ const { systemLogger } = require("./app/utils/logger");
 process.on('uncaughtException', (err) => {
     systemLogger.error('UNCAUGHT EXCEPTION! Shutting down...', { stack: err.stack });
     process.exit(1);
-}); 
-
+});
+ 
 process.on('unhandledRejection', (err) => {
     systemLogger.error('UNHANDLED REJECTION! Shutting down...', { stack: err.stack });
     process.exit(1);

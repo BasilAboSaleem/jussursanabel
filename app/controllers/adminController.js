@@ -7,7 +7,171 @@ const Message = require('../models/Message');
 const ActivityLog = require('../models/ActivityLog');
 const Notification = require('../models/Notification');
 const CaseUpdate = require('../models/CaseUpdate');
+const SupportTicket = require('../models/SupportTicket');
+const Team = require('../models/Team');
+const Testimonial = require('../models/Testimonial');
+const AdminRequest = require('../models/AdminRequest');
+const { cloudinary } = require('../utils/cloudinary');
+const fs = require('fs');
+const path = require('path');
 const { logActivity } = require('../utils/logger');
+
+function extractCloudinaryPublicId(assetUrl = '') {
+    try {
+        const parsed = new URL(assetUrl);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        const uploadIndex = parts.indexOf('upload');
+        if (uploadIndex === -1) return null;
+
+        let publicIdParts = parts.slice(uploadIndex + 1);
+        const versionIndex = publicIdParts.findIndex((p) => /^v\d+$/.test(p));
+        if (versionIndex !== -1) {
+            publicIdParts = publicIdParts.slice(versionIndex + 1);
+        }
+
+        if (!publicIdParts.length) return null;
+        const last = publicIdParts[publicIdParts.length - 1];
+        publicIdParts[publicIdParts.length - 1] = last.replace(/\.[a-z0-9]+$/i, '');
+        return publicIdParts.join('/');
+    } catch (_err) {
+        return null;
+    }
+}
+
+function resolveLocalUploadPath(assetUrl = '') {
+    if (!assetUrl || typeof assetUrl !== 'string') return null;
+    if (/^https?:\/\//i.test(assetUrl)) return null;
+
+    let normalized = assetUrl.replace(/\\/g, '/');
+    if (normalized.startsWith('/public/')) {
+        normalized = normalized.replace(/^\/public/, '');
+    }
+
+    if (!normalized.startsWith('/uploads/')) return null;
+    return path.join(process.cwd(), 'public', normalized.replace(/^\//, ''));
+}
+
+async function deleteAssetUrl(assetUrl = '') {
+    if (!assetUrl || typeof assetUrl !== 'string') return;
+
+    const localPath = resolveLocalUploadPath(assetUrl);
+    if (localPath) {
+        try {
+            await fs.promises.unlink(localPath);
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                console.error('Asset local delete failed:', localPath, err.message);
+            }
+        }
+    }
+
+    if (/res\.cloudinary\.com/i.test(assetUrl)) {
+        const publicId = extractCloudinaryPublicId(assetUrl);
+        if (!publicId) return;
+        const resourceType = /\/video\//i.test(assetUrl) ? 'video' : 'image';
+        try {
+            await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, invalidate: true });
+        } catch (err) {
+            console.error('Asset cloudinary delete failed:', publicId, err.message);
+        }
+    }
+}
+
+async function purgeMediaAssets(assetUrls = []) {
+    const uniqueUrls = [...new Set((assetUrls || []).filter(Boolean))];
+    await Promise.all(uniqueUrls.map((url) => deleteAssetUrl(url)));
+}
+
+async function hardDeleteUserCompletely(userId, session = null) {
+    const options = session ? { session } : {};
+    const id = new mongoose.Types.ObjectId(userId);
+
+    const userDoc = await User.findById(id).select('avatar').session(session).lean();
+    const ownedCases = await Case.find({ guardian: id })
+        .select('image gallery storyVideo updates')
+        .session(session)
+        .lean();
+
+    const caseIds = ownedCases.map((c) => c._id);
+
+    const caseUpdateFilter = caseIds.length
+        ? { $or: [{ guardian: id }, { case: { $in: caseIds } }] }
+        : { guardian: id };
+
+    const caseUpdates = await CaseUpdate.find(caseUpdateFilter).select('images').session(session).lean();
+    const messagesWithImages = await Message.find({
+        $or: [{ sender: id }, { receiver: id }],
+        imageUrl: { $exists: true, $ne: '' }
+    })
+        .select('imageUrl')
+        .session(session)
+        .lean();
+
+    const mediaAssets = [];
+    if (userDoc && userDoc.avatar) mediaAssets.push(userDoc.avatar);
+
+    for (const c of ownedCases) {
+        if (c.image) mediaAssets.push(c.image);
+        if (Array.isArray(c.gallery)) mediaAssets.push(...c.gallery);
+        if (c.storyVideo) mediaAssets.push(c.storyVideo);
+
+        if (Array.isArray(c.updates)) {
+            for (const update of c.updates) {
+                if (Array.isArray(update.images)) {
+                    mediaAssets.push(...update.images);
+                }
+            }
+        }
+    }
+
+    for (const update of caseUpdates) {
+        if (Array.isArray(update.images)) {
+            mediaAssets.push(...update.images);
+        }
+    }
+
+    for (const msg of messagesWithImages) {
+        if (msg.imageUrl) mediaAssets.push(msg.imageUrl);
+    }
+
+    await CaseUpdate.deleteMany(caseUpdateFilter, options);
+    await Case.deleteMany({ guardian: id }, options);
+    await ChatRequest.deleteMany({ $or: [{ donor: id }, { family: id }] }, options);
+    await Message.deleteMany({ $or: [{ sender: id }, { receiver: id }] }, options);
+    await SupportTicket.deleteMany({ user: id }, options);
+    await Notification.deleteMany({
+        $or: [{ sender: id }, { recipient: id }, { readBy: id }]
+    }, options);
+    await Team.deleteMany({ creator: id }, options);
+    await Testimonial.deleteMany({ user: id }, options);
+    await AdminRequest.deleteMany({
+        $or: [{ requester: id }, { targetUser: id }, { resolvedBy: id }]
+    }, options);
+    await ActivityLog.deleteMany({
+        $or: [{ user: id }, { targetType: 'User', targetId: id }]
+    }, options);
+
+    await User.updateMany(
+        { 'blockedUsers.user': id },
+        { $pull: { blockedUsers: { user: id } } },
+        options
+    );
+
+    await User.updateMany(
+        { 'moderationNotes.admin': id },
+        { $pull: { moderationNotes: { admin: id } } },
+        options
+    );
+
+    await Case.updateMany(
+        { $or: [{ currentSponsor: id }, { followers: id }] },
+        { $unset: { currentSponsor: '' }, $pull: { followers: id } },
+        options
+    );
+
+    await User.findByIdAndDelete(id, options);
+    return mediaAssets;
+}
 
 exports.getAdminDashboard = async (req, res) => {
     try {
@@ -655,7 +819,8 @@ exports.deleteUser = async (req, res) => {
             return res.redirect('/admin/users');
         }
 
-        await User.findByIdAndDelete(req.params.id);
+        const mediaAssets = await hardDeleteUserCompletely(req.params.id);
+        await purgeMediaAssets(mediaAssets);
 
         await logActivity(req.user._id, 'user_delete', 'User', req.params.id, 
             `تم حذف المستخدم نهائياً: ${userToDelete.name} (${userToDelete.role})`);
@@ -719,23 +884,18 @@ exports.moderateUser = async (req, res) => {
                 return res.status(403).json({ error: res.__('admin_error_super_only') });
             }
             
-            // Hard Delete Cascading Logic
             const session = await mongoose.startSession();
             session.startTransaction();
+            let mediaAssets = [];
             try {
-                // Hard Delete Cascading
-                await Case.deleteMany({ guardian: userId }, { session });
-                await Transaction.deleteMany({ donor: userId }, { session });
-                await ChatRequest.deleteMany({ $or: [{ donor: userId }, { family: userId }] }, { session });
-                await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] }, { session });
-                
-                await User.findByIdAndDelete(userId, { session });
+                mediaAssets = await hardDeleteUserCompletely(userId, session);
                 
                 await logActivity(req.user._id, 'user_hard_delete', 'User', userId, 
                     `إعدام إلكتروني - تم مسح المستخدم وكل ما يتعلق به من النظام نهائياً: ${note}`);
                     
                 await session.commitTransaction();
                 session.endSession();
+                await purgeMediaAssets(mediaAssets);
                 return res.json({ success: true, message: 'تم الإعدام الإلكتروني للمستخدم بنجاح', redirect: '/admin/all-users' });
             } catch (err) {
                 await session.abortTransaction();
@@ -808,18 +968,6 @@ exports.moderateUser = async (req, res) => {
             // Note: We don't delete other records here anymore, 
             // as this is a "Soft" delete that can be undone.
             // But we should ensure they are not visible in general lists.
-        } else if (action === 'hard_delete' && req.user.role === 'super_admin') {
-            await Case.deleteMany({ guardian: userId });
-            await Transaction.deleteMany({ donor: userId });
-            await ChatRequest.deleteMany({ $or: [{ donor: userId }, { family: userId }] });
-            await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
-            
-            await User.findByIdAndDelete(userId);
-            
-            await logActivity(req.user._id, 'user_hard_delete', 'User', userId, 
-                `إعدام إلكتروني - تم مسح المستخدم وكل ما يتعلق به من النظام نهائياً: ${note}`);
-                
-            return res.json({ success: true, message: 'تم الإعدام الإلكتروني للمستخدم بنجاح', redirect: '/admin/all-users' });
         } else if (action === 'undo_warning') {
             user.warningsCount = Math.max(0, user.warningsCount - 1);
         } else if (action === 'undo_ban_global_comm') {
@@ -1378,8 +1526,6 @@ exports.rejectImpactProof = async (req, res) => {
 // ==========================================
 // Phase 12: Admin Escalation Center (Hotline)
 // ==========================================
-const AdminRequest = require('../models/AdminRequest');
-
 exports.getEscalationsCenter = async (req, res) => {
     try {
         let requests;
@@ -1488,19 +1634,8 @@ exports.resolveAdminRequest = async (req, res) => {
             // Execute the highly privileged action
             if (adminReq.type === 'hard_delete_user' && adminReq.targetUser) {
                 const userId = adminReq.targetUser._id;
-                
-                // Ensure required models are within scope
-                const Case = require('../models/Case');
-                const Transaction = require('../models/Transaction');
-                const ChatRequest = require('../models/ChatRequest');
-                const Message = require('../models/Message');
-                const User = require('../models/User');
-
-                await Case.deleteMany({ guardian: userId });
-                await Transaction.deleteMany({ donor: userId });
-                await ChatRequest.deleteMany({ $or: [{ donor: userId }, { family: userId }] });
-                await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
-                await User.findByIdAndDelete(userId);
+                const mediaAssets = await hardDeleteUserCompletely(userId);
+                await purgeMediaAssets(mediaAssets);
                 
                 actionLogMsg = res.__('log_escalation_approved_hard_delete');
             } else {
