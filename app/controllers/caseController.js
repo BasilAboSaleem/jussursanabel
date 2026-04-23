@@ -111,21 +111,35 @@ exports.createCase = async (req, res) => {
             }
         });
 
-        if (req.file) {
+        const uploadedFiles = Array.isArray(req.files) ? req.files : [];
+        if (uploadedFiles.length > 3) {
+            req.flash('error', 'يمكنك رفع 3 صور كحد أقصى لكل حالة.');
+            return res.redirect('back');
+        }
+
+        if (uploadedFiles.length > 0) {
+            const uploadedUrls = [];
+
             try {
-                // Upload to Cloudinary
-                const result = await cloudinary.uploader.upload(req.file.path, {
-                    folder: 'jussur-sanabel/cases'
-                });
-                newCase.image = result.secure_url;
-                
-                // Cleanup local file
-                fs.unlinkSync(req.file.path);
+                for (const file of uploadedFiles) {
+                    const result = await cloudinary.uploader.upload(file.path, {
+                        folder: 'jussur-sanabel/cases'
+                    });
+                    uploadedUrls.push(result.secure_url);
+                }
+
+                // Keep current UX: first image as main cover, rest as gallery.
+                newCase.image = uploadedUrls[0];
+                newCase.gallery = uploadedUrls.slice(1);
             } catch (uploadErr) {
                 console.error('Cloudinary Upload Error:', uploadErr);
-                // Even if upload fails, try to cleanup
-                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
                 throw uploadErr;
+            } finally {
+                for (const file of uploadedFiles) {
+                    if (file && file.path && fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                }
             }
         }
 

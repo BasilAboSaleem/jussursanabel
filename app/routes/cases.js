@@ -7,7 +7,7 @@ const { pageCache } = require('../middlewares/cache');
 
 // Protected (For beneficiaries and donors)
 router.get('/register', protect, restrictTo('beneficiary', 'family', 'guardian'), caseController.getRegisterCase);
-router.post('/register', protect, restrictTo('beneficiary', 'family', 'guardian'), upload.single('image'), caseController.createCase);
+router.post('/register', protect, restrictTo('beneficiary', 'family', 'guardian'), upload.array('image', 3), caseController.createCase);
 router.post('/:id/follow', protect, caseController.toggleFollowCase);
 router.post('/:id/teams', protect, caseController.createTeam);
 

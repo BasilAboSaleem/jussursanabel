@@ -75,7 +75,11 @@
             <div class="grid-2" style="gap: 25px; margin-bottom: 25px;">
                 <div class="form-group">
                     <label class="form-label-luxury"><%= __('register_case_label_image') %></label>
-                    <input type="file" name="image" required class="form-input" style="padding: 10px;">
+                    <input type="file" id="caseImagesInput" name="image" required multiple accept="image/*" class="form-input" style="padding: 10px;">
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">
+                        يمكنك اختيار من 1 إلى 3 صور. سيتم اعتماد أول صورة كصورة أساسية، والباقي سيظهر في معرض الحالة.
+                    </div>
+                    <div id="caseImagesError" style="display: none; font-size: 0.8rem; color: #ef4444; margin-top: 6px; font-weight: 700;"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label-luxury"><i class="fas fa-video" style="color:var(--secondary); margin-inline-end:5px;"></i> رابط فيديو القصة (اختياري)</label>
@@ -414,6 +418,42 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        const registerForm = document.getElementById('registerCaseForm');
+        const caseImagesInput = document.getElementById('caseImagesInput');
+        const caseImagesError = document.getElementById('caseImagesError');
+
+        function validateCaseImages() {
+            if (!caseImagesInput) return true;
+
+            const filesCount = (caseImagesInput.files && caseImagesInput.files.length) || 0;
+            if (filesCount > 3) {
+                if (caseImagesError) {
+                    caseImagesError.style.display = 'block';
+                    caseImagesError.innerText = 'الحد الأقصى لصور الحالة هو 3 صور فقط.';
+                }
+                caseImagesInput.value = '';
+                return false;
+            }
+
+            if (caseImagesError) {
+                caseImagesError.style.display = 'none';
+                caseImagesError.innerText = '';
+            }
+            return true;
+        }
+
+        if (caseImagesInput) {
+            caseImagesInput.addEventListener('change', validateCaseImages);
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                if (!validateCaseImages()) {
+                    e.preventDefault();
+                }
+            });
+        }
+
         const countInput = document.getElementById('memberCountInput');
         if (countInput) {
             countInput.addEventListener('input', (e) => {
