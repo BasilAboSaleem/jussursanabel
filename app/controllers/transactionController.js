@@ -259,7 +259,41 @@ exports.processDonation = async (req, res) => {
 
 exports.handleCheckoutSuccess = async (req, res) => {
     try {
-        req.flash('success', 'تم استلام عملية الدفع، يجري التحقق منها الآن.');
+        if (!stripe) {
+            req.flash('error', 'Stripe غير مهيأ على الخادم.');
+            return res.redirect('/dashboard');
+        }
+
+        const { session_id: sessionId } = req.query;
+        if (sessionId) {
+            const session = await stripe.checkout.sessions.retrieve(sessionId, {
+                expand: ['payment_intent']
+            });
+
+            const transactionId = session.metadata && session.metadata.transactionId;
+            const paymentStatus = session.payment_status;
+            const checkoutStatus = session.status;
+            const paid = paymentStatus === 'paid' || checkoutStatus === 'complete';
+
+            if (transactionId && paid) {
+                const transaction = await Transaction.findById(transactionId);
+                if (transaction && transaction.status !== 'verified') {
+                    const foundCase = await Case.findById(transaction.case);
+                    if (foundCase) {
+                        transaction.stripeSessionId = session.id || transaction.stripeSessionId;
+                        if (typeof session.payment_intent === 'string') {
+                            transaction.stripePaymentIntentId = session.payment_intent;
+                        } else if (session.payment_intent && session.payment_intent.id) {
+                            transaction.stripePaymentIntentId = session.payment_intent.id;
+                        }
+                        await transaction.save();
+                        await finalizeVerifiedTransaction({ transaction, foundCase, reqForLocale: req });
+                    }
+                }
+            }
+        }
+
+        req.flash('success', 'تم استلام عملية الدفع والتحقق منها.');
         return res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
