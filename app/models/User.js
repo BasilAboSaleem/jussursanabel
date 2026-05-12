@@ -50,6 +50,8 @@ const userSchema = new mongoose.Schema({
         jawwalPayNumber: { type: String },
         otherMethod: { type: String }
     },
+    /** Set when a beneficiary accepts the electronic acknowledgment at registration (audit). */
+    beneficiaryTermsAcceptedAt: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 

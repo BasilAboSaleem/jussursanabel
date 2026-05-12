@@ -173,6 +173,21 @@
                         <div class="field-error" id="error-confirmPassword"></div>
                     </div>
 
+                    <!-- إقرار إلكتروني — يظهر لمستفيد فقط -->
+                    <div id="beneficiary-contract-section" style="display: none; margin-bottom: 28px;">
+                        <h3 class="font-cairo" style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 14px; font-weight: 800;">
+                            <%= __('register_beneficiary_contract_title') %>
+                        </h3>
+                        <div dir="<%= locals.langDir || 'rtl' %>" style="max-height: 220px; overflow-y: auto; padding: 18px 16px; border-radius: 16px; background: rgba(0,0,0,0.25); border: 1px solid rgba(34, 211, 238, 0.22); text-align: <%= (locals.langDir || 'rtl') === 'rtl' ? 'right' : 'left' %>;">
+                            <p style="margin: 0; color: rgba(255,255,255,0.82); font-size: 0.88rem; line-height: 1.75; white-space: pre-line;"><%= __('register_beneficiary_contract_body') %></p>
+                        </div>
+                        <label dir="<%= locals.langDir || 'rtl' %>" style="display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; cursor: pointer; color: rgba(255,255,255,0.9); font-size: 0.9rem; line-height: 1.55;">
+                            <input type="checkbox" name="beneficiaryTermsAccepted" id="beneficiary-terms-checkbox" value="accepted" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--secondary); flex-shrink: 0;">
+                            <span><%= __('register_beneficiary_contract_checkbox') %></span>
+                        </label>
+                        <div class="field-error" id="error-beneficiary-terms" style="margin-top: 8px;"></div>
+                    </div>
+
                     <button type="submit" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; height: 60px; border-radius: 18px; font-weight: 900; font-size: 1.25rem;">
                         تأكيد الانضمام <i class="fas fa-check-circle" style="margin-right: 15px;"></i>
                     </button>
@@ -338,6 +353,10 @@
         const phoneInput = document.getElementById('reg-phone');
         const addrInput = document.getElementById('reg-address');
         
+        const contractSec = document.getElementById('beneficiary-contract-section');
+        const termsCb = document.getElementById('beneficiary-terms-checkbox');
+        const termsErr = document.getElementById('error-beneficiary-terms');
+
         if(role === 'beneficiary') {
             bFields.style.display = 'block';
             dFields.style.display = 'none';
@@ -345,6 +364,7 @@
             phoneInput.setAttribute('required', 'true');
             idInput.setAttribute('required', 'true');
             if (addrInput) addrInput.setAttribute('required', 'true');
+            if (contractSec) contractSec.style.display = 'block';
         } else {
             bFields.style.display = 'none';
             dFields.style.display = 'block';
@@ -352,6 +372,9 @@
             phoneInput.removeAttribute('required');
             idInput.removeAttribute('required');
             if (addrInput) addrInput.removeAttribute('required');
+            if (contractSec) contractSec.style.display = 'none';
+            if (termsCb) termsCb.checked = false;
+            if (termsErr) termsErr.innerText = '';
         }
     }
 
@@ -427,6 +450,16 @@
                 clearError('reg-confirmPassword');
             }
         });
+
+        const termsCb = document.getElementById('beneficiary-terms-checkbox');
+        if (termsCb) {
+            termsCb.addEventListener('change', () => {
+                if (termsCb.checked) {
+                    const err = document.getElementById('error-beneficiary-terms');
+                    if (err) err.innerText = '';
+                }
+            });
+        }
     }
 
     function showError(id, msg) {
@@ -522,6 +555,22 @@
             } else {
                 document.getElementById('error-financial').innerText = '';
             }
+
+            const termsCb = document.getElementById('beneficiary-terms-checkbox');
+            const termsErr = document.getElementById('error-beneficiary-terms');
+            if (!termsCb || !termsCb.checked) {
+                e.preventDefault();
+                if (termsErr) termsErr.innerText = '<%= __('flash_beneficiary_contract_required') %>';
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'الموافقة مطلوبة',
+                    text: '<%= __('flash_beneficiary_contract_required') %>',
+                    confirmButtonText: 'حسناً'
+                });
+                nextStep(3);
+                return false;
+            }
+            if (termsErr) termsErr.innerText = '';
         }
 
         return true;

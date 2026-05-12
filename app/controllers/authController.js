@@ -62,6 +62,12 @@ exports.register = async (req, res) => {
         }
 
         if (role === 'beneficiary') {
+            const termsOk = req.body.beneficiaryTermsAccepted === 'accepted';
+            if (!termsOk) {
+                req.flash('error', res.__('flash_beneficiary_contract_required'));
+                return res.redirect('/auth/register');
+            }
+
             if (!idNumber || !address || !phone) {
                 req.flash('error', res.__('flash_id_required'));
                 return res.redirect('/auth/register');
@@ -105,6 +111,7 @@ exports.register = async (req, res) => {
             idNumber: role === 'beneficiary' ? idNumber : undefined,
             address,
             paymentDetails: role === 'beneficiary' ? paymentDetails : undefined,
+            beneficiaryTermsAcceptedAt: role === 'beneficiary' ? new Date() : undefined,
             status: (role === 'donor' || role === 'admin' || role === 'super_admin') ? 'active' : 'pending'
         });
 
