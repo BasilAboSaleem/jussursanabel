@@ -1,0 +1,195 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 25px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+  <div style="display:flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+    <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+      <h2 class="font-cairo" style="margin: 0; color: var(--primary);">
+        <i class="fas fa-receipt"></i> سجل التبرعات (شامل)
+      </h2>
+      <div style="margin-top: 6px; color: var(--text-muted); font-size: 0.9rem;">
+        يمكنك البحث والفلترة ثم تصدير Excel بنفس النتائج.
+      </div>
+    </div>
+
+    <div style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <div class="glass-panel" style="padding: 12px 18px; text-align:center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">عدد السجلات</div>
+        <div style="font-weight: 900; color: var(--primary); font-size: 1.2rem;"><%= totals.count.toLocaleString() %></div>
+      </div>
+      <div class="glass-panel" style="padding: 12px 18px; text-align:center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">إجمالي التبرعات</div>
+        <div style="font-weight: 900; color: #10b981; font-size: 1.2rem;">$<%= (totals.sumAmount || 0).toFixed(2) %></div>
+      </div>
+      <div class="glass-panel" style="padding: 12px 18px; text-align:center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">إجمالي الرسوم</div>
+        <div style="font-weight: 900; color: var(--secondary); font-size: 1.2rem;">$<%= (totals.sumOperationFee || 0).toFixed(2) %></div>
+      </div>
+      <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger/export<%= exportQueryString ? ('?' + exportQueryString) : '' %>">
+        <i class="fas fa-file-excel"></i> تصدير Excel
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="luxury-card" style="padding: 22px; margin-bottom: 20px;">
+  <form method="GET" action="/admin/donations-ledger" style="display:grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: end;">
+    <div style="grid-column: span 3;">
+      <label style="font-weight:700; font-size:0.85rem;">بحث شامل</label>
+      <input class="form-control" name="q" value="<%= (filters.q || '') %>" placeholder="اسم/إيميل/معرّف/Stripe..." style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+    </div>
+
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">من</label>
+      <input class="form-control" type="date" name="from" value="<%= filters.from || '' %>" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+    </div>
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">إلى</label>
+      <input class="form-control" type="date" name="to" value="<%= filters.to || '' %>" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+    </div>
+
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">الحالة</label>
+      <select name="status" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>الكل</option>
+        <option value="verified" <%= filters.status === 'verified' ? 'selected' : '' %>>مدقق</option>
+        <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>قيد المراجعة</option>
+        <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>فاشل</option>
+      </select>
+    </div>
+
+    <div style="grid-column: span 1;">
+      <label style="font-weight:700; font-size:0.85rem;">النوع</label>
+      <select name="type" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <option value="all" <%= filters.type === 'all' ? 'selected' : '' %>>الكل</option>
+        <option value="direct" <%= filters.type === 'direct' ? 'selected' : '' %>>مباشر</option>
+        <option value="monthly" <%= filters.type === 'monthly' ? 'selected' : '' %>>شهري</option>
+      </select>
+    </div>
+
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">وسيلة الدفع</label>
+      <select name="paymentMethod" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <option value="all" <%= filters.paymentMethod === 'all' ? 'selected' : '' %>>الكل</option>
+        <option value="stripe_checkout" <%= filters.paymentMethod === 'stripe_checkout' ? 'selected' : '' %>>Stripe Checkout</option>
+        <option value="receipt_upload" <%= filters.paymentMethod === 'receipt_upload' ? 'selected' : '' %>>إيصال بنكي</option>
+      </select>
+    </div>
+
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">مطابقة بنكية</label>
+      <select name="isBankConfirmed" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <option value="all" <%= filters.isBankConfirmed === 'all' ? 'selected' : '' %>>الكل</option>
+        <option value="true" <%= filters.isBankConfirmed === 'true' ? 'selected' : '' %>>نعم</option>
+        <option value="false" <%= filters.isBankConfirmed === 'false' ? 'selected' : '' %>>لا</option>
+      </select>
+    </div>
+
+    <div style="grid-column: span 2;">
+      <label style="font-weight:700; font-size:0.85rem;">حالة الصرف</label>
+      <select name="disbursementStatus" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <option value="all" <%= filters.disbursementStatus === 'all' ? 'selected' : '' %>>الكل</option>
+        <option value="pending" <%= filters.disbursementStatus === 'pending' ? 'selected' : '' %>>قيد الصرف</option>
+        <option value="disbursed" <%= filters.disbursementStatus === 'disbursed' ? 'selected' : '' %>>تم الصرف</option>
+      </select>
+    </div>
+
+    <div style="grid-column: span 2; display:flex; gap:10px;">
+      <input type="hidden" name="limit" value="<%= filters.limit %>">
+      <button class="btn-lux btn-lux-primary" type="submit" style="width:100%;">
+        <i class="fas fa-filter"></i> تطبيق
+      </button>
+      <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger" style="width:100%; text-align:center;">
+        <i class="fas fa-rotate"></i> مسح
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="luxury-card" style="padding: 0;">
+  <div class="table-responsive">
+    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+      <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <tr>
+          <th style="padding: 14px 16px;">التاريخ</th>
+          <th style="padding: 14px 16px;">المتبرع</th>
+          <th style="padding: 14px 16px;">الحالة</th>
+          <th style="padding: 14px 16px;">الحالة/النوع</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الأساسي</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">بوابة</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">مؤسسة</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">إجمالي الرسوم</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الإجمالي</th>
+          <th style="padding: 14px 16px;">Stripe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!rows || rows.length === 0) { %>
+          <tr>
+            <td colspan="10" style="padding: 60px; text-align:center; color: var(--text-muted);">
+              <%= __('common_no_data') %>
+            </td>
+          </tr>
+        <% } %>
+
+        <% (rows || []).forEach(t => { %>
+          <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <td style="padding: 14px 16px; color:#64748b; font-size:0.85rem;"><%= fmtDate(t.createdAt) %></td>
+            <td style="padding: 14px 16px;">
+              <div style="font-weight: 800; color: var(--primary);"><%= t.donorName || '—' %></div>
+              <div style="font-size: 0.78rem; color:#64748b;"><%= t.donorEmail || '' %></div>
+            </td>
+            <td style="padding: 14px 16px;">
+              <div style="font-weight: 800; color:#334155; max-width: 260px; overflow:hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= t.caseTitle || '' %>">
+                <%= t.caseTitle || '—' %>
+              </div>
+              <div style="font-size: 0.78rem; color:#64748b;"><%= t.teamName ? ('فريق: ' + t.teamName) : '' %></div>
+            </td>
+            <td style="padding: 14px 16px;">
+              <span class="badge badge-navy"><%= t.status %></span>
+              <span class="badge badge-gold" style="margin-<%= langDir === 'rtl' ? 'right' : 'left' %>: 6px;"><%= t.type %></span>
+              <div style="font-size: 0.75rem; color:#64748b; margin-top: 4px;"><%= t.paymentMethod %></div>
+            </td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800;">$<%= Number(t.amount || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">$<%= Number(t.gatewayFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">$<%= Number(t.institutionFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: var(--secondary);">$<%= Number(t.operationFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 900;">$<%= Number(t.totalAmount || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; font-size: 0.78rem; color:#64748b;">
+              <div title="<%= t.stripeSessionId || '' %>"><b>S</b>: <%= t.stripeSessionId ? String(t.stripeSessionId).slice(0, 18) : '—' %></div>
+              <div title="<%= t.stripePaymentIntentId || '' %>"><b>P</b>: <%= t.stripePaymentIntentId ? String(t.stripePaymentIntentId).slice(0, 18) : '—' %></div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div style="display:flex; justify-content: space-between; align-items:center; margin-top: 18px; flex-wrap: wrap; gap: 10px;">
+  <div style="color:#64748b; font-size:0.85rem;">
+    صفحة <b><%= pagination.page %></b> من <b><%= pagination.totalPages %></b> — إجمالي <b><%= pagination.totalCount.toLocaleString() %></b>
+  </div>
+
+  <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+    <% 
+      const base = new URLSearchParams();
+      ['q','from','to','status','type','paymentMethod','disbursementStatus','isBankConfirmed','limit'].forEach(k => {
+        const v = (filters && filters[k] !== undefined) ? String(filters[k]) : '';
+        if (v && v !== 'all') base.set(k, v);
+      });
+      const prevPage = Math.max(1, pagination.page - 1);
+      const nextPage = Math.min(pagination.totalPages, pagination.page + 1);
+    %>
+    <% base.set('page', String(prevPage)); %>
+    <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger?<%= base.toString() %>">
+      <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i> السابق
+    </a>
+    <% base.set('page', String(nextPage)); %>
+    <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger?<%= base.toString() %>">
+      التالي <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
+    </a>
+  </div>
+</div>
+
+<%- include('../../partials/admin-layout-bottom') %>
+

@@ -12,9 +12,137 @@ const Team = require('../models/Team');
 const Testimonial = require('../models/Testimonial');
 const AdminRequest = require('../models/AdminRequest');
 const { cloudinary } = require('../utils/cloudinary');
+const { buildExcel } = require('../utils/excelXml');
 const fs = require('fs');
 const path = require('path');
 const { logActivity } = require('../utils/logger');
+
+function dateRange(from, to) {
+    const q = {};
+    if (from || to) {
+        q.createdAt = {};
+        if (from) q.createdAt.$gte = new Date(from + 'T00:00:00');
+        if (to) q.createdAt.$lte = new Date(to + 'T23:59:59');
+    }
+    return q;
+}
+
+function safeRegex(input = '') {
+    const s = String(input || '').trim();
+    if (!s) return null;
+    const escaped = s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(escaped, 'i');
+}
+
+function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleString('ar-EG');
+}
+
+function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTotalsFacet = false, skip = 0, limit = 50 }) {
+    const match = {};
+
+    if (filters.status && filters.status !== 'all') match.status = filters.status;
+    if (filters.type && filters.type !== 'all') match.type = filters.type;
+    if (filters.paymentMethod && filters.paymentMethod !== 'all') match.paymentMethod = filters.paymentMethod;
+    if (filters.disbursementStatus && filters.disbursementStatus !== 'all') match.disbursementStatus = filters.disbursementStatus;
+    if (filters.isBankConfirmed && filters.isBankConfirmed !== 'all') match.isBankConfirmed = filters.isBankConfirmed === 'true';
+
+    Object.assign(match, dateRange(filters.from, filters.to));
+
+    const pipeline = [
+        { $match: match },
+        { $sort: { createdAt: -1 } },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'donor',
+                foreignField: '_id',
+                as: 'donorDoc'
+            }
+        },
+        { $unwind: { path: '$donorDoc', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
+                from: 'cases',
+                localField: 'case',
+                foreignField: '_id',
+                as: 'caseDoc'
+            }
+        },
+        { $unwind: { path: '$caseDoc', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
+                from: 'teams',
+                localField: 'team',
+                foreignField: '_id',
+                as: 'teamDoc'
+            }
+        },
+        { $unwind: { path: '$teamDoc', preserveNullAndEmptyArrays: true } },
+        {
+            $addFields: {
+                _idStr: { $toString: '$_id' },
+                _idShort: { $toUpper: { $substrCP: [{ $toString: '$_id' }, 16, 8] } },
+                donorName: '$donorDoc.name',
+                donorEmail: '$donorDoc.email',
+                caseTitle: '$caseDoc.title',
+                teamName: '$teamDoc.name'
+            }
+        }
+    ];
+
+    if (search) {
+        pipeline.push({
+            $match: {
+                $or: [
+                    { _idStr: { $regex: search } },
+                    { _idShort: { $regex: search } },
+                    { stripeSessionId: { $regex: search } },
+                    { stripePaymentIntentId: { $regex: search } },
+                    { donorName: { $regex: search } },
+                    { donorEmail: { $regex: search } },
+                    { caseTitle: { $regex: search } },
+                    { teamName: { $regex: search } }
+                ]
+            }
+        });
+    }
+
+    const dataPipeline = [
+        { $skip: Math.max(0, Number(skip || 0)) },
+        { $limit: Math.max(1, Math.min(Number(limit || 50), 200)) }
+    ];
+
+    const totalsFacet = includeTotalsFacet
+        ? [{
+            $group: {
+                _id: null,
+                count: { $sum: 1 },
+                sumAmount: { $sum: { $ifNull: ['$amount', 0] } },
+                sumInstitutionFee: { $sum: { $ifNull: ['$institutionFee', 0] } },
+                sumGatewayFee: { $sum: { $ifNull: ['$gatewayFee', 0] } },
+                sumOperationFee: { $sum: { $ifNull: ['$operationFee', 0] } },
+                sumTotalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } }
+            }
+        }]
+        : [{ $count: 'count' }];
+
+    pipeline.push({
+        $facet: {
+            meta: totalsFacet,
+            data: dataPipeline
+        }
+    });
+
+    pipeline.push({
+        $addFields: {
+            meta: { $ifNull: [{ $arrayElemAt: ['$meta', 0] }, { count: 0 }] }
+        }
+    });
+
+    return pipeline;
+}
 
 function extractCloudinaryPublicId(assetUrl = '') {
     try {
@@ -692,6 +820,173 @@ exports.updateTransactionStatus = async (req, res) => {
         console.error(err);
         req.flash('error', res.__('flash_error_donation'));
         res.redirect('/admin/dashboard');
+    }
+};
+
+exports.getDonationsLedger = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'super_admin') {
+            return res.status(403).send('Forbidden');
+        }
+
+        const {
+            from,
+            to,
+            status = 'all',
+            type = 'all',
+            paymentMethod = 'all',
+            disbursementStatus = 'all',
+            isBankConfirmed = 'all',
+            q = '',
+            page = 1,
+            limit = 50,
+        } = req.query;
+
+        const pageNum = Math.max(1, Number(page || 1));
+        const limitNum = Math.max(10, Math.min(Number(limit || 50), 200));
+        const skip = (pageNum - 1) * limitNum;
+
+        const filters = { from, to, status, type, paymentMethod, disbursementStatus, isBankConfirmed };
+        const search = safeRegex(q);
+
+        const [result] = await Transaction.aggregate(
+            buildDonationsLedgerPipeline({
+                filters,
+                search,
+                includeTotalsFacet: true,
+                skip,
+                limit: limitNum
+            })
+        );
+
+        const meta = result && result.meta ? result.meta : { count: 0 };
+        const rows = (result && result.data) ? result.data : [];
+
+        const totalCount = meta.count || 0;
+        const totalPages = Math.max(1, Math.ceil(totalCount / limitNum));
+
+        const exportParams = new URLSearchParams();
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && String(v).trim() !== '' && v !== 'all') exportParams.set(k, String(v));
+        });
+        if (String(q || '').trim()) exportParams.set('q', String(q).trim());
+
+        res.render('pages/admin/donations-ledger', {
+            title: 'سجل التبرعات (السوبر أدمن)',
+            rows,
+            filters: { ...filters, q, page: pageNum, limit: limitNum },
+            totals: {
+                count: totalCount,
+                sumAmount: meta.sumAmount || 0,
+                sumInstitutionFee: meta.sumInstitutionFee || 0,
+                sumGatewayFee: meta.sumGatewayFee || 0,
+                sumOperationFee: meta.sumOperationFee || 0,
+                sumTotalAmount: meta.sumTotalAmount || 0,
+            },
+            pagination: {
+                page: pageNum,
+                totalPages,
+                totalCount,
+                limit: limitNum
+            },
+            exportQueryString: exportParams.toString(),
+            fmtDate
+        });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'حدث خطأ أثناء تحميل سجل التبرعات');
+        return res.redirect('/admin/dashboard');
+    }
+};
+
+exports.exportDonationsLedger = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'super_admin') {
+            return res.status(403).send('Forbidden');
+        }
+
+        const {
+            from,
+            to,
+            status = 'all',
+            type = 'all',
+            paymentMethod = 'all',
+            disbursementStatus = 'all',
+            isBankConfirmed = 'all',
+            q = '',
+        } = req.query;
+
+        const filters = { from, to, status, type, paymentMethod, disbursementStatus, isBankConfirmed };
+        const search = safeRegex(q);
+
+        // Export cap to avoid memory blowups.
+        const exportLimit = 10000;
+        const docs = await Transaction.aggregate([
+            ...buildDonationsLedgerPipeline({ filters, search, includeTotalsFacet: false, skip: 0, limit: exportLimit }),
+        ]);
+
+        const payload = docs && docs[0] ? docs[0] : { data: [], meta: { count: 0 } };
+        const rows = payload.data || [];
+
+        const headers = [
+            '#',
+            'رقم المعاملة',
+            'التاريخ',
+            'الحالة',
+            'نوع التبرع',
+            'وسيلة الدفع',
+            'المتبرع',
+            'البريد',
+            'الحالة المستفيدة',
+            'الفريق',
+            'قيمة التبرع الأساسية ($)',
+            'رسوم بوابة الدفع ($)',
+            'رسوم المؤسسة ($)',
+            'إجمالي رسوم التشغيل ($)',
+            'الإجمالي المحصل ($)',
+            'نسبة التشغيل (%)',
+            'Stripe Session',
+            'Stripe PaymentIntent',
+            'تم التدقيق بواسطة',
+            'تاريخ التدقيق',
+            'مطابق بنكياً',
+            'حالة الصرف'
+        ];
+
+        const excelRows = rows.map((t, i) => [
+            i + 1,
+            t._idShort || String(t._idStr || t._id || '').slice(-8).toUpperCase(),
+            fmtDate(t.createdAt),
+            t.status || '—',
+            t.type || '—',
+            t.paymentMethod || '—',
+            t.donorName || '—',
+            t.donorEmail || '—',
+            t.caseTitle || '—',
+            t.teamName || '—',
+            Number(t.amount || 0),
+            Number(t.gatewayFee || 0),
+            Number(t.institutionFee || 0),
+            Number(t.operationFee || 0),
+            Number(t.totalAmount || 0),
+            Number(t.operationPercentage || 0),
+            t.stripeSessionId || '—',
+            t.stripePaymentIntentId || '—',
+            t.verifiedBy ? String(t.verifiedBy) : '—',
+            fmtDate(t.verifiedAt),
+            t.isBankConfirmed === true ? 'نعم' : 'لا',
+            t.disbursementStatus || '—'
+        ]);
+
+        const label = from && to ? `${from}_to_${to}` : 'full';
+        const colWidths = [40, 110, 140, 90, 90, 140, 180, 220, 260, 160, 130, 130, 130, 140, 140, 120, 200, 220, 180, 140, 90, 110];
+
+        res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="donations-ledger-${label}.xls"`);
+        return res.send(buildExcel('سجل التبرعات', headers, excelRows, colWidths));
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send('Export error');
     }
 };
 

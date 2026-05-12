@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const settingsController = require('../controllers/settingsController');
@@ -39,6 +39,8 @@ router.get('/cases-manager', adminController.getCasesManager);
 router.get('/cases/:id/field-report', adminController.getFieldReportPdf);
 router.get('/pending-approvals', adminController.getPendingApprovals);
 router.get('/operation-fees', restrictTo('super_admin'), adminController.getOperationFeesDetail);
+router.get('/donations-ledger', restrictTo('super_admin'), adminController.getDonationsLedger);
+router.get('/donations-ledger/export', restrictTo('super_admin'), adminController.exportDonationsLedger);
 
 // System Settings (Super Admin Only)
 router.get('/settings', restrictTo('super_admin'), settingsController.getSettings);
@@ -82,3 +84,5 @@ router.get('/distribution/export/receipts-history', distributionController.expor
 router.get('/distribution/export/payouts-history', distributionController.exportPayoutsHistory);
 
 module.exports = router;
+
+
