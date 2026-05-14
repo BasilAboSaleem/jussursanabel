@@ -12,7 +12,7 @@ const caseSchema = new mongoose.Schema({
     monthlySponsorshipAmount: { type: Number, default: 100 }, // suggested amount
     status: { 
         type: String, 
-        enum: ['pending', 'field_verification', 'approved', 'rejected', 'fully_sponsored'], 
+        enum: ['pending', 'field_verification', 'media_review', 'approved', 'rejected', 'fully_sponsored'], 
         default: 'pending' 
     },
     verificationNotes: { type: String },

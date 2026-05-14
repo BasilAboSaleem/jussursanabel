@@ -22,7 +22,7 @@
         </div>
 
         <div class="header-actions-group">
-            <% const hasActiveCase = myCases.some(c => !c.isSatisfied && ['pending', 'field_verification', 'approved'].includes(c.status)); %>
+            <% const hasActiveCase = myCases.some(c => !c.isSatisfied && ['pending', 'field_verification', 'media_review', 'approved'].includes(c.status)); %>
             <% if (!hasActiveCase) { %>
                 <a href="/cases/register" class="btn-lux btn-lux-primary btn-sm"><i class="fas fa-plus"></i> تقديم طلب جديد</a>
             <% } else { %>
@@ -42,7 +42,7 @@
         <div class="luxury-card glass-panel stat-card-lux accent-active">
             <div class="stat-icon"><i class="fas fa-clock"></i></div>
             <div class="stat-label">قيد المراجعة / التحقق</div>
-            <div class="stat-value"><%= myCases.filter(c => ['pending', 'field_verification'].includes(c.status)).length %></div>
+            <div class="stat-value"><%= myCases.filter(c => ['pending', 'field_verification', 'media_review'].includes(c.status)).length %></div>
         </div>
         <div class="luxury-card glass-panel stat-card-lux success-active">
             <div class="stat-icon"><i class="fas fa-grin-hearts"></i></div>
@@ -99,16 +99,19 @@
                                                 <span class="badge <%= 
                                                     c.status === 'approved' ? 'badge-teal' : 
                                                     c.status === 'field_verification' ? 'badge-gold' : 
+                                                    c.status === 'media_review' ? 'badge-navy' : 
                                                     c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                                %>">
+                                                %>" style="<%= c.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
                                                     <i class="fas <%= 
                                                         c.status === 'approved' ? 'fa-check-circle' : 
                                                         c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
+                                                        c.status === 'media_review' ? 'fa-photo-film' :
                                                         c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
                                                     %>"></i>
                                                     <%= 
                                                         c.status === 'approved' ? 'موثقة' : 
                                                         c.status === 'field_verification' ? 'مسح ميداني' : 
+                                                        c.status === 'media_review' ? 'تدقيق إعلامي' :
                                                         c.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة' 
                                                     %>
                                                 </span>

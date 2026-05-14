@@ -211,6 +211,8 @@ app.use((req, res, next) => {
   if (
     req.originalUrl.includes('/proof-of-impact') ||
     req.originalUrl.includes('/updates') ||
+    req.originalUrl.includes('/media-content') ||
+    (req.originalUrl.includes('/cases/') && req.originalUrl.includes('/status')) ||
     req.originalUrl.includes('/donations/webhook')
   ) {
     return next();

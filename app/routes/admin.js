@@ -4,7 +4,7 @@ const adminController = require('../controllers/adminController');
 const settingsController = require('../controllers/settingsController');
 const messageController = require('../controllers/messageController');
 const notificationController = require('../controllers/notificationController');
-const { protect, restrictTo, viewOnly } = require('../middlewares/auth');
+const { protect, restrictTo, viewOnly, mediaRouteGuard } = require('../middlewares/auth');
 const { upload } = require('../utils/cloudinary');
 
 // All admin routes are protected and restricted
@@ -15,7 +15,8 @@ router.post('/users/:id/status', restrictTo('admin', 'super_admin', 'regulator',
 router.get('/escalations', restrictTo('admin', 'super_admin', 'regulator', 'support'), adminController.getEscalationsCenter);
 router.post('/escalations/submit', restrictTo('admin', 'super_admin', 'regulator', 'support'), adminController.submitAdminRequest);
 
-router.use(restrictTo('admin', 'super_admin', 'regulator'));
+router.use(restrictTo('admin', 'super_admin', 'regulator', 'media'));
+router.use(mediaRouteGuard);
 router.use(viewOnly);
 
 router.get('/dashboard', adminController.getAdminDashboard);
@@ -27,7 +28,12 @@ router.get('/users/:id/moderation', restrictTo('admin', 'super_admin'), adminCon
 router.post('/users/create', restrictTo('super_admin'), adminController.createAdmin);
 router.post('/users/:id/delete', restrictTo('super_admin'), adminController.deleteUser);
 // /users/:id/status route moved up
-router.post('/cases/:id/status', adminController.updateCase);
+const caseStatusUpload = upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'gallery', maxCount: 20 }
+]);
+router.post('/cases/:id/status', caseStatusUpload, adminController.updateCase);
+router.post('/cases/:id/media-content', caseStatusUpload, adminController.saveCaseMediaContent);
 router.post('/cases/:id/toggle-satisfaction', adminController.toggleCaseSatisfaction);
 router.post('/cases/:id/updates', upload.array('attachments', 10), adminController.addCaseUpdate);
 router.post('/cases/:id/hard-delete', restrictTo('super_admin'), adminController.hardDeleteCase);
@@ -36,6 +42,7 @@ router.post('/cases/:id/story-hard-delete', restrictTo('super_admin'), adminCont
 router.post('/cases/:id/toggle-story-visibility', restrictTo('super_admin'), adminController.toggleStoryVisibility);
 router.post('/transactions/:id/status', adminController.updateTransactionStatus);
 router.get('/cases-manager', adminController.getCasesManager);
+router.get('/cases/:id/media-review', adminController.getMediaCaseReview);
 router.get('/cases/:id/field-report', adminController.getFieldReportPdf);
 router.get('/pending-approvals', adminController.getPendingApprovals);
 router.get('/operation-fees', restrictTo('super_admin'), adminController.getOperationFeesDetail);

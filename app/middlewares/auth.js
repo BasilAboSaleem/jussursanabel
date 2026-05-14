@@ -55,6 +55,44 @@ exports.restrictTo = (...roles) => {
     };
 };
 
+/**
+ * Restrict users with role `media` to an allowlisted subset of /admin routes.
+ * Other admin roles pass through unchanged.
+ */
+exports.mediaRouteGuard = (req, res, next) => {
+    if (!req.user || req.user.role !== 'media') {
+        return next();
+    }
+
+    const pathOnly = (req.originalUrl || '').split('?')[0];
+    const method = req.method.toUpperCase();
+
+    const allowedGet = new Set(['/admin/dashboard', '/admin/cases-manager']);
+    const isMediaReviewGet = /^\/admin\/cases\/[^/]+\/media-review$/.test(pathOnly);
+    const isAllowedPost =
+        /^\/admin\/cases\/[^/]+\/status$/.test(pathOnly) ||
+        /^\/admin\/cases\/[^/]+\/media-content$/.test(pathOnly);
+
+    if (method === 'GET' && (allowedGet.has(pathOnly) || isMediaReviewGet)) {
+        return next();
+    }
+    if (method === 'POST' && isAllowedPost) {
+        return next();
+    }
+
+    if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        return res.status(403).json({
+            success: false,
+            error: 'لا تملك صلاحية الوصول إلى هذا المسار.'
+        });
+    }
+    return res.status(403).render('errors/error', {
+        title: '403 - غير مصرح',
+        message: 'لا تملك صلاحية الوصول إلى هذه الصفحة.',
+        error: {}
+    });
+};
+
 // Middleware to block write actions (POST, PUT, PATCH, DELETE) for regulator role
 exports.viewOnly = (req, res, next) => {
     // Exempt escalations submission to allow communication with super_admin

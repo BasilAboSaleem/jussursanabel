@@ -12,7 +12,7 @@ const signToken = (id) => {
 };
 
 const getDashboardPathByRole = (role) => {
-    if (role === 'admin' || role === 'super_admin' || role === 'regulator') {
+    if (role === 'admin' || role === 'super_admin' || role === 'regulator' || role === 'media') {
         return '/admin/dashboard';
     }
 

@@ -16,6 +16,7 @@ const { buildExcel } = require('../utils/excelXml');
 const fs = require('fs');
 const path = require('path');
 const { logActivity } = require('../utils/logger');
+const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
 
 function dateRange(from, to) {
     const q = {};
@@ -303,6 +304,10 @@ async function hardDeleteUserCompletely(userId, session = null) {
 
 exports.getAdminDashboard = async (req, res) => {
     try {
+        if (req.user.role === 'media') {
+            return res.redirect('/admin/cases-manager');
+        }
+
         const pendingCases = await Case.find({ status: 'pending' }).sort({ createdAt: -1 });
         const pendingTransactions = await Transaction.find({ status: 'pending' }).populate('donor case').sort({ createdAt: -1 });
         const allTransactions = await Transaction.find({ status: 'verified' });
@@ -350,7 +355,7 @@ exports.getAdminDashboard = async (req, res) => {
 
 exports.getUsersManager = async (req, res) => {
     try {
-        const admins = await User.find({ role: { $in: ['admin', 'super_admin', 'regulator', 'support'] } }).sort({ createdAt: -1 });
+        const admins = await User.find({ role: { $in: ['admin', 'super_admin', 'regulator', 'support', 'media'] } }).sort({ createdAt: -1 });
         res.render('pages/admin/users-manager', {
             title: res.__('admin_nav_users'),
             admins
@@ -400,53 +405,141 @@ exports.createCase = async (req, res) => {
 
 exports.updateCase = async (req, res) => {
     try {
-        const { 
-            title, type, description, targetAmount, monthlySponsorshipAmount, status, 
-            location, area, housingStatus, isFieldVerified, familyCount, orphanCount, 
-            storyAr, verificationNotes, rejectionReason, impactMetrics 
+        const existingCase = await Case.findById(req.params.id);
+        if (!existingCase) {
+            req.flash('error', res.__('flash_case_not_found'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        const actorRole = req.user.role;
+        const fromStatus = existingCase.status;
+        const {
+            title, type, description, targetAmount, monthlySponsorshipAmount, status,
+            location, area, housingStatus, isFieldVerified, familyCount, orphanCount,
+            storyAr, verificationNotes, rejectionReason, impactMetrics
         } = req.body;
-        
-        const updateData = {
-            status,
-            location,
-            area,
-            housingStatus,
-            isFieldVerified: isFieldVerified === 'on' || isFieldVerified === true,
-            verificationNotes,
-            rejectionReason,
-            impactMetrics: impactMetrics ? JSON.parse(impactMetrics) : undefined
-        };
+        const toStatus = status;
 
-        // If these exist in body, update them (they come from the Add/Edit Case modal usually)
-        if (title) updateData.title = title;
-        if (type) updateData.type = type;
-        if (description) updateData.description = description;
-
-        // The admin can specify these amounts when reviewing cases via cases-manager
-        if (targetAmount !== undefined && targetAmount !== '') updateData.targetAmount = targetAmount;
-        if (monthlySponsorshipAmount !== undefined && monthlySponsorshipAmount !== '') updateData.monthlySponsorshipAmount = monthlySponsorshipAmount;
-
-        if (familyCount || orphanCount || storyAr) {
-            updateData.details = { familyCount, orphanCount, storyAr };
+        if (actorRole === 'media') {
+            if (fromStatus !== 'media_review') {
+                req.flash('error', res.__('admin_case_error_media_only_media_review'));
+                return res.redirect('/admin/cases-manager');
+            }
+            if (!['approved', 'rejected'].includes(toStatus)) {
+                req.flash('error', res.__('admin_case_error_media_final_only'));
+                return res.redirect('/admin/cases-manager');
+            }
+        } else if (actorRole === 'admin') {
+            if (fromStatus === 'field_verification' && toStatus === 'approved') {
+                req.flash('error', res.__('admin_case_error_approve_needs_media_stage'));
+                return res.redirect('/admin/cases-manager');
+            }
+            if (fromStatus === 'media_review' && toStatus !== 'rejected') {
+                req.flash('error', res.__('admin_case_error_media_stage_super_or_media'));
+                return res.redirect('/admin/cases-manager');
+            }
         }
 
-        if (req.files && req.files['image']) {
-            updateData.image = `/uploads/cases/${req.files['image'][0].filename}`;
-        }
+        const priorDetails = existingCase.details && typeof existingCase.details.toObject === 'function'
+            ? existingCase.details.toObject()
+            : { ...(existingCase.details || {}) };
 
-        if (req.files && req.files['gallery']) {
-            const newGallery = req.files['gallery'].map(file => `/uploads/cases/${file.filename}`);
-            const existingCase = await Case.findById(req.params.id);
-            updateData.gallery = [...existingCase.gallery, ...newGallery];
+        const uploadRel = (file) => `/uploads/${file.filename}`;
+
+        let updateData;
+
+        if (actorRole === 'media') {
+            updateData = {
+                status: toStatus,
+                verificationNotes
+            };
+            if (toStatus === 'approved') {
+                updateData.rejectionReason = null;
+            } else {
+                updateData.rejectionReason = rejectionReason;
+            }
+            if (title) updateData.title = title.trim();
+            if (description) updateData.description = description.trim();
+            if (familyCount || orphanCount || storyAr !== undefined) {
+                updateData.details = {
+                    familyCount: familyCount !== undefined && familyCount !== '' ? familyCount : priorDetails.familyCount,
+                    orphanCount: orphanCount !== undefined && orphanCount !== '' ? orphanCount : priorDetails.orphanCount,
+                    storyAr: storyAr !== undefined ? storyAr : priorDetails.storyAr
+                };
+            }
+            const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
+            if (rawVideo) {
+                const normalized = getPlayableStoryVideoUrl(rawVideo);
+                if (!normalized) {
+                    req.flash('error', res.__('admin_media_story_video_invalid'));
+                    return res.redirect(`/admin/cases/${req.params.id}/media-review`);
+                }
+                updateData.storyVideo = normalized;
+            }
+            if (targetAmount !== undefined && targetAmount !== '') updateData.targetAmount = targetAmount;
+            if (monthlySponsorshipAmount !== undefined && monthlySponsorshipAmount !== '') {
+                updateData.monthlySponsorshipAmount = monthlySponsorshipAmount;
+            }
+            if (impactMetrics) {
+                try {
+                    const parsed = JSON.parse(impactMetrics);
+                    if (Array.isArray(parsed)) updateData.impactMetrics = parsed;
+                } catch (_) { /* keep existing */ }
+            }
+            const imgFile = req.files && req.files.image && req.files.image[0];
+            if (imgFile) updateData.image = uploadRel(imgFile);
+            const galFiles = req.files && req.files.gallery;
+            if (galFiles && galFiles.length) {
+                const newGallery = galFiles.map((file) => uploadRel(file));
+                updateData.gallery = [...(existingCase.gallery || []), ...newGallery];
+            }
+        } else {
+            updateData = {
+                status: toStatus,
+                location,
+                area,
+                housingStatus,
+                isFieldVerified: isFieldVerified === 'on' || isFieldVerified === true,
+                verificationNotes,
+                rejectionReason: toStatus === 'rejected' ? rejectionReason : null
+            };
+            if (impactMetrics) {
+                try {
+                    const parsed = JSON.parse(impactMetrics);
+                    if (Array.isArray(parsed)) updateData.impactMetrics = parsed;
+                } catch (_) { /* ignore invalid */ }
+            }
+
+            if (title) updateData.title = title;
+            if (type) updateData.type = type;
+            if (description) updateData.description = description;
+
+            if (targetAmount !== undefined && targetAmount !== '') updateData.targetAmount = targetAmount;
+            if (monthlySponsorshipAmount !== undefined && monthlySponsorshipAmount !== '') {
+                updateData.monthlySponsorshipAmount = monthlySponsorshipAmount;
+            }
+
+            if (familyCount || orphanCount || storyAr !== undefined) {
+                updateData.details = {
+                    familyCount: familyCount !== undefined && familyCount !== '' ? familyCount : priorDetails.familyCount,
+                    orphanCount: orphanCount !== undefined && orphanCount !== '' ? orphanCount : priorDetails.orphanCount,
+                    storyAr: storyAr !== undefined ? storyAr : priorDetails.storyAr
+                };
+            }
+
+            const imgFile = req.files && req.files.image && req.files.image[0];
+            if (imgFile) updateData.image = uploadRel(imgFile);
+            const galFiles = req.files && req.files.gallery;
+            if (galFiles && galFiles.length) {
+                const newGallery = galFiles.map((file) => uploadRel(file));
+                updateData.gallery = [...(existingCase.gallery || []), ...newGallery];
+            }
         }
 
         await Case.findByIdAndUpdate(req.params.id, updateData);
 
         // ─── Enforce single-active-case rule ────────────────────────────────────
-        // When a NEW case is approved for a beneficiary, permanently lock all of
-        // their OLD satisfied cases (satisfiedBy → 'admin') so the guardian can
-        // never re-enable them while the new case is active.
-        if (status === 'approved') {
+        if (toStatus === 'approved') {
             const newlyApprovedCase = await Case.findById(req.params.id);
             if (newlyApprovedCase && newlyApprovedCase.guardian) {
                 await Case.updateMany(
@@ -454,7 +547,7 @@ exports.updateCase = async (req, res) => {
                         guardian: newlyApprovedCase.guardian,
                         _id: { $ne: newlyApprovedCase._id },
                         isSatisfied: true,
-                        satisfiedBy: 'guardian' // only re-lock guardian-satisfied ones
+                        satisfiedBy: 'guardian'
                     },
                     { $set: { satisfiedBy: 'admin' } }
                 );
@@ -462,30 +555,33 @@ exports.updateCase = async (req, res) => {
         }
         // ────────────────────────────────────────────────────────────────────────
 
-        // Logging
-        let logMessage = res.__('log_case_status_update', { status: res.__('status_' + status) });
-        if (status === 'approved') {
+        let logMessage = res.__('log_case_status_update', { status: res.__('status_' + toStatus) });
+        if (toStatus === 'approved') {
             logMessage = res.__('log_case_approved_vouch', { area, housingStatus });
-        } else if (status === 'rejected') {
+        } else if (toStatus === 'rejected') {
             logMessage = res.__('log_case_rejected_reason', { reason: rejectionReason });
+        } else if (toStatus === 'media_review') {
+            logMessage = res.__('log_case_media_review');
         }
         await logActivity(req.user._id, 'case_update', 'Case', req.params.id, logMessage);
 
-        // Notify Beneficiary (Guardian) on Status Change
         const updatedCase = await Case.findById(req.params.id);
         if (updatedCase && updatedCase.guardian) {
-            let notifMessage = "";
-            let notifType = "info";
+            let notifMessage = '';
+            let notifType = 'info';
 
-            if (status === 'approved') {
+            if (toStatus === 'approved') {
                 notifMessage = res.__('notif_case_approved_msg');
-                notifType = "success";
-            } else if (status === 'rejected') {
-                notifMessage = res.__('notif_case_rejected_msg', { reason: rejectionReason || "—" });
-                notifType = "danger";
-            } else if (status === 'fully_sponsored') {
+                notifType = 'success';
+            } else if (toStatus === 'rejected') {
+                notifMessage = res.__('notif_case_rejected_msg', { reason: rejectionReason || '—' });
+                notifType = 'danger';
+            } else if (toStatus === 'fully_sponsored') {
                 notifMessage = res.__('notif_case_satisfied_msg');
-                notifType = "success";
+                notifType = 'success';
+            } else if (toStatus === 'media_review') {
+                notifMessage = res.__('notif_case_media_review_msg');
+                notifType = 'info';
             }
 
             if (notifMessage) {
@@ -508,6 +604,102 @@ exports.updateCase = async (req, res) => {
 
         req.flash('success', res.__('flash_case_updated'));
         res.redirect('/admin/cases-manager');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(res.__('error_server'));
+    }
+};
+
+exports.getMediaCaseReview = async (req, res) => {
+    try {
+        const caseRecord = await Case.findById(req.params.id).populate('guardian', 'name email');
+        if (!caseRecord) {
+            req.flash('error', res.__('flash_case_not_found'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        const role = req.user.role;
+        const canOpen =
+            (role === 'media' && caseRecord.status === 'media_review') ||
+            (role === 'super_admin' && ['media_review', 'approved'].includes(caseRecord.status));
+
+        if (!canOpen) {
+            req.flash('error', res.__('admin_case_error_media_review_access'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        res.render('pages/admin/media-case-review', {
+            title: res.__('admin_media_case_review_title'),
+            caseRecord,
+            canPublish: caseRecord.status === 'media_review' && (role === 'media' || role === 'super_admin')
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(res.__('error_server'));
+    }
+};
+
+exports.saveCaseMediaContent = async (req, res) => {
+    try {
+        const existingCase = await Case.findById(req.params.id);
+        if (!existingCase) {
+            req.flash('error', res.__('flash_case_not_found'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        const role = req.user.role;
+        const allowed =
+            (role === 'media' && existingCase.status === 'media_review') ||
+            (role === 'super_admin' && ['media_review', 'approved'].includes(existingCase.status));
+
+        if (!allowed) {
+            req.flash('error', res.__('admin_case_error_media_content_forbidden'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        const { title, description, storyAr } = req.body;
+        const updateData = {};
+        if (title) updateData.title = title.trim();
+        if (description) updateData.description = description.trim();
+
+        const priorDetails = existingCase.details && typeof existingCase.details.toObject === 'function'
+            ? existingCase.details.toObject()
+            : { ...(existingCase.details || {}) };
+        if (storyAr !== undefined) {
+            updateData.details = { ...priorDetails, storyAr };
+        }
+
+        const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
+        if (rawVideo) {
+            const normalized = getPlayableStoryVideoUrl(rawVideo);
+            if (!normalized) {
+                req.flash('error', res.__('admin_media_story_video_invalid'));
+                return res.redirect(`/admin/cases/${req.params.id}/media-review`);
+            }
+            updateData.storyVideo = normalized;
+        }
+
+        let keptGallery = [];
+        if (req.body.galleryKeep !== undefined) {
+            keptGallery = Array.isArray(req.body.galleryKeep)
+                ? req.body.galleryKeep
+                : [req.body.galleryKeep];
+        }
+        const galFiles = req.files && req.files.gallery;
+        const newGallery = galFiles && galFiles.length ? galFiles.map((f) => `/uploads/${f.filename}`) : [];
+        if (req.body.galleryKeep !== undefined || (galFiles && galFiles.length)) {
+            updateData.gallery = [...keptGallery, ...newGallery];
+        }
+
+        const imgFile = req.files && req.files.image && req.files.image[0];
+        if (imgFile) updateData.image = `/uploads/${imgFile.filename}`;
+
+        await Case.findByIdAndUpdate(req.params.id, updateData);
+
+        await logActivity(req.user._id, 'case_update', 'Case', req.params.id, res.__('log_case_media_content_saved'));
+
+        req.flash('success', res.__('flash_case_media_content_saved'));
+        res.redirect(`/admin/cases/${req.params.id}/media-review`);
     } catch (err) {
         console.error(err);
         res.status(500).send(res.__('error_server'));
@@ -719,7 +911,11 @@ exports.getCasesManager = async (req, res) => {
     try {
         const { status } = req.query;
         const filter = {};
-        if (status) filter.status = status;
+        if (req.user.role === 'media') {
+            filter.status = 'media_review';
+        } else if (status) {
+            filter.status = status;
+        }
 
         let cases = await Case.find(filter).sort({ createdAt: -1 });
 
@@ -992,6 +1188,11 @@ exports.exportDonationsLedger = async (req, res) => {
 
 exports.toggleCaseSatisfaction = async (req, res) => {
     try {
+        if (req.user.role === 'media') {
+            req.flash('error', res.__('error_forbidden') || 'غير مصرح');
+            return res.redirect('/admin/cases-manager');
+        }
+
         const { id } = req.params;
         const foundCase = await Case.findById(id);
         
@@ -1080,11 +1281,14 @@ exports.createAdmin = async (req, res) => {
             return res.redirect('/admin/users');
         }
 
+        const allowedStaffRoles = ['admin', 'regulator', 'support', 'media'];
+        const safeRole = allowedStaffRoles.includes(role) ? role : 'admin';
+
         const newUser = await User.create({
             name,
             email,
             password,
-            role: role || 'admin',
+            role: safeRole,
             status: 'active'
         });
 

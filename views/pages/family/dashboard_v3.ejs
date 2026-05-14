@@ -24,7 +24,7 @@
         <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid var(--accent);">
             <div style="font-size: 2.2rem; color: var(--accent); margin-bottom: 12px;"><i class="fas fa-clock"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">قيد المراجعة / التحقق</div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= myCases.filter(c => ['pending', 'field_verification'].includes(c.status)).length %></div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= myCases.filter(c => ['pending', 'field_verification', 'media_review'].includes(c.status)).length %></div>
         </div>
         <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid #10b981;">
             <div style="font-size: 2.2rem; color: #10b981; margin-bottom: 12px;"><i class="fas fa-grin-hearts"></i></div>
@@ -72,16 +72,19 @@
                                             <span class="badge <%= 
                                                 c.status === 'approved' ? 'badge-teal' : 
                                                 c.status === 'field_verification' ? 'badge-gold' : 
+                                                c.status === 'media_review' ? 'badge-navy' : 
                                                 c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                            %>" style="font-size: 0.7rem;">
+                                            %>" style="font-size: 0.7rem;<%= c.status === 'media_review' ? ' background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
                                                 <i class="fas <%= 
                                                     c.status === 'approved' ? 'fa-check-circle' : 
                                                     c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
+                                                    c.status === 'media_review' ? 'fa-photo-film' :
                                                     c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
                                                 %>"></i>
                                                 <%= 
                                                     c.status === 'approved' ? 'موثقة ونشطة' : 
                                                     c.status === 'field_verification' ? 'مسح ميداني حالياً' : 
+                                                    c.status === 'media_review' ? 'تدقيق إعلامي' :
                                                     c.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة' 
                                                 %>
                                             </span>

@@ -16,7 +16,7 @@ exports.getRegisterCase = async (req, res) => {
         // Feature: Restrict to 1 active case per beneficiary
         const activeCase = await Case.findOne({ 
             guardian: req.user._id, 
-            status: { $in: ['pending', 'field_verification', 'approved'] },
+            status: { $in: ['pending', 'field_verification', 'media_review', 'approved'] },
             isSatisfied: { $ne: true }
         });
 
@@ -52,7 +52,7 @@ exports.createCase = async (req, res) => {
         // Feature: Restrict to 1 active case per beneficiary
         const activeCase = await Case.findOne({ 
             guardian: req.user._id, 
-            status: { $in: ['pending', 'field_verification', 'approved'] },
+            status: { $in: ['pending', 'field_verification', 'media_review', 'approved'] },
             isSatisfied: { $ne: true }
         });
 

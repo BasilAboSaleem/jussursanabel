@@ -1,0 +1,93 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<div class="luxury-card glass-panel" style="padding: 25px 30px; margin-bottom: 25px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h3 class="font-cairo" style="margin: 0; font-weight: 800;"><i class="fas fa-photo-film" style="color: var(--primary);"></i> <%= __('admin_media_case_review_title') %></h3>
+            <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.95rem;"><%= __('admin_media_case_review_desc') %></p>
+            <div style="margin-top: 10px;">
+                <span class="badge badge-navy" style="font-size: 0.72rem;"><i class="fas fa-hashtag"></i> <%= caseRecord.referenceNumber || '—' %></span>
+                <span class="badge <%= caseRecord.status === 'media_review' ? 'badge-purple' : 'badge-success' %>" style="font-size: 0.72rem;"><%= __('status_' + caseRecord.status) %></span>
+            </div>
+        </div>
+        <a href="/admin/cases-manager" class="btn-lux btn-sm btn-lux-outline"><i class="fas fa-arrow-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i> <%= __('admin_media_case_review_back') %></a>
+    </div>
+</div>
+
+<div class="luxury-card" style="padding: 30px; margin-bottom: 25px;">
+    <h4 class="font-cairo" style="margin: 0 0 20px; font-weight: 700;"><i class="fas fa-pen-to-square"></i> <%= __('admin_media_case_review_section_content') %></h4>
+    <form action="/admin/cases/<%= caseRecord._id %>/media-content" method="POST" enctype="multipart/form-data" class="premium-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('common_case_title') %></label>
+            <input type="text" name="title" class="form-input" value="<%= caseRecord.title %>" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('admin_media_case_label_description') %></label>
+            <textarea name="description" class="form-input" rows="5" required><%= caseRecord.description %></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('admin_media_case_label_story') %></label>
+            <textarea name="storyAr" class="form-input" rows="10"><%= (caseRecord.details && caseRecord.details.storyAr) ? caseRecord.details.storyAr : '' %></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('admin_media_case_label_story_video') %></label>
+            <input type="text" name="storyVideo" class="form-input" value="<%= caseRecord.storyVideo || '' %>" placeholder="<%= __('admin_media_case_placeholder_youtube') %>">
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"><%= __('admin_media_case_hint_story_video') %></div>
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('admin_media_case_label_main_image') %></label>
+            <input type="file" name="image" class="form-input" accept="image/*">
+            <% if (caseRecord.image) { %>
+                <div style="margin-top: 10px;"><img src="<%= typeof asset === 'function' ? asset(caseRecord.image) : caseRecord.image %>" alt="" style="max-width: 220px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08);"></div>
+            <% } %>
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label-luxury"><%= __('admin_media_case_label_gallery') %></label>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;"><%= __('admin_media_case_gallery_keep_hint') %></p>
+            <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+                <% (caseRecord.gallery || []).forEach((url) => { %>
+                    <label style="display: inline-flex; flex-direction: column; align-items: center; gap: 6px; max-width: 120px; font-size: 0.78rem; text-align: center;">
+                        <img src="<%= typeof asset === 'function' ? asset(url) : url %>" alt="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08);">
+                        <span><input type="checkbox" name="galleryKeep" value="<%= url %>" checked> <%= __('admin_media_case_keep_image') %></span>
+                    </label>
+                <% }) %>
+            </div>
+            <label class="form-label-luxury" style="margin-top: 18px;"><%= __('admin_media_case_add_gallery') %></label>
+            <input type="file" name="gallery" class="form-input" accept="image/*" multiple>
+        </div>
+        <button type="submit" class="btn-lux btn-lux-primary"><i class="fas fa-save"></i> <%= __('admin_media_case_btn_save_content') %></button>
+    </form>
+</div>
+
+<% if (typeof canPublish !== 'undefined' && canPublish) { %>
+<div class="luxury-card" style="padding: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid #10b981;">
+    <h4 class="font-cairo" style="margin: 0 0 18px; font-weight: 700; color: #059669;"><i class="fas fa-circle-check"></i> <%= __('admin_media_case_review_section_publish') %></h4>
+    <form action="/admin/cases/<%= caseRecord._id %>/status" method="POST" enctype="multipart/form-data" style="margin-bottom: 22px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="status" value="approved">
+        <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label-luxury"><%= __('admin_cases_manager_label_verification_notes') %></label>
+            <textarea name="verificationNotes" class="form-input" rows="3" placeholder="<%= __('admin_cases_manager_placeholder_verification_notes') %>"><%= caseRecord.verificationNotes || '' %></textarea>
+        </div>
+        <button type="submit" class="btn-lux btn-lux-primary" style="background: linear-gradient(135deg, #059669, #10b981); border: none;"><i class="fas fa-bullhorn"></i> <%= __('admin_media_case_btn_publish') %></button>
+    </form>
+
+    <h4 class="font-cairo" style="margin: 24px 0 14px; font-weight: 700; color: #b91c1c;"><i class="fas fa-ban"></i> <%= __('admin_media_case_review_section_reject') %></h4>
+    <form action="/admin/cases/<%= caseRecord._id %>/status" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="status" value="rejected">
+        <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label-luxury"><%= __('admin_cases_manager_label_rejection_reason') %></label>
+            <textarea name="rejectionReason" class="form-input" rows="3" required placeholder="<%= __('admin_cases_manager_placeholder_rejection_reason') %>"></textarea>
+        </div>
+        <button type="submit" class="btn-lux btn-sm" style="background: #ef4444; color: #fff; border: none;"><i class="fas fa-times"></i> <%= __('admin_cases_status_reject') %></button>
+    </form>
+</div>
+<% } %>
+
+<style>
+    .badge-purple { background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff; }
+</style>
+
+<%- include('../../partials/admin-layout-bottom') %>

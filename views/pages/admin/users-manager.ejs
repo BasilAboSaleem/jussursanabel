@@ -29,6 +29,7 @@
                         <option value="admin"><%= __('admin_role_admin') %></option>
                         <option value="regulator"><%= __('admin_role_regulator') %></option>
                         <option value="support"><%= __('admin_role_support') %></option>
+                        <option value="media"><%= __('admin_role_media') %></option>
                     </select>
                 </div>
                 <button type="submit" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 15px;"><%= __('admin_users_manager_btn_add') %></button>
@@ -79,6 +80,10 @@
                                         badgeType = 'badge-success';
                                         icon = 'fa-headset';
                                         roleDesc = __('admin_role_support_desc');
+                                    } else if (admin.role === 'media') {
+                                        badgeType = 'badge-teal';
+                                        icon = 'fa-photo-film';
+                                        roleDesc = __('admin_role_media_desc');
                                     }
                                 %>
                                 <span class="badge <%= badgeType %>" style="font-size: 0.75rem;">

@@ -17,6 +17,7 @@
             <a href="/admin/cases-manager" class="btn-lux btn-sm <%= currentStatus === 'all' ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="white-space: nowrap;"><%= __('common_all') %></a>
             <a href="/admin/cases-manager?status=pending" class="btn-lux btn-sm <%= currentStatus === 'pending' ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="white-space: nowrap;"><%= __('common_pending') %></a>
             <a href="/admin/cases-manager?status=field_verification" class="btn-lux btn-sm <%= currentStatus === 'field_verification' ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="white-space: nowrap;"><%= __('common_field_verification') %></a>
+            <a href="/admin/cases-manager?status=media_review" class="btn-lux btn-sm <%= currentStatus === 'media_review' ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="white-space: nowrap;"><%= __('common_media_review') %></a>
             <a href="/admin/cases-manager?status=approved" class="btn-lux btn-sm <%= currentStatus === 'approved' ? 'btn-lux-primary' : 'btn-lux-outline' %>" style="white-space: nowrap;"><%= __('common_approved') %></a>
         </div>
         
@@ -67,20 +68,35 @@
                         <span class="badge <%= 
                             item.status === 'approved' ? 'badge-success' : 
                             item.status === 'field_verification' ? 'badge-teal' : 
+                            item.status === 'media_review' ? 'badge-purple' :
                             item.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                        %>">
+                        %>" style="<%= item.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
                             <%= 
                                 item.status === 'approved' ? __('common_approved_desc') : 
                                 item.status === 'field_verification' ? __('common_field_verification') : 
+                                item.status === 'media_review' ? __('common_media_review') :
                                 item.status === 'rejected' ? __('common_rejected') : __('common_pending_review') 
                             %>
                         </span>
                     </td>
                     <td style="padding: 15px 20px;">
                         <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                            <% if (locals.user && locals.user.role === 'media') { %>
+                                <a href="/admin/cases/<%= item._id %>/media-review" class="btn-lux btn-sm btn-lux-primary" style="font-size:0.75rem;">
+                                    <i class="fas fa-photo-film"></i> <%= __('admin_nav_media_cases') %>
+                                </a>
+                                <a href="/cases/<%= item._id %>" target="_blank" class="btn-lux btn-sm btn-lux-outline" style="font-size:0.75rem;">
+                                    <i class="fas fa-eye"></i> <%= __('common_view') %>
+                                </a>
+                            <% } else { %>
                             <button class="btn-lux btn-sm btn-lux-navy" style="font-size:0.75rem;" onclick="openActionModal('<%= item._id %>', '<%= item.title %>', '<%= item.status %>', '<%= item.area %>', '<%= item.housingStatus %>', '<%= item.isFieldVerified %>', '<%= item.verificationNotes %>', '<%= JSON.stringify(item.impactMetrics || []) %>', '<%= JSON.stringify(item.needs || []) %>', '<%= item.targetAmount || 0 %>', '<%= item.monthlySponsorshipAmount || 0 %>')">
                                 <i class="fas fa-edit"></i> <%= __('common_review') %>
                             </button>
+                            <% if (item.status === 'media_review' && locals.user && locals.user.role === 'super_admin') { %>
+                                <a href="/admin/cases/<%= item._id %>/media-review" class="btn-lux btn-sm btn-lux-outline" style="font-size:0.75rem;">
+                                    <i class="fas fa-photo-film"></i> <%= __('admin_nav_media_cases') %>
+                                </a>
+                            <% } %>
                             
                             <div class="dropdown-container" style="position: relative;">
                                 <button class="btn-lux btn-sm btn-lux-outline" style="padding: 5px 12px;" onclick="toggleDropdown('drop-<%= item._id %>')">
@@ -137,7 +153,7 @@
                                         <% } %>
                                     <% } %>
                                     
-                                    <% if (['field_verification', 'approved', 'fully_sponsored'].includes(item.status)) { %>
+                                    <% if (['field_verification', 'media_review', 'approved', 'fully_sponsored'].includes(item.status)) { %>
                                         <div style="height: 1px; background: rgba(0,0,0,0.05); margin: 5px 0;"></div>
                                         <a href="/admin/cases/<%= item._id %>/field-report" target="_blank" class="dropdown-item" style="color: var(--primary); font-weight: 700;">
                                             <i class="fas fa-print"></i> <%= __('admin_cases_btn_print_report') || 'طباعة تقرير التحقق الميداني' %>
@@ -145,6 +161,7 @@
                                     <% } %>
                                 </div>
                             </div>
+                            <% } %>
                         </div>
                     </td>
                 </tr>
@@ -169,6 +186,7 @@
                 <select name="status" id="statusSelect" class="form-input" onchange="toggleInputs()">
                     <option value="pending"><%= __('admin_cases_status_pending_initial') %></option>
                     <option value="field_verification"><%= __('admin_cases_status_to_field') %></option>
+                    <option value="media_review"><%= __('admin_cases_status_to_media_review') %></option>
                     <option value="approved"><%= __('admin_cases_status_approve_final') %></option>
                     <option value="rejected"><%= __('admin_cases_status_reject') %></option>
                 </select>
@@ -290,6 +308,9 @@
 </div>
 
 <script>
+    window.IS_SUPER_ADMIN = <%= locals.user && user.role === 'super_admin' ? 'true' : 'false' %>;
+    window.IS_MEDIA_USER = <%= locals.user && user.role === 'media' ? 'true' : 'false' %>;
+
     function filterCasesTable() {
         const query = document.getElementById("liveSearchInput").value.toLowerCase();
         const rows = document.querySelectorAll(".case-row");
@@ -299,10 +320,20 @@
         });
     }
 
+    function refreshApproveOptionVisibility() {
+        const openStatus = document.getElementById('actionForm').dataset.openStatus || '';
+        const approveOpt = document.querySelector('#statusSelect option[value="approved"]');
+        if (!approveOpt) return;
+        const hideApprove = (openStatus === 'field_verification' && !window.IS_SUPER_ADMIN)
+            || (openStatus === 'media_review' && !window.IS_SUPER_ADMIN && !window.IS_MEDIA_USER);
+        approveOpt.hidden = hideApprove;
+    }
+
     function openActionModal(id, title, status, area, housing, isVerified, notes, impactMetricsStr, needsStr, targetAmount, monthlyAmount) {
         document.getElementById('actionForm').action = '/admin/cases/' + id + '/status';
         document.getElementById('modalCaseTitle').innerText = '<%= __("admin_cases_manager_modal_review_prefix") %>' + title;
         document.getElementById('statusSelect').value = status;
+        document.getElementById('actionForm').dataset.openStatus = status;
         document.getElementById('areaInput').value = area || '';
         document.getElementById('housingInput').value = housing || 'other';
         document.getElementById('isVerifiedInput').checked = isVerified === 'true' || isVerified === true;
@@ -336,6 +367,7 @@
         } catch(e) { console.error(e); }
 
         document.getElementById('actionModal').style.display = 'flex';
+        refreshApproveOptionVisibility();
         toggleInputs();
     }
 
@@ -356,7 +388,9 @@
         const rejectionGroup = document.getElementById('rejectionReasonGroup');
         const enrichment = document.getElementById('enrichmentFields');
 
-        notesGroup.style.display = (status === 'field_verification' || status === 'approved') ? 'block' : 'none';
+        refreshApproveOptionVisibility();
+
+        notesGroup.style.display = (status === 'field_verification' || status === 'approved' || status === 'media_review') ? 'block' : 'none';
         enrichment.style.display = (status === 'approved') ? 'block' : 'none';
         rejectionGroup.style.display = (status === 'rejected') ? 'block' : 'none';
     }

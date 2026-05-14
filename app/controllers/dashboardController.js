@@ -174,7 +174,7 @@ exports.toggleCaseSatisfaction = async (req, res) => {
             const otherActiveCase = await Case.findOne({
                 guardian: req.user._id,
                 _id: { $ne: foundCase._id },
-                status: { $in: ['pending', 'field_verification', 'approved'] },
+                status: { $in: ['pending', 'field_verification', 'media_review', 'approved'] },
                 isSatisfied: { $ne: true }
             });
 

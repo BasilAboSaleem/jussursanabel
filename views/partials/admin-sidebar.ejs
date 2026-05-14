@@ -4,12 +4,19 @@
     </div>
     <div class="admin-sidebar-header">
         <a href="/" class="logo-luxury" style="color: white; font-size: 1.3rem;">
-            <img src="/logoSanabel.png" alt="سُبُل" style="height: 32px; width: auto; border-radius: 8px;">
+            <img src="/logoSanabel.png" alt="جسور" style="height: 32px; width: auto; border-radius: 8px;">
             <span class="font-cairo"><%= __('site_name') %></span>
         </a>
     </div>
 
     <div class="admin-sidebar-nav">
+        <% if (user && user.role === 'media') { %>
+            <div class="admin-nav-group-label"><%= __('admin_nav_group_main') %></div>
+            <a href="/admin/cases-manager" class="admin-nav-item <%= title.includes('تدقيق إعلامي') || title.includes('Media review') || title.includes('إدارة الحالات') || title.includes('Cases Manager') ? 'active' : '' %>">
+                <i class="fas fa-photo-film"></i>
+                <span><%= __('admin_nav_media_cases') %></span>
+            </a>
+        <% } else { %>
         <div class="admin-nav-group-label"><%= __('admin_nav_group_main') %></div>
         <a href="/admin/dashboard" class="admin-nav-item <%= title.includes('لوحة التحكم') || title.includes('Dashboard') ? 'active' : '' %>">
             <i class="fas fa-chart-line"></i>
@@ -93,6 +100,7 @@
                 <span><%= __('admin_nav_settings') %></span>
             </a>
         <% } %>
+        <% } %>
 
         <div class="admin-nav-group-label"><%= __('admin_nav_group_account') %></div>
         <a href="/profile/settings" class="admin-nav-item <%= (typeof title !== 'undefined' && (title === 'إعدادات الحساب' || title === 'Account Settings')) ? 'active' : '' %>">
@@ -114,11 +122,11 @@
                     <%= user.role === 'super_admin' ? __('admin_role_super_admin') : 
                         user.role === 'regulator' ? __('admin_role_regulator') : 
                         user.role === 'support' ? __('admin_role_support') : 
+                        user.role === 'media' ? __('admin_role_media') :
                         __('admin_role_admin') %>
                 </div>
             </div>
         </div>
     </div>
 </aside>
-
 
