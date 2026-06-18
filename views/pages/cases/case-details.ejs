@@ -122,8 +122,8 @@
                         </div>
                     </div>
 
-                    <!-- Panel 2: Family Structure -->
-                    <% if (foundCase.familyStructure) { %>
+                    <!-- Panel 2: Family Structure (platform admins & case owner only) -->
+                    <% if (typeof canViewFamilyStructure !== 'undefined' && canViewFamilyStructure && foundCase.familyStructure) { %>
                     <div class="luxury-card case-panel case-panel-family">
                         <div class="case-panel-rail"></div>
                         <h3 class="font-cairo case-section-title case-section-title-sm">
@@ -175,8 +175,8 @@
                                 <div><strong class="case-kv-key"><%= __('guardian_housing_status') %>:</strong> <%= hKey ? __('housing_' + hKey) : '---' %></div>
                                 <div><strong class="case-kv-key"><%= __('guardian_residency_status') %>:</strong> <%= foundCase.familyStructure.guardian.residencyStatus ? __('residency_' + foundCase.familyStructure.guardian.residencyStatus) : '---' %></div>
                                 
-                                <!-- Privacy Info (Admins only) -->
-                                <% if (typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'super_admin')) { %>
+                                <!-- Privacy Info (platform admins only) -->
+                                <% if (typeof user !== 'undefined' && user && ['admin', 'super_admin', 'regulator', 'media'].includes(user.role)) { %>
                                     <div class="case-private-row">
                                         <div>
                                             <strong class="case-private-key"><i class="fas fa-id-card"></i> <%= __('common_id_number') %>:</strong>

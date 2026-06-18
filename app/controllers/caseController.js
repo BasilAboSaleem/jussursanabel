@@ -7,6 +7,15 @@ const fs = require('fs');
 const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrl, cloudinaryEnabled } = require('../utils/storyVideo');
 
+const PLATFORM_ADMIN_ROLES = new Set(['admin', 'super_admin', 'regulator', 'media']);
+
+function canViewFamilyStructure(user, caseDoc) {
+    if (!user) return false;
+    if (PLATFORM_ADMIN_ROLES.has(user.role)) return true;
+    const guardianId = (caseDoc.guardian?._id || caseDoc.guardian)?.toString();
+    return Boolean(guardianId && user._id.toString() === guardianId);
+}
+
 exports.getRegisterCase = async (req, res) => {
     try {
         if (req.user.status === 'pending') {
@@ -236,12 +245,18 @@ exports.getCaseDetails = async (req, res) => {
             foundCase.description.substring(0, 160).replace(/\r?\n|\r/g, " ") : 
             foundCase.details.storyAr.substring(0, 160).replace(/\r?\n|\r/g, " ");
 
+        const showFamilyStructure = canViewFamilyStructure(req.user, foundCase);
+        if (!showFamilyStructure) {
+            delete foundCase.familyStructure;
+        }
+
         res.render('pages/cases/case-details', { 
             title: foundCase.title, 
             foundCase, 
             recentDonors, 
             teams,
             chatRequest,
+            canViewFamilyStructure: showFamilyStructure,
             metaDescription,
             ogImage: foundCase.image,
             fullUrl,
