@@ -1,8 +1,17 @@
 const User = require('../models/User');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
 const { logActivity } = require('../utils/logger');
+
+const getDashboardPathByRole = (role) => {
+    if (role === 'admin' || role === 'super_admin' || role === 'regulator' || role === 'media') {
+        return '/admin/dashboard';
+    }
+    if (role === 'support') {
+        return '/support/admin/dashboard';
+    }
+    return '/dashboard';
+};
 
 exports.getSettings = async (req, res) => {
     try {
@@ -55,33 +64,86 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
+exports.getForcePasswordChange = async (req, res) => {
+    try {
+        if (!req.user.mustChangePassword) {
+            return res.redirect(getDashboardPathByRole(req.user.role));
+        }
+
+        res.render('pages/profile/force-password-change', {
+            title: res.__('force_password_change_title'),
+            user: req.user
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+};
+
 exports.updatePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword, confirmPassword } = req.body;
+        const { currentPassword, newPassword, confirmPassword, email } = req.body;
         const user = await User.findById(req.user._id);
 
-        if (!(await user.comparePassword(currentPassword))) {
-            req.flash('error', res.__('flash_password_wrong'));
-            return res.redirect('/profile/settings');
+        const forceChange = user.mustChangePassword;
+        const errorRedirect = forceChange ? '/profile/force-password-change' : '/profile/settings';
+
+        if (!forceChange) {
+            if (!(await user.comparePassword(currentPassword))) {
+                req.flash('error', res.__('flash_password_wrong'));
+                return res.redirect('/profile/settings');
+            }
+        }
+
+        if (!newPassword || !confirmPassword) {
+            req.flash('error', res.__('flash_login_missing'));
+            return res.redirect(errorRedirect);
         }
 
         if (newPassword !== confirmPassword) {
             req.flash('error', res.__('flash_password_mismatch'));
-            return res.redirect('/profile/settings');
+            return res.redirect(errorRedirect);
+        }
+
+        if (newPassword.length < 6) {
+            req.flash('error', res.__('flash_password_too_short'));
+            return res.redirect(errorRedirect);
+        }
+
+        if (forceChange && email) {
+            const newEmail = email.trim().toLowerCase();
+            if (newEmail && newEmail !== user.email) {
+                const existing = await User.findOne({ email: newEmail, _id: { $ne: user._id } });
+                if (existing) {
+                    req.flash('error', res.__('flash_email_taken'));
+                    return res.redirect(errorRedirect);
+                }
+                user.email = newEmail;
+            }
         }
 
         user.password = newPassword;
+        user.mustChangePassword = false;
+        user.passwordChangedAt = new Date();
+        user.tempPasswordSetAt = undefined;
+        user.tempPasswordSetBy = undefined;
+        user.tempPasswordReason = undefined;
         await user.save();
 
-        // Log the activity
-        await logActivity(req.user._id, 'profile_update', 'User', req.user._id, 'تم تغيير كلمة المرور بنجاح للحساب');
+        const logMsg = forceChange
+            ? 'تم تغيير كلمة المرور الإجبارية بعد إصدار كلمة مؤقتة من الإدارة'
+            : 'تم تغيير كلمة المرور بنجاح للحساب';
+        await logActivity(req.user._id, 'profile_update', 'User', req.user._id, logMsg);
 
         req.flash('success', res.__('flash_password_updated'));
-        res.redirect('/profile/settings');
+        res.redirect(getDashboardPathByRole(user.role));
     } catch (err) {
         console.error(err);
+        const errorRedirect = req.user.mustChangePassword
+            ? '/profile/force-password-change'
+            : '/profile/settings';
         req.flash('error', res.__('flash_password_error'));
-        res.redirect('/profile/settings');
+        res.redirect(errorRedirect);
     }
 };
 

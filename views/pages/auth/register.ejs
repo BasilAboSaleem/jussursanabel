@@ -107,7 +107,7 @@
                     <div id="beneficiary-fields" style="display: none;">
                         <div class="form-group" style="margin-bottom: 20px;">
                             <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">رقم الهوية / الجواز</label>
-                            <input type="text" name="idNumber" id="reg-idNumber" class="form-input-dark" placeholder="رقم الهوية الوطنية أو جواز السفر">
+                            <input type="text" name="idNumber" id="reg-idNumber" class="form-input-dark" placeholder="<%= __('register_id_placeholder') %>" inputmode="numeric" maxlength="9">
                             <div class="field-error" id="error-idNumber"></div>
                         </div>
 
@@ -124,23 +124,20 @@
 
                         <div style="margin-top: 30px; padding: 20px; background: rgba(34, 211, 238, 0.06); border-radius: 20px; border: 1px solid rgba(34, 211, 238, 0.14);">
                             <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 20px; font-size: 1.1rem;">
-                                <i class="fas fa-wallet" style="margin-left: 8px;"></i> بيانات الاستلام المالي
-                                <small style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 5px; font-weight: 400;">يجب إضافة وسيلة واحدة على الأقل</small>
+                                <i class="fas fa-university" style="margin-left: 8px;"></i> بيانات الحساب البنكي
+                                <small style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 5px; font-weight: 400;"><%= __('register_financial_bank_only_hint') %></small>
                             </h4>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_account_holder') %></label>
+                                <input type="text" name="paymentDetails[accountHolder]" id="reg-accountHolder" class="form-input-dark" placeholder="الاسم كما يظهر في الحساب البنكي" required>
+                                <div class="field-error" id="error-accountHolder"></div>
+                            </div>
                             
-                            <div class="form-group" style="margin-bottom: 20px;">
-                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_bank_palestine_iban') %></label>
-                                <input type="text" name="paymentDetails[iban]" id="reg-iban" class="form-input-dark financial-field" placeholder="PS00 PALA 0000 0000 0000 0000 00000">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 20px;">
-                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_palpay_wallet') %></label>
-                                <input type="text" name="paymentDetails[palpayNumber]" id="reg-palpay" class="form-input-dark financial-field" placeholder="05XXXXXXXX">
-                            </div>
-
                             <div class="form-group" style="margin-bottom: 10px;">
-                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_jawwal_pay_wallet') %></label>
-                                <input type="text" name="paymentDetails[jawwalPayNumber]" id="reg-jawwalpay" class="form-input-dark financial-field" placeholder="05XXXXXXXX">
+                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_bank_palestine_iban') %> <span style="color: #fca5a5;">*</span></label>
+                                <input type="text" name="paymentDetails[iban]" id="reg-iban" class="form-input-dark" placeholder="PS00 PALA 0000 0000 0000 0000 00000" required>
+                                <div class="field-error" id="error-iban"></div>
                             </div>
                             <div class="field-error" id="error-financial" style="text-align: center;"></div>
                         </div>
@@ -313,6 +310,73 @@
 </style>
 
 <script>
+    const PS_IBAN_LENGTH = 29;
+    const PS_IBAN_REGEX = /^PS\d{2}[A-Z]{4}[A-Z0-9]{21}$/;
+
+    function normalizeIbanValue(iban) {
+        return (iban || '').replace(/\s+/g, '').toUpperCase();
+    }
+
+    function ibanMod97Check(iban) {
+        const rearranged = iban.slice(4) + iban.slice(0, 4);
+        let remainder = 0;
+
+        for (let i = 0; i < rearranged.length; i++) {
+            const code = rearranged.charCodeAt(i);
+            const chunk = code >= 65 && code <= 90 ? String(code - 55) : rearranged[i];
+            for (let j = 0; j < chunk.length; j++) {
+                remainder = (remainder * 10 + parseInt(chunk[j], 10)) % 97;
+            }
+        }
+
+        return remainder === 1;
+    }
+
+    function validatePalestinianIbanClient(iban) {
+        const normalized = normalizeIbanValue(iban);
+
+        if (!normalized) {
+            return { valid: false, message: '<%= __('register_bank_iban_required') %>' };
+        }
+        if (normalized.length !== PS_IBAN_LENGTH || !PS_IBAN_REGEX.test(normalized)) {
+            return { valid: false, message: '<%= __('register_iban_invalid_format') %>' };
+        }
+        if (!ibanMod97Check(normalized)) {
+            return { valid: false, message: '<%= __('register_iban_invalid_checksum') %>' };
+        }
+        return { valid: true, iban: normalized };
+    }
+
+    function validatePalestinianIdClient(id) {
+        const digitsOnly = (id || '').replace(/\D/g, '');
+
+        if (!digitsOnly) {
+            return { valid: false, message: '<%= __('flash_id_required') %>' };
+        }
+        if (digitsOnly.length > 9) {
+            return { valid: false, message: '<%= __('register_id_length_error') %>' };
+        }
+
+        const normalized = digitsOnly.padStart(9, '0');
+        let sum = 0;
+
+        for (let i = 0; i < 9; i++) {
+            const digit = parseInt(normalized[8 - i], 10);
+            const weight = i % 2 === 0 ? 1 : 2;
+            let product = digit * weight;
+            if (product >= 10) {
+                product = Math.floor(product / 10) + (product % 10);
+            }
+            sum += product;
+        }
+
+        if (sum % 10 !== 0) {
+            return { valid: false, message: '<%= __('register_id_invalid_checksum') %>' };
+        }
+
+        return { valid: true, idNumber: normalized };
+    }
+
     function nextStep(step) {
         if (step === 3) {
             // Basic validation for step 2
@@ -408,7 +472,8 @@
             { id: 'reg-email', field: 'email', msg: 'هذا البريد الإلكتروني مستخدم بالفعل' },
             { id: 'reg-phone', field: 'phone', msg: 'رقم الهاتف هذا مسجل مسبقاً' },
             { id: 'reg-idNumber', field: 'idNumber', msg: msgIdTaken },
-            { id: 'reg-whatsapp', field: 'whatsapp', msg: 'رقم الواتساب هذا مسجل مسبقاً' }
+            { id: 'reg-whatsapp', field: 'whatsapp', msg: 'رقم الواتساب هذا مسجل مسبقاً' },
+            { id: 'reg-iban', field: 'iban', msg: `<%= __('flash_iban_taken') %>` }
         ];
 
         fields.forEach(f => {
@@ -417,6 +482,48 @@
             el.addEventListener('blur', async () => {
                 const val = el.value.trim();
                 if (!val) return;
+
+                if (f.field === 'idNumber') {
+                    const idCheck = validatePalestinianIdClient(val);
+                    if (!idCheck.valid) {
+                        showError(f.id, idCheck.message);
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/auth/check-exists?field=idNumber&value=${encodeURIComponent(idCheck.idNumber)}`);
+                        const data = await res.json();
+                        if (data.invalid) {
+                            showError(f.id, data.message);
+                        } else if (data.exists) {
+                            showError(f.id, f.msg);
+                        } else {
+                            clearError(f.id);
+                        }
+                    } catch (e) { console.error(e); }
+                    return;
+                }
+
+                if (f.field === 'iban') {
+                    const ibanCheck = validatePalestinianIbanClient(val);
+                    if (!ibanCheck.valid) {
+                        showError(f.id, ibanCheck.message);
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/auth/check-exists?field=iban&value=${encodeURIComponent(ibanCheck.iban)}`);
+                        const data = await res.json();
+                        if (data.invalid) {
+                            showError(f.id, data.message);
+                        } else if (data.exists) {
+                            showError(f.id, f.msg);
+                        } else {
+                            clearError(f.id);
+                        }
+                    } catch (e) { console.error(e); }
+                    return;
+                }
                 
                 try {
                     const res = await fetch(`/auth/check-exists?field=${f.field}&value=${val}`);
@@ -450,6 +557,23 @@
                 clearError('reg-confirmPassword');
             }
         });
+
+        const accountHolderEl = document.getElementById('reg-accountHolder');
+        const nameEl = document.getElementById('reg-name');
+        if (accountHolderEl && nameEl) {
+            const validateAccountHolder = () => {
+                const holder = accountHolderEl.value.trim();
+                const fullName = nameEl.value.trim();
+                if (!holder || !fullName) return;
+                if (holder.replace(/\s+/g, ' ').toLowerCase() !== fullName.replace(/\s+/g, ' ').toLowerCase()) {
+                    showError('reg-accountHolder', '<%= __('register_account_holder_mismatch') %>');
+                } else {
+                    clearError('reg-accountHolder');
+                }
+            };
+            accountHolderEl.addEventListener('blur', validateAccountHolder);
+            nameEl.addEventListener('blur', validateAccountHolder);
+        }
 
         const termsCb = document.getElementById('beneficiary-terms-checkbox');
         if (termsCb) {
@@ -503,8 +627,9 @@
                 showError('reg-phone', '<%= __('register_phone_length_error') %>');
                 valid = false;
             }
-            if (idNumber.length !== 9) {
-                showError('reg-idNumber', `<%= __('register_id_length_error') %>`);
+            const idCheck = validatePalestinianIdClient(idNumber);
+            if (!idCheck.valid) {
+                showError('reg-idNumber', idCheck.message);
                 valid = false;
             }
             if (!address) {
@@ -538,19 +663,34 @@
         // Financial Validation for Beneficiaries
         if (role === 'beneficiary') {
             const iban = document.getElementById('reg-iban').value.trim();
-            const palpay = document.getElementById('reg-palpay').value.trim();
-            const jawwalpay = document.getElementById('reg-jawwalpay').value.trim();
-            
-            if (!iban && !palpay && !jawwalpay) {
+            const accountHolder = document.getElementById('reg-accountHolder').value.trim();
+            const fullName = document.getElementById('reg-name').value.trim();
+            let financialValid = true;
+
+            const ibanCheck = validatePalestinianIbanClient(iban);
+            if (!ibanCheck.valid) {
+                showError('reg-iban', ibanCheck.message);
+                financialValid = false;
+            }
+
+            if (!accountHolder) {
+                showError('reg-accountHolder', '<%= __('register_account_holder_required') %>');
+                financialValid = false;
+            } else if (fullName && accountHolder.replace(/\s+/g, ' ').toLowerCase() !== fullName.replace(/\s+/g, ' ').toLowerCase()) {
+                showError('reg-accountHolder', '<%= __('register_account_holder_mismatch') %>');
+                financialValid = false;
+            }
+
+            if (!financialValid) {
                 e.preventDefault();
-                document.getElementById('error-financial').innerText = '<%= __('register_financial_one_required') %>';
+                document.getElementById('error-financial').innerText = '<%= __('register_bank_iban_required') %>';
                 Swal.fire({
                     icon: 'warning',
-                    title: 'بيانات مالية ناقصة',
-                    text: '<%= __('register_financial_one_required') %>',
+                    title: 'بيانات الحساب البنكي ناقصة',
+                    text: '<%= __('register_financial_bank_only_hint') %>',
                     confirmButtonText: 'حسناً'
                 });
-                nextStep(2); // Go back to step 2 to fix
+                nextStep(2);
                 return false;
             } else {
                 document.getElementById('error-financial').innerText = '';

@@ -65,7 +65,7 @@
 
         <!-- Language Switcher Dropdown -->
         <div class="lang-dropdown-lux" style="position: relative; margin-inline-start: 10px; padding-inline-start: 15px; border-inline-start: 2px solid rgba(0,0,0,0.05);">
-            <button id="langToggleBtn" style="background: none; border: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; padding: 5px;" title="تغيير اللغة">
+            <button id="langToggleBtn" style="background: none; border: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; padding: 5px;" title="<%= __('navbar_change_language') %>">
                 <i class="fas fa-globe"></i>
             </button>
             <div id="langMenu" class="shadow-sm" style="display: none; position: absolute; top: calc(100% + 15px); <%= locals.langDir === 'ltr' ? 'right' : 'left' %>: 0; background: white; border-radius: 10px; padding: 8px; min-width: 140px; z-index: 1000; border: 1px solid rgba(0,0,0,0.05);">

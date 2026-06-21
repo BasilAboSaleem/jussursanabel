@@ -114,6 +114,85 @@ exports.viewOnly = (req, res, next) => {
     next();
 };
 
+exports.enforcePasswordChange = (req, res, next) => {
+    if (!req.user || !req.user.mustChangePassword) {
+        return next();
+    }
+
+    const urlPath = (req.originalUrl || req.path || '').split('?')[0];
+
+    const allowedPaths = [
+        '/profile/force-password-change',
+        '/auth/logout'
+    ];
+
+    if (allowedPaths.includes(urlPath)) {
+        return next();
+    }
+
+    if (urlPath === '/profile/password' && req.method === 'POST') {
+        return next();
+    }
+
+    if (urlPath.startsWith('/assets') || urlPath === '/health') {
+        return next();
+    }
+
+    if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        return res.status(403).json({
+            success: false,
+            error: 'يجب تغيير كلمة المرور قبل المتابعة.',
+            redirect: '/profile/force-password-change'
+        });
+    }
+
+    return res.redirect('/profile/force-password-change');
+};
+
+const BENEFICIARY_ROLES = new Set(['beneficiary', 'family', 'guardian']);
+
+const BENEFICIARY_BLOCKED_PREFIXES = [
+    '/dashboard',
+    '/cases/register',
+    '/profile',
+    '/messages',
+    '/donations',
+    '/notifications',
+];
+
+exports.enforceBeneficiaryApproval = (req, res, next) => {
+    if (!req.user) return next();
+    if (!BENEFICIARY_ROLES.has(req.user.role)) return next();
+    if (req.user.status !== 'pending') return next();
+    if (req.user.mustChangePassword) return next();
+
+    const urlPath = (req.originalUrl || req.path || '').split('?')[0];
+
+    if (urlPath === '/auth/pending' || urlPath === '/auth/logout') {
+        return next();
+    }
+
+    if (urlPath.startsWith('/support') || urlPath.startsWith('/assets')) {
+        return next();
+    }
+
+    const isBlocked = BENEFICIARY_BLOCKED_PREFIXES.some(
+        (prefix) => urlPath === prefix || urlPath.startsWith(`${prefix}/`)
+    );
+
+    if (!isBlocked) return next();
+
+    if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        return res.status(403).json({
+            success: false,
+            error: 'حسابك قيد المراجعة الإدارية.',
+            redirect: '/auth/pending'
+        });
+    }
+
+    return res.redirect('/auth/pending');
+};
+
 // Check if user is logged in (for public pages)
 exports.isLoggedIn = async (req, res, next) => {
     if (req.cookies.jwt) {

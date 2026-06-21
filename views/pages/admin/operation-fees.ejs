@@ -22,14 +22,15 @@
                 <th style="padding: 20px;"><%= __('common_donor') %></th>
                 <th style="padding: 20px;"><%= __('admin_fees_beneficiary') %></th>
                 <th style="padding: 20px;"><%= __('admin_fees_original_amount') %></th>
-                <th style="padding: 20px;"><%= __('admin_fees_percentage') %></th>
+                <th style="padding: 20px;"><%= __('admin_settings_institution_fee_label') %></th>
+                <th style="padding: 20px;"><%= __('admin_settings_gateway_fee_label') %></th>
                 <th style="padding: 20px; color: #8b5cf6;"><%= __('admin_fees_op_fee') %></th>
             </tr>
         </thead>
         <tbody>
             <% if (transactions.length === 0) { %>
                 <tr>
-                    <td colspan="6" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                    <td colspan="7" style="padding: 60px; text-align: center; color: var(--text-muted);">
                         <i class="fas fa-receipt" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 15px;"></i>
                         <%= __('admin_fees_no_data') %>
                     </td>
@@ -53,11 +54,16 @@
                     <td style="padding: 20px; font-weight: 700;">$<%= trans.amount.toFixed(2) %></td>
                     <td style="padding: 20px;">
                         <span class="badge badge-navy" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.2);">
-                            <%= trans.operationPercentage %>%
+                            <%= trans.institutionPercentage || 0 %>%
+                        </span>
+                    </td>
+                    <td style="padding: 20px; color: #94a3b8;">
+                        <span class="badge" style="background: #f1f5f9; color: #64748b;">
+                            <%= trans.gatewayPercentage || 0 %>% — $<%= (trans.gatewayFee || 0).toFixed(2) %>
                         </span>
                     </td>
                     <td style="padding: 20px; font-weight: 900; color: #8b5cf6; font-size: 1.1rem;">
-                        $<%= trans.operationFee.toFixed(2) %>
+                        $<%= (trans.institutionFee || 0).toFixed(2) %>
                     </td>
                 </tr>
             <% }) %>

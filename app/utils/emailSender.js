@@ -1,70 +1,104 @@
-const nodemailer = require('nodemailer');
-const { enqueueEmail } = require('./queue');
+const nodemailer = require("nodemailer");
+const { enqueueEmail } = require("./queue");
+const { systemLogger } = require("./logger");
+const { sendAlert } = require("./alerting");
+const { isEmailConfigured, buildMailTransporter, getMailFrom } = require("./emailConfig");
 
+const isProduction = process.env.NODE_ENV === "production";
+
+function reportEmailFailure(context, result) {
+  systemLogger.error("Email delivery failed", {
+    ...context,
+    reason: result.reason,
+    error: result.error && result.error.message,
+  });
+
+  if (isProduction) {
+    sendAlert("Email delivery failed", {
+      ...context,
+      reason: result.reason,
+    });
+  }
+}
+
+async function sendViaEthereal(mailOptions) {
+  const testAccount = await nodemailer.createTestAccount();
+  const transporter = nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    },
+  });
+
+  const info = await transporter.sendMail(mailOptions);
+  const previewUrl = nodemailer.getTestMessageUrl(info);
+
+  systemLogger.info("Dev email sent via Ethereal preview", {
+    to: mailOptions.to,
+    subject: mailOptions.subject,
+    previewUrl,
+  });
+
+  return { ok: true, delivery: "preview", previewUrl };
+}
+
+/**
+ * @returns {Promise<{ ok: boolean, delivery?: string, reason?: string, previewUrl?: string, error?: Error }>}
+ */
 const sendEmail = async (options) => {
-    try {
-        const mailOptions = {
-            from: `منصة سُبُل <${process.env.EMAIL_FROM || 'pal-gaza@senabilcharity.org'}>`,
-            to: options.email,
-            subject: options.subject,
-            html: options.html
-        };
+  const context = {
+    to: options.email,
+    subject: options.subject,
+    type: options.type || "general",
+  };
 
-        // If queue is available, offload sending to worker for better throughput.
-        const queued = await enqueueEmail(mailOptions);
-        if (queued) {
-            console.log(`Email queued for ${options.email}`);
-            return;
+  const mailOptions = {
+    from: getMailFrom(),
+    to: options.email,
+    subject: options.subject,
+    html: options.html,
+  };
+
+  try {
+    if (isEmailConfigured()) {
+      let queued = false;
+      if (!options.immediate) {
+        try {
+          queued = await enqueueEmail(mailOptions);
+        } catch (queueErr) {
+          systemLogger.warn("Email queue unavailable, sending directly", {
+            ...context,
+            error: queueErr.message,
+          });
         }
+      }
 
-        let transporter;
-        if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
-            const port = parseInt(process.env.EMAIL_PORT, 10) || 465;
-            // secure: true for port 465, false for other ports (like 587 for Outlook/Gmail STARTTLS)
-            const isSecure = port === 465;
+      if (queued) {
+        systemLogger.info("Email queued", context);
+        return { ok: true, delivery: "queued" };
+      }
 
-            transporter = nodemailer.createTransport({
-                host: process.env.EMAIL_HOST || 'smtp-mail.outlook.com',
-                port: port,
-                secure: isSecure,
-                auth: {
-                    user: process.env.EMAIL_USERNAME,
-                    pass: process.env.EMAIL_PASSWORD
-                },
-                // Recommended for modern Node environments to avoid handshake issues on some servers
-                tls: {
-                    rejectUnauthorized: false
-                }
-            });
-        } else {
-            // إنشاء بريد اختباري مجاني تلقائياً في بيئة التطوير
-            const testAccount = await nodemailer.createTestAccount();
-            transporter = nodemailer.createTransport({
-                host: 'smtp.ethereal.email',
-                port: 587,
-                secure: false,
-                auth: {
-                    user: testAccount.user,
-                    pass: testAccount.pass
-                }
-            });
-        }
-
-        const info = await transporter.sendMail(mailOptions);
-        
-        if (!process.env.EMAIL_USERNAME) {
-            console.log('----------------------------------------------------');
-            console.log('✉️ رسالة الترحيب المتجهة لـ ' + options.email + ' تم إرسالها بنجاح!');
-            console.log('👀 يمكنك معاينتها كما ستصل للمستخدم عبر الرابط التالي:');
-            console.log('📎 ' + nodemailer.getTestMessageUrl(info));
-            console.log('----------------------------------------------------');
-        } else {
-            console.log(`Email sent successfully to ${options.email}`);
-        }
-
-    } catch (error) {
-        console.error('Error sending email:', error);
+      const transporter = buildMailTransporter();
+      await transporter.sendMail(mailOptions);
+      systemLogger.info("Email sent", context);
+      return { ok: true, delivery: "sent" };
     }
+
+    if (isProduction) {
+      const result = { ok: false, reason: "not_configured" };
+      reportEmailFailure(context, result);
+      return result;
+    }
+
+    return sendViaEthereal(mailOptions);
+  } catch (error) {
+    const result = { ok: false, reason: "send_failed", error };
+    reportEmailFailure(context, result);
+    return result;
+  }
 };
 
 module.exports = sendEmail;

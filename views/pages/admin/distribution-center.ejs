@@ -139,9 +139,10 @@
         <div style="background: white; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); border-right: 4px solid var(--secondary);">
             <div style="color: #64748b; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;"><%= __('admin_dist_stat_stripe_pending') %></div>
             <div style="font-size: 1.8rem; font-weight: 900; color: var(--primary);">$<%= stats.pendingStripeTotal.toLocaleString() %></div>
-            <div style="margin-top: 10px; font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between;">
+            <div style="margin-top: 10px; font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                 <span><%= __('admin_dist_donations') %> $<%= stats.pendingStripeDonations.toLocaleString() %></span>
-                <span><%= __('admin_dist_fees') %>: $<%= stats.pendingStripeFees.toLocaleString() %></span>
+                <span><%= __('admin_dist_institution_fees') %>: $<%= stats.pendingStripeInstitutionFees.toLocaleString() %></span>
+                <span style="color:#cbd5e1;"><%= __('admin_dist_stripe_fees_info') %>: $<%= (stats.pendingStripeGatewayFees || 0).toLocaleString() %></span>
             </div>
         </div>
 
@@ -162,13 +163,14 @@
         </div>
     </div>
 
-    <div class="dist-main-grid" style="display: grid; grid-template-columns: 3fr 2fr; gap: 30px; margin-bottom: 40px;">
-        <!-- 1. Bank Reconciliation Section -->
-        <div class="chart-container-lux" style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0;">
+    <!-- Step 1: Turkey bank reconciliation -->
+    <div class="dist-main-grid" style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-bottom: 40px;">
+        <div class="chart-container-lux" style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; border-right: 4px solid #2563eb;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <div>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;"><%= __('admin_dist_step_turkey_title') %></div>
                     <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __('admin_dist_bank_confirm_title') %></h5>
-                    <p style="margin: 0; font-size: 0.85rem; color: #64748b;"><%= __('admin_dist_bank_confirm_desc') %></p>
+                    <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;"><%= __('admin_dist_step_turkey_desc') %></p>
                 </div>
                 <% if (user.role === 'super_admin' && pendingBankConfirmation.length > 0) { %>
                     <button class="btn-lux btn-lux-primary" onclick="openBankConfirmModal()">
@@ -180,6 +182,12 @@
             <!-- Date Filter Bar -->
             <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
                 <form action="/admin/distribution" method="GET" style="display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
+                    <input type="hidden" name="disburseFrom" value="<%= disburseFrom %>">
+                    <input type="hidden" name="disburseTo" value="<%= disburseTo %>">
+                    <input type="hidden" name="receiptFrom" value="<%= receiptFrom %>">
+                    <input type="hidden" name="receiptTo" value="<%= receiptTo %>">
+                    <input type="hidden" name="payoutFrom" value="<%= payoutFrom %>">
+                    <input type="hidden" name="payoutTo" value="<%= payoutTo %>">
                     <div style="flex: 1; min-width: 150px;">
                         <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 5px;"><%= __('common_from') %></label>
                         <input type="date" name="bankFrom" value="<%= bankFrom %>" class="form-control-lux" style="width: 100%; padding: 8px 12px; border-radius: 8px;">
@@ -209,9 +217,15 @@
                                 <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">$<%= bankFilteredTotals.donations.toLocaleString() %></span>
                             </div>
                             <div style="padding-right: 25px; border-right: 1px solid #f1f5f9;">
-                                <small style="color: #94a3b8; display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;"><%= __('admin_dist_fees') %></small>
+                                <small style="color: #94a3b8; display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;"><%= __('admin_dist_institution_fees') %></small>
                                 <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">$<%= bankFilteredTotals.fees.toLocaleString() %></span>
                             </div>
+                            <% if (bankFilteredTotals.gatewayFees > 0) { %>
+                            <div style="padding-right: 25px; border-right: 1px solid #f1f5f9;">
+                                <small style="color: #94a3b8; display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;"><%= __('admin_dist_stripe_fees_info') %></small>
+                                <span style="font-weight: 700; color: #94a3b8; font-size: 1rem;">$<%= bankFilteredTotals.gatewayFees.toLocaleString() %></span>
+                            </div>
+                            <% } %>
                         </div>
                         <div style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
                             <small style="color: #16a34a; display: block; font-size: 0.75rem; font-weight: 800; margin-bottom: 2px;"><%= __('admin_dist_period_total') %></small>
@@ -259,12 +273,17 @@
                                         </div>
                                     </td>
                                     <td style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; vertical-align: middle; padding: 12px 8px;">
-                                        <div style="font-weight: 900; color: var(--secondary); font-size: 1rem;">$<%= (trans.amount + (trans.institutionFee || 0)).toLocaleString() %></div>
+                                        <% const instFee = trans.institutionFee || 0; %>
+                                        <% const stripeFee = trans.gatewayFee || 0; %>
+                                        <div style="font-weight: 900; color: var(--secondary); font-size: 1rem;">$<%= (trans.amount + instFee).toLocaleString() %></div>
                                         <div style="font-size: 0.68rem; color: #94a3b8; margin-top: 2px;">
-                                            <%= __('admin_dist_donation') %>: $<%= trans.amount %>, <%= __('admin_dist_fees') %>: $<%= trans.institutionFee || 0 %>
+                                            <%= __('admin_dist_donation') %>: $<%= trans.amount %>,
+                                            <%= __('admin_dist_institution_fees') %>: $<%= instFee %>
+                                            <% if (stripeFee > 0) { %>, Stripe: $<%= stripeFee %> <% } %>
                                         </div>
                                         <input type="hidden" class="trans-net" value="<%= trans.amount %>">
-                                        <input type="hidden" class="trans-fee" value="<%= trans.institutionFee || 0 %>">
+                                        <input type="hidden" class="trans-fee" value="<%= instFee %>">
+                                        <input type="hidden" class="trans-gateway-fee" value="<%= stripeFee %>">
                                     </td>
                                 </tr>
                             <% }) %>
@@ -273,69 +292,191 @@
                 </table>
             </div>
         </div>
+    </div>
 
-        <!-- 2. Ready for Payout Section -->
-        <div class="payout-wizard-box" style="background: #f8fafc; padding: 25px; border-radius: 20px; border: 1px dashed #cbd5e1;">
-            <h5 class="font-cairo" style="margin-bottom: 10px; font-weight: 800; color: var(--primary);"><%= __('admin_dist_payout_title') %></h5>
-            <p style="margin-bottom: 25px; font-size: 0.85rem; color: #64748b;"><%= __('admin_dist_payout_desc') %></p>
-
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <% if (readyForDisbursement.length === 0) { %>
-                    <div style="text-align: center; padding: 30px; background: white; border-radius: 15px; color: #94a3b8;"><%= __('common_no_data') %></div>
-                <% } else { %>
-                    <script id="disbursementRegistryData" type="application/json">
-                        <%- JSON.stringify(readyForDisbursement.map(item => ({
-                            id: item._id,
-                            caseId: item._id,
-                            title: item.caseDetails.title,
-                            amount: item.totalAmount,
-                            transactionIds: item.transactionIds,
-                            recipient: item.recipientDetails || {}
-                        }))) %>
-                    </script>
-                    <script>
-                        // Load the registry data safely from the script tag
-                        try {
-                            const rawData = JSON.parse(document.getElementById('disbursementRegistryData').textContent);
-                            window.DISBURSEMENT_REGISTRY = {};
-                            rawData.forEach(item => {
-                                window.DISBURSEMENT_REGISTRY[item.id] = item;
-                            });
-                        } catch (e) {
-                            console.error('Failed to parse disbursement registry data', e);
-                        }
-                    </script>
-                    <% readyForDisbursement.forEach(item => { %>
-                        <div class="case-payout-card" style="background: white; padding: 20px; border-radius: 20px; box-shadow: var(--shadow-sm); border-right: 4px solid #16a34a;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                                <div>
-                                    <div style="font-weight: 800; color: var(--primary); font-size: 1.1rem; margin-bottom: 5px;"><%= item.caseDetails.title %></div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="badge badge-navy" style="font-size: 0.7rem;"><%= item.totalQuantity %> <%= __('common_donation') %></span>
-                                        <% if (item.recipientDetails) { %>
-                                            <span style="font-size: 0.75rem; color: #64748b;"><i class="fas fa-user-circle"></i> <%= item.recipientDetails.name %></span>
-                                        <% } %>
-                                    </div>
-                                </div>
-                                <div style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
-                                    <div style="font-weight: 900; color: var(--secondary); font-size: 1.4rem;">$<%= item.totalAmount %></div>
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: <% if (user.role === 'super_admin') { %>1fr 1fr<% } else { %>1fr<% } %>; gap: 10px;">
-                                <button class="btn-lux btn-lux-outline" style="font-size: 0.8rem; padding: 8px;" onclick="openRecipientModalById('<%= item._id %>')">
-                                    <i class="fas fa-id-card"></i> <%= __('admin_dist_view_recipient') %>
-                                </button>
-                                <% if (user.role === 'super_admin') { %>
-                                <button class="btn-lux btn-lux-success" style="font-size: 0.8rem; padding: 8px;" onclick="openPayoutModalById('<%= item._id %>')">
-                                    <i class="fas fa-paper-plane"></i> <%= __('admin_dist_generate_payout') %>
-                                </button>
-                                <% } %>
-                            </div>
-                        </div>
-                    <% }) %>
-                <% } %>
+    <!-- Step 2: Local bank Excel file -->
+    <div class="chart-container-lux" style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 40px; border-right: 4px solid #0ea5e9;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; margin-bottom: 22px;">
+            <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;"><%= __('admin_dist_step_bank_file_title') %></div>
+                <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);">
+                    <i class="fas fa-building-columns" style="color: #0ea5e9; margin-<%= langDir === 'rtl' ? 'left' : 'right' %>: 8px;"></i>
+                    <%= __('admin_dist_bank_file_title') %>
+                </h5>
+                <p style="margin: 8px 0 0; font-size: 0.88rem; color: #64748b; max-width: 720px;"><%= __('admin_dist_bank_file_desc') %></p>
+            </div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 14px; padding: 12px 18px; min-width: 130px;">
+                    <div style="font-size: 0.72rem; color: #0369a1; font-weight: 700; margin-bottom: 4px;"><%= __('admin_dist_bank_file_beneficiaries') %></div>
+                    <div style="font-size: 1.35rem; font-weight: 900; color: #0c4a6e;"><%= bankDisbursementTotals.beneficiaries %></div>
+                </div>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 12px 18px; min-width: 150px;">
+                    <div style="font-size: 0.72rem; color: #15803d; font-weight: 700; margin-bottom: 4px;"><%= __('admin_dist_bank_file_total') %></div>
+                    <div style="font-size: 1.35rem; font-weight: 900; color: #166534;">$<%= bankDisbursementTotals.totalAmount.toLocaleString() %></div>
+                </div>
             </div>
         </div>
+
+        <% if (bankDisbursementTotals.missingIban > 0) { %>
+            <div style="background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; padding: 12px 16px; border-radius: 12px; margin-bottom: 18px; font-size: 0.85rem; font-weight: 700;">
+                <i class="fas fa-triangle-exclamation"></i>
+                <%= __('admin_dist_bank_file_missing_iban', { count: bankDisbursementTotals.missingIban }) %>
+            </div>
+        <% } %>
+
+        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 22px; border: 1px solid #e2e8f0;">
+            <form action="/admin/distribution" method="GET" style="display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
+                <input type="hidden" name="bankFrom" value="<%= bankFrom %>">
+                <input type="hidden" name="bankTo" value="<%= bankTo %>">
+                <input type="hidden" name="receiptFrom" value="<%= receiptFrom %>">
+                <input type="hidden" name="receiptTo" value="<%= receiptTo %>">
+                <input type="hidden" name="payoutFrom" value="<%= payoutFrom %>">
+                <input type="hidden" name="payoutTo" value="<%= payoutTo %>">
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 5px;"><%= __('common_from') %></label>
+                    <input type="date" name="disburseFrom" value="<%= disburseFrom %>" class="form-control-lux" style="width: 100%; padding: 8px 12px; border-radius: 8px;" required>
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 5px;"><%= __('common_to') %></label>
+                    <input type="date" name="disburseTo" value="<%= disburseTo %>" class="form-control-lux" style="width: 100%; padding: 8px 12px; border-radius: 8px;" required>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="submit" class="btn-lux btn-lux-primary" style="padding: 10px 20px;"><i class="fas fa-filter"></i> <%= __('common_filter') %></button>
+                    <a href="/admin/distribution" class="btn-lux btn-lux-outline" style="padding: 10px 15px; text-decoration: none;"><i class="fas fa-redo"></i></a>
+                    <% if (disburseFrom && disburseTo) { %>
+                        <a href="/admin/distribution/export/bank-disbursement?from=<%= disburseFrom %>&to=<%= disburseTo %>" target="_blank" class="btn-lux btn-lux-outline" style="padding: 10px 20px; text-decoration: none; color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; font-weight: 800;">
+                            <i class="fas fa-file-excel"></i> <%= __('admin_dist_bank_file_export') %>
+                        </a>
+                    <% } %>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive" style="border: 1px solid #f1f5f9; border-radius: 16px;">
+            <table class="table" style="vertical-align: middle; margin: 0;">
+                <thead>
+                    <tr style="font-size: 0.85rem; color: #94a3b8; border-bottom: 2px solid #f1f5f9; background: #fcfdfe;">
+                        <th style="padding: 12px 8px;">#</th>
+                        <th style="padding: 12px 8px;"><%= __('admin_dist_bank_file_col_name') %></th>
+                        <th style="padding: 12px 8px;"><%= __('admin_dist_bank_file_col_iban') %></th>
+                        <th style="padding: 12px 8px;"><%= __('admin_dist_bank_file_col_phone') %></th>
+                        <th style="padding: 12px 8px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('admin_dist_bank_file_col_amount') %></th>
+                        <th style="padding: 12px 8px; text-align: center;"><%= __('admin_dist_bank_file_col_donations') %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (!disburseFrom || !disburseTo) { %>
+                        <tr><td colspan="6" style="text-align: center; padding: 48px 20px; color: #94a3b8;"><%= __('admin_dist_bank_file_pick_dates') %></td></tr>
+                    <% } else if (bankDisbursementBatch.length === 0) { %>
+                        <tr><td colspan="6" style="text-align: center; padding: 48px 20px; color: #94a3b8;"><%= __('common_no_data') %></td></tr>
+                    <% } else { %>
+                        <% bankDisbursementBatch.forEach((row) => { %>
+                            <tr style="border-bottom: 1px solid #f1f5f9; <%= row.missingIban ? 'background:#fff7ed;' : '' %>">
+                                <td style="padding: 12px 8px; color: #94a3b8; font-weight: 700;"><%= row.index %></td>
+                                <td style="padding: 12px 8px; font-weight: 800; color: var(--primary);"><%= row.beneficiaryName %></td>
+                                <td style="padding: 12px 8px; font-family: monospace; direction: ltr; text-align: left;"><%= row.iban %></td>
+                                <td style="padding: 12px 8px; direction: ltr;"><%= row.phone %></td>
+                                <td style="padding: 12px 8px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 900; color: #16a34a;">$<%= row.amount.toLocaleString() %></td>
+                                <td style="padding: 12px 8px; text-align: center; color: #64748b; font-weight: 700;"><%= row.donationCount %></td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Step 3: Disbursement confirmation -->
+    <div class="chart-container-lux" style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 40px; border-right: 4px solid #16a34a;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #16a34a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;"><%= __('admin_dist_step_disburse_title') %></div>
+                <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __('admin_dist_payout_title') %></h5>
+                <p style="margin: 6px 0 0; font-size: 0.85rem; color: #64748b; max-width: 720px;"><%= __('admin_dist_step_disburse_desc') %></p>
+            </div>
+            <% if (user.role === 'super_admin' && disburseFrom && disburseTo && disbursementCaseBatch.length > 0) { %>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-lux btn-lux-outline" style="padding: 10px 16px; font-size: 0.82rem;" onclick="toggleAllDisburseCases(true)"><%= __('admin_dist_bulk_select_all') %></button>
+                    <button type="button" class="btn-lux btn-lux-outline" style="padding: 10px 16px; font-size: 0.82rem;" onclick="toggleAllDisburseCases(false)"><%= __('admin_dist_bulk_deselect_all') %></button>
+                    <button type="button" class="btn-lux btn-lux-success" style="padding: 10px 20px; font-weight: 800;" onclick="confirmBulkDisbursement()">
+                        <i class="fas fa-check-double"></i> <%= __('admin_dist_bulk_confirm') %>
+                    </button>
+                </div>
+            <% } %>
+        </div>
+
+        <% 
+            const registrySource = disbursementCaseBatch.length
+                ? disbursementCaseBatch
+                : readyForDisbursement.map(item => ({
+                    caseId: item._id,
+                    title: item.caseDetails.title,
+                    guardianName: item.recipientDetails?.name || '—',
+                    totalAmount: item.totalAmount,
+                    donationCount: item.totalQuantity,
+                    transactionIds: item.transactionIds,
+                    recipient: item.recipientDetails || {}
+                }));
+        %>
+        <% if (registrySource.length === 0) { %>
+            <div style="text-align: center; padding: 40px; color: #94a3b8; background: #f8fafc; border-radius: 16px;"><%= __('common_no_data') %></div>
+        <% } else { %>
+            <script id="disbursementRegistryData" type="application/json"><%- JSON.stringify(registrySource.map(item => ({
+                id: String(item.caseId),
+                caseId: String(item.caseId),
+                title: item.title,
+                amount: item.totalAmount,
+                transactionIds: item.transactionIds,
+                recipient: item.recipient || {}
+            }))) %></script>
+            <script>
+                try {
+                    const rawData = JSON.parse(document.getElementById('disbursementRegistryData').textContent);
+                    window.DISBURSEMENT_REGISTRY = {};
+                    rawData.forEach(item => { window.DISBURSEMENT_REGISTRY[item.id] = item; });
+                } catch (e) { console.error('Failed to parse disbursement registry data', e); }
+            </script>
+
+            <div class="table-responsive" style="border: 1px solid #f1f5f9; border-radius: 16px; margin-bottom: 20px;">
+                <table class="table" style="vertical-align: middle; margin: 0;">
+                    <thead>
+                        <tr style="font-size: 0.85rem; color: #94a3b8; border-bottom: 2px solid #f1f5f9; background: #fcfdfe;">
+                            <% if (disburseFrom && disburseTo) { %>
+                                <th style="width: 42px; text-align: center; padding: 12px 8px;">
+                                    <input type="checkbox" id="selectAllDisburseCases" checked onchange="toggleAllDisburseCases(this.checked)" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                                </th>
+                            <% } %>
+                            <th style="padding: 12px 8px;"><%= __('common_case') %></th>
+                            <th style="padding: 12px 8px;"><%= __('common_beneficiary') || 'المستفيد' %></th>
+                            <th style="padding: 12px 8px; text-align: center;"><%= __('common_donation') %></th>
+                            <th style="padding: 12px 8px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_amount') %></th>
+                            <th style="padding: 12px 8px; text-align: center;"><%= __('common_actions') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% registrySource.forEach((item) => { %>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <% if (disburseFrom && disburseTo) { %>
+                                    <td style="text-align: center; padding: 12px 8px;">
+                                        <input type="checkbox" class="disburse-case-check" value="<%= item.caseId %>" checked style="width: 16px; height: 16px; accent-color: var(--primary);">
+                                    </td>
+                                <% } %>
+                                <td style="padding: 12px 8px; font-weight: 800; color: var(--primary);"><%= item.title %></td>
+                                <td style="padding: 12px 8px; color: #64748b;"><%= item.guardianName %></td>
+                                <td style="padding: 12px 8px; text-align: center; color: #64748b; font-weight: 700;"><%= item.donationCount %></td>
+                                <td style="padding: 12px 8px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 900; color: #16a34a;">$<%= item.totalAmount.toLocaleString() %></td>
+                                <td style="padding: 12px 8px; text-align: center;">
+                                    <button type="button" class="btn-lux btn-lux-outline" style="font-size: 0.78rem; padding: 6px 10px; margin-left: 4px;" onclick="openRecipientModalById('<%= item.caseId %>')"><i class="fas fa-id-card"></i></button>
+                                    <% if (user.role === 'super_admin') { %>
+                                        <button type="button" class="btn-lux btn-lux-success" style="font-size: 0.78rem; padding: 6px 10px;" onclick="openPayoutModalById('<%= item.caseId %>')"><%= __('admin_dist_manual_payout') %></button>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
     </div>
 
     <!-- 3. Recent Payouts History -->
@@ -358,6 +499,8 @@
                 <input type="hidden" name="bankTo" value="<%= bankTo %>">
                 <input type="hidden" name="receiptFrom" value="<%= receiptFrom %>">
                 <input type="hidden" name="receiptTo" value="<%= receiptTo %>">
+                <input type="hidden" name="disburseFrom" value="<%= disburseFrom %>">
+                <input type="hidden" name="disburseTo" value="<%= disburseTo %>">
 
                 <div style="flex: 1; min-width: 150px;">
                     <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 5px;"><%= __('common_from') %></label>
@@ -481,6 +624,10 @@
             <form action="/admin/distribution" method="GET" style="display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
                 <input type="hidden" name="bankFrom" value="<%= bankFrom %>">
                 <input type="hidden" name="bankTo" value="<%= bankTo %>">
+                <input type="hidden" name="payoutFrom" value="<%= payoutFrom %>">
+                <input type="hidden" name="payoutTo" value="<%= payoutTo %>">
+                <input type="hidden" name="disburseFrom" value="<%= disburseFrom %>">
+                <input type="hidden" name="disburseTo" value="<%= disburseTo %>">
 
                 <div style="flex: 1; min-width: 150px;">
                     <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 5px;"><%= __('common_from') %></label>
@@ -651,8 +798,12 @@
                 <span id="bcExpectedDonations" style="font-weight: 800; color: #334155;">$0.00</span>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                <span style="color: #64748b; font-size: 0.9rem;"><%= __('admin_dist_fees') %></span>
+                <span style="color: #64748b; font-size: 0.9rem;"><%= __('admin_dist_institution_fees') %></span>
                 <span id="bcExpectedFees" style="font-weight: 800; color: #334155;">$0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="color: #94a3b8; font-size: 0.82rem;"><%= __('admin_dist_stripe_fees_info') %></span>
+                <span id="bcStripeFeesInfo" style="font-weight: 700; color: #94a3b8;">$0.00</span>
             </div>
             <div style="padding-top: 15px; border-top: 2px solid #e2e8f0; display: flex; justify-content: space-between;">
                 <span style="font-weight: 900; color: #1e293b;"><%= __('admin_dist_total_reconciled') %></span>
@@ -740,22 +891,18 @@
 
         <div style="margin-bottom: 25px;">
             <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;"><%= __('admin_dist_payout_method') %></label>
-            <select id="payoutMethod" class="form-control-lux" onchange="updatePayoutMethodUI()" style="width: 100%; padding: 12px 15px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; color: #334155;">
-                <option value=""><%= __('common_select') %></option>
-                <option value="Bank Transfer"><%= __('admin_dist_method_bank') %></option>
-                <option value="PalPay"><%= __('admin_dist_method_palpay') %></option>
-                <option value="Jawwal Pay"><%= __('admin_dist_method_jawwal') %></option>
-                <option value="Cash/Other"><%= __('admin_dist_method_other') %></option>
-            </select>
+            <input type="hidden" id="payoutMethod" value="Bank Transfer">
+            <div style="padding: 12px 15px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 800; color: #334155; background: #f8fafc;">
+                <i class="fas fa-building-columns"></i> <%= __('admin_dist_method_bank') %> (IBAN)
+            </div>
         </div>
 
-        <!-- Recipient Data Highlight -->
-        <div id="payoutMethodDetails" style="margin-bottom: 25px; padding: 18px; background: #fdfaf5; border-radius: 18px; border: 1px solid #ffedd5; display: none; animation: fadeIn 0.3s;">
+        <div id="payoutMethodDetails" style="margin-bottom: 25px; padding: 18px; background: #fdfaf5; border-radius: 18px; border: 1px solid #ffedd5;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #9a3412;">
                 <i class="fas fa-info-circle"></i>
                 <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;"><%= __('admin_dist_recipient_data') %></span>
             </div>
-            <div id="payoutMethodValue" style="font-family: monospace; word-break: break-all; font-weight: 900; color: #c2410c; background: white; padding: 12px; border-radius: 10px; border: 1px solid #fed7aa; text-align: center; font-size: 1.1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"></div>
+            <div id="payoutMethodValue" style="font-family: monospace; word-break: break-all; font-weight: 900; color: #c2410c; background: white; padding: 12px; border-radius: 10px; border: 1px solid #fed7aa; text-align: center; font-size: 1.1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">---</div>
         </div>
 
         <div style="margin-bottom: 30px;">
@@ -827,20 +974,11 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 18px;">
-                    <div style="font-size: 0.75rem; font-weight: 800; color: #166534; margin-bottom: 10px; text-transform: uppercase;">PalPay</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 12px; border-radius: 12px; border: 1px solid #dcfce7;">
-                        <span id="recipPalpay" style="font-weight: 950; color: #15803d; font-family: monospace;"></span>
-                        <button onclick="copyToClipboard('recipPalpay')" style="border:none; background:none; color: #16a34a; cursor: pointer;"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 20px; padding: 18px;">
-                    <div style="font-size: 0.75rem; font-weight: 800; color: #991b1b; margin-bottom: 10px; text-transform: uppercase;">Jawwal Pay</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 12px; border-radius: 12px; border: 1px solid #fee2e2;">
-                        <span id="recipJawwal" style="font-weight: 950; color: #b91c1c; font-family: monospace;"></span>
-                        <button onclick="copyToClipboard('recipJawwal')" style="border:none; background:none; color: #ef4444; cursor: pointer;"><i class="fas fa-copy"></i></button>
-                    </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: #475569; margin-bottom: 10px; text-transform: uppercase;"><%= __('register_account_holder') %></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 14px; border: 1px solid #f1f5f9;">
+                    <span id="recipAccountHolder" style="font-weight: 950; color: #334155;"></span>
+                    <button onclick="copyToClipboard('recipAccountHolder')" style="border:none; background:none; color: var(--primary); cursor: pointer;"><i class="fas fa-copy"></i></button>
                 </div>
             </div>
         </div>
@@ -891,16 +1029,18 @@
         const selected = Array.from(document.querySelectorAll('.bank-check:checked'));
         if (selected.length === 0) return Swal.fire({ icon: 'warning', text: 'Please select items first' });
 
-        let expDonations = 0; let expFees = 0;
+        let expDonations = 0; let expFees = 0; let expStripeInfo = 0;
         selected.forEach(cb => {
             const tr = cb.closest('tr');
             expDonations += parseFloat(tr.querySelector('.trans-net').value || 0);
             expFees += parseFloat(tr.querySelector('.trans-fee').value || 0);
+            expStripeInfo += parseFloat(tr.querySelector('.trans-gateway-fee')?.value || 0);
         });
 
         currentBankExpectedTotal = expDonations + expFees;
         document.getElementById('bcExpectedDonations').textContent = '$' + expDonations.toFixed(2);
         document.getElementById('bcExpectedFees').textContent = '$' + expFees.toFixed(2);
+        document.getElementById('bcStripeFeesInfo').textContent = '$' + expStripeInfo.toFixed(2);
         document.getElementById('bcExpectedTotal').textContent = '$' + currentBankExpectedTotal.toFixed(2);
         document.getElementById('bcActualReceived').value = currentBankExpectedTotal.toFixed(2);
         
@@ -961,6 +1101,55 @@
         }
     }
 
+    function toggleAllDisburseCases(checked) {
+        document.querySelectorAll('.disburse-case-check').forEach((el) => {
+            el.checked = checked;
+        });
+        const master = document.getElementById('selectAllDisburseCases');
+        if (master) master.checked = checked;
+    }
+
+    async function confirmBulkDisbursement() {
+        const from = '<%= disburseFrom || '' %>';
+        const to = '<%= disburseTo || '' %>';
+        if (!from || !to) {
+            return Swal.fire({ icon: 'warning', text: '<%= __('admin_dist_batch_dates_required') %>' });
+        }
+
+        const caseIds = [...document.querySelectorAll('.disburse-case-check:checked')].map((el) => el.value);
+        if (!caseIds.length) {
+            return Swal.fire({ icon: 'warning', text: '<%= __('admin_dist_batch_no_cases') %>' });
+        }
+
+        const confirm = await Swal.fire({
+            icon: 'question',
+            title: '<%= __('admin_dist_bulk_confirm') %>',
+            text: caseIds.length + ' <%= __('common_case') %>',
+            showCancelButton: true,
+            confirmButtonText: '<%= __('common_confirm') || 'تأكيد' %>',
+            cancelButtonText: '<%= __('common_cancel') %>'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const res = await fetch('/admin/distribution/confirm-disbursement-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': '<%= csrfToken %>' },
+                body: JSON.stringify({ caseIds, from, to, notes: '' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await Swal.fire({ icon: 'success', text: data.message });
+                window.location.reload();
+            } else {
+                Swal.fire({ icon: 'error', text: data.message || 'Error' });
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire({ icon: 'error', text: 'Error' });
+        }
+    }
+
     function openPayoutModalById(id) {
         const registry = window.DISBURSEMENT_REGISTRY || {};
         const data = registry[id];
@@ -973,10 +1162,10 @@
             recipient: data.recipient 
         };
         
-        document.getElementById('payoutMethodDetails').style.display = 'none';
-        document.getElementById('payoutMethod').value = '';
+        document.getElementById('payoutMethod').value = 'Bank Transfer';
         document.getElementById('payoutCaseTitle').textContent = data.title;
         document.getElementById('payoutAmountTitle').textContent = data.amount.toLocaleString();
+        updatePayoutMethodUI();
         
         const modal = document.getElementById('payoutModal');
         modal.querySelector('div').classList.add('animate-slide-down');
@@ -1005,8 +1194,7 @@
         const p = (r.paymentDetails) || {};
         document.getElementById('recipBankName').textContent = p.bankName ? `${p.bankName} (${p.bankBranch || ''})` : '---';
         document.getElementById('recipIban').textContent = p.iban || p.accountNumber || '---';
-        document.getElementById('recipPalpay').textContent = p.palpayNumber || '---';
-        document.getElementById('recipJawwal').textContent = p.jawwalPayNumber || '---';
+        document.getElementById('recipAccountHolder').textContent = p.accountHolder || '---';
         
         const modal = document.getElementById('recipientModal');
         modal.querySelector('div').classList.add('animate-slide-down');
@@ -1014,35 +1202,26 @@
     }
 
     function updatePayoutMethodUI() {
-        const method = document.getElementById('payoutMethod').value;
         const detailsBox = document.getElementById('payoutMethodDetails');
         const valueBox = document.getElementById('payoutMethodValue');
-        
-        if (!method || !currentPayoutData || !currentPayoutData.recipient) {
-            detailsBox.style.display = 'none';
+
+        if (!currentPayoutData || !currentPayoutData.recipient) {
+            if (detailsBox) detailsBox.style.display = 'none';
             return;
         }
 
         const p = currentPayoutData.recipient.paymentDetails || {};
-        let value = '';
-        
-        if (method === 'Bank Transfer') value = p.iban || p.accountNumber;
-        else if (method === 'PalPay') value = p.palpayNumber;
-        else if (method === 'Jawwal Pay') value = p.jawwalPayNumber;
-        else value = p.otherMethod;
-
-        valueBox.textContent = value || '<%= __('common_not_available') %>';
+        const value = p.iban || p.accountNumber || '<%= __('common_not_available') %>';
+        valueBox.textContent = value;
         detailsBox.style.display = 'block';
-        detailsBox.classList.add('animate-fade-in');
     }
 
     function closePayoutModal() { document.getElementById('payoutModal').style.display = 'none'; }
 
     async function confirmPayout() {
         if (!currentPayoutData) return;
-        const method = document.getElementById('payoutMethod').value;
+        const method = document.getElementById('payoutMethod').value || 'Bank Transfer';
         const notes = document.getElementById('payoutNotes').value;
-        if (!method) return Swal.fire({ icon: 'warning', text: '<%= __('admin_dist_select_method_error') %>' });
 
         const btn = document.getElementById('btnConfirmPayout');
         const originalHtml = btn.innerHTML;

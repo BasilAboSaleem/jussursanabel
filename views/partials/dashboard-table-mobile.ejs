@@ -1,0 +1,17 @@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('table').forEach(table => {
+            let wrapper = table.parentElement;
+            if (!wrapper || !wrapper.classList.contains('table-responsive')) {
+                const newWrapper = document.createElement('div');
+                newWrapper.className = 'table-responsive';
+                table.parentNode.insertBefore(newWrapper, table);
+                newWrapper.appendChild(table);
+                wrapper = newWrapper;
+            }
+            if (!table.querySelector('td[data-label]')) {
+                wrapper.classList.add('table-scroll-h');
+            }
+        });
+    });
+</script>

@@ -41,7 +41,25 @@
   - p95 <= 1200ms للصفحات العامة
   - لا crashes/restarts غير مخطط لها
 
-## 7) Final Go/No-Go
+## 7) Stripe Webhook (خط احتياطي للتبرعات)
+- [ ] تعيين `STRIPE_WEBHOOK_SECRET` في بيئة الإنتاج (من Stripe Dashboard → Developers → Webhooks).
+- [ ] إنشاء endpoint: `https://YOUR_DOMAIN/donations/webhook`
+- [ ] الاشتراك في الأحداث:
+  - `checkout.session.completed`
+  - `checkout.session.async_payment_succeeded`
+  - `checkout.session.async_payment_failed`
+  - `checkout.session.expired`
+  - `payment_intent.succeeded`
+  - `payment_intent.payment_failed`
+- [ ] التحقق من الحالة (super_admin): `GET /admin/stripe-webhook-status`
+- [ ] اختبار محلي (يتطلب Stripe CLI):
+  ```bash
+  stripe listen --forward-to localhost:3000/donations/webhook
+  stripe trigger checkout.session.completed
+  ```
+- [ ] سيناريو الاختبار: أغلق المتصفح بعد الدفع قبل `success_url` — يجب أن تُوثَّق المعاملة عبر webhook خلال ثوانٍ.
+
+## 8) Final Go/No-Go
 - [ ] Backup + rollback path مجربان.
 - [ ] مراجعة صلاحيات admin/super_admin.
 - [ ] تأكيد عدم وجود مفاتيح حساسة في Git history.

@@ -65,6 +65,33 @@
     }
 
     /* Cases listing */
+    .cases-hero-luxury {
+        min-height: 30vh !important;
+        padding: 72px 5% 48px !important;
+    }
+
+    .cases-filter-bridge {
+        margin-top: -28px !important;
+    }
+
+    .cases-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .cases-sort-row {
+        width: 100%;
+        justify-content: space-between !important;
+    }
+
+    .cases-pagination-desktop {
+        display: none !important;
+    }
+
+    .cases-load-more-wrap {
+        display: flex !important;
+    }
+
     .filter-bar-capsule {
         width: 100% !important;
         display: flex !important;
@@ -237,6 +264,16 @@
         flex: 1 1 100% !important;
         min-width: 0 !important;
     }
+
+    .stories-swiper {
+        overflow: hidden !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    .story-card-wrapper {
+        max-width: 100%;
+    }
 }
 
 /* Phones */
@@ -308,6 +345,14 @@
 
     .premium-footer [style*="grid-template-columns"] {
         gap: 28px !important;
+    }
+
+    .stories-swiper .swiper-slide {
+        width: 88% !important;
+    }
+
+    .hero-luxury .btn-lux {
+        width: 100%;
     }
 }
 

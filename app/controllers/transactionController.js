@@ -2,9 +2,8 @@ const Transaction = require('../models/Transaction');
 const Case = require('../models/Case');
 const Setting = require('../models/Setting');
 const Team = require('../models/Team');
-const Notification = require('../models/Notification');
 const User = require('../models/User');
-const { logActivity } = require('../utils/logger');
+const { logActivity, systemLogger } = require('../utils/logger');
 const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
 const Stripe = require('stripe');
@@ -43,14 +42,7 @@ const calculateFees = (baseAmount, institutionPercentage, gatewayPercentage, fee
     };
 };
 
-const finalizeVerifiedTransaction = async ({ transaction, foundCase, reqForLocale = null }) => {
-    if (transaction.status === 'verified') return;
-
-    transaction.status = 'verified';
-    transaction.verifiedAt = new Date();
-    await transaction.save();
-
-    // Increment team stats once after successful payment
+const applyVerifiedDonationEffects = async ({ transaction, foundCase }) => {
     if (transaction.team) {
         await Team.findByIdAndUpdate(transaction.team, {
             $inc: { totalRaised: transaction.amount, donorCount: 1 }
@@ -71,7 +63,6 @@ const finalizeVerifiedTransaction = async ({ transaction, foundCase, reqForLocal
     }
     await foundCase.save();
 
-    // Logging
     await logActivity(
         transaction.donor,
         'transaction_create',
@@ -80,74 +71,326 @@ const finalizeVerifiedTransaction = async ({ transaction, foundCase, reqForLocal
         `تبرع ${transaction.type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${transaction.amount} للحالة: ${foundCase.title}`
     );
 
-    // Notify beneficiary
-    if (foundCase.guardian) {
-        const notification = await Notification.create({
-            recipient: foundCase.guardian,
-            sender: transaction.donor,
-            title: reqForLocale ? reqForLocale.__('notif_donation_received_title') : 'تم استلام تبرع جديد',
-            message: reqForLocale
-                ? reqForLocale.__('notif_donation_received_msg', { amount: transaction.amount, title: foundCase.title })
-                : `تم استلام تبرع بقيمة ${transaction.amount} للحالة ${foundCase.title}`,
-            type: 'success',
-            targetType: 'specific',
-            link: `/cases/${foundCase._id}`
-        });
-
-        if (reqForLocale && reqForLocale.app) {
-            const io = reqForLocale.app.get('io');
-            if (io) io.to(foundCase.guardian.toString()).emit('newNotification', notification);
-        }
-    }
-
-    // Donation receipt email (best effort)
     try {
-        const donor = await User.findById(transaction.donor).select("name email");
+        const donor = await User.findById(transaction.donor).select('name email');
         if (donor && donor.email) {
-            await sendEmail({
+            const emailResult = await sendEmail({
                 email: donor.email,
-                subject: 'إيصال تبرع - جسور سنابل',
-                html: donationReceipt(donor.name || 'Donor', transaction.amount, foundCase.title)
+                subject: 'إيصال تبرع — منصة جسور',
+                html: donationReceipt(donor.name || 'Donor', transaction.amount, foundCase.title),
+                type: 'donation_receipt',
+                immediate: true
             });
+            if (!emailResult.ok) {
+                systemLogger.warn('Donation receipt email not delivered', {
+                    transactionId: String(transaction._id),
+                    donorId: String(transaction.donor),
+                    reason: emailResult.reason
+                });
+            }
         }
     } catch (emailErr) {
-        console.error('Failed to send receipt email:', emailErr);
+        systemLogger.error('Failed to send receipt email', { error: emailErr.message });
     }
 };
+
+const finalizeVerifiedTransaction = async ({ transaction, foundCase }) => {
+    if (transaction.status === 'verified') {
+        return;
+    }
+
+    transaction.status = 'verified';
+    transaction.verifiedAt = new Date();
+    await transaction.save();
+
+    await applyVerifiedDonationEffects({ transaction, foundCase });
+};
+
+function isStripeCheckoutSessionPaid(session) {
+    return session.payment_status === 'paid' || session.status === 'complete';
+}
+
+function resolvePaymentIntentId(sessionOrIntent) {
+    if (!sessionOrIntent) return null;
+    if (typeof sessionOrIntent === 'string') return sessionOrIntent;
+    if (sessionOrIntent.payment_intent) {
+        return typeof sessionOrIntent.payment_intent === 'string'
+            ? sessionOrIntent.payment_intent
+            : sessionOrIntent.payment_intent.id;
+    }
+    if (sessionOrIntent.id && sessionOrIntent.object === 'payment_intent') {
+        return sessionOrIntent.id;
+    }
+    return null;
+}
+
+function buildStripeDonationMetadata({
+    donorId,
+    caseId,
+    type,
+    finalCaseAmount,
+    totalAmount,
+    institutionPercentage,
+    gatewayPercentage,
+    operationPercentage,
+    institutionFee,
+    gatewayFee,
+    operationFee,
+    isAnonymous,
+    encouragementMessage,
+    teamId
+}) {
+    const metadata = {
+        schemaVersion: '2',
+        donorId: String(donorId),
+        caseId: String(caseId),
+        type: String(type),
+        amount: String(finalCaseAmount),
+        totalAmount: String(totalAmount),
+        institutionPct: String(institutionPercentage),
+        gatewayPct: String(gatewayPercentage),
+        operationPct: String(operationPercentage),
+        institutionFee: String(institutionFee),
+        gatewayFee: String(gatewayFee),
+        operationFee: String(operationFee),
+        isAnonymous: isAnonymous ? '1' : '0'
+    };
+
+    if (teamId) {
+        metadata.teamId = String(teamId);
+    }
+    if (encouragementMessage) {
+        metadata.encouragementMessage = String(encouragementMessage).slice(0, 500);
+    }
+
+    return metadata;
+}
+
+function parseStripeDonationMetadata(metadata = {}) {
+    if (!metadata.donorId || !metadata.caseId || !metadata.type || !metadata.amount) {
+        return null;
+    }
+
+    return {
+        donorId: metadata.donorId,
+        caseId: metadata.caseId,
+        type: metadata.type,
+        amount: Number(metadata.amount),
+        totalAmount: Number(metadata.totalAmount || metadata.amount),
+        institutionPercentage: Number(metadata.institutionPct || 0),
+        gatewayPercentage: Number(metadata.gatewayPct || 0),
+        operationPercentage: Number(metadata.operationPct || 0),
+        institutionFee: Number(metadata.institutionFee || 0),
+        gatewayFee: Number(metadata.gatewayFee || 0),
+        operationFee: Number(metadata.operationFee || 0),
+        isAnonymous: metadata.isAnonymous === '1' || metadata.isAnonymous === 'true',
+        encouragementMessage: metadata.encouragementMessage || undefined,
+        teamId: metadata.teamId || null
+    };
+}
+
+async function findExistingStripeDonation({ stripeSessionId, paymentIntentId }) {
+    const orConditions = [];
+    if (stripeSessionId) orConditions.push({ stripeSessionId });
+    if (paymentIntentId) orConditions.push({ stripePaymentIntentId: paymentIntentId });
+    if (!orConditions.length) return null;
+
+    return Transaction.findOne({ $or: orConditions });
+}
+
+async function createVerifiedDonationFromStripeMetadata(payload, {
+    stripeSessionId,
+    paymentIntentId,
+    source = 'stripe_metadata'
+} = {}) {
+    const meta = parseStripeDonationMetadata(payload.metadata);
+    if (!meta) {
+        return { ok: false, reason: 'invalid_metadata' };
+    }
+
+    const existing = await findExistingStripeDonation({ stripeSessionId, paymentIntentId });
+    if (existing) {
+        if (existing.status === 'verified') {
+            return { ok: true, alreadyVerified: true, transactionId: String(existing._id) };
+        }
+        if (existing.status === 'pending') {
+            const foundCase = await Case.findById(existing.case);
+            if (!foundCase) return { ok: false, reason: 'case_not_found' };
+            if (stripeSessionId) existing.stripeSessionId = stripeSessionId;
+            if (paymentIntentId) existing.stripePaymentIntentId = paymentIntentId;
+            await existing.save();
+            await finalizeVerifiedTransaction({ transaction: existing, foundCase });
+            return { ok: true, verified: true, transactionId: String(existing._id) };
+        }
+    }
+
+    const foundCase = await Case.findById(meta.caseId);
+    if (!foundCase) {
+        return { ok: false, reason: 'case_not_found' };
+    }
+
+    const donatableCheck = verifyCaseIsDonatable(foundCase, meta.type);
+    if (!donatableCheck.ok) {
+        systemLogger.warn('Stripe payment received but case no longer donatable', {
+            source,
+            caseId: meta.caseId,
+            stripeSessionId
+        });
+        return { ok: false, reason: 'case_not_donatable' };
+    }
+
+    let transaction;
+    try {
+        transaction = await Transaction.create({
+            donor: meta.donorId,
+            case: meta.caseId,
+            amount: meta.amount,
+            institutionPercentage: meta.institutionPercentage,
+            gatewayPercentage: meta.gatewayPercentage,
+            operationPercentage: meta.operationPercentage,
+            institutionFee: meta.institutionFee,
+            gatewayFee: meta.gatewayFee,
+            operationFee: meta.operationFee,
+            totalAmount: meta.totalAmount,
+            type: meta.type,
+            status: 'verified',
+            verifiedAt: new Date(),
+            paymentMethod: 'stripe_checkout',
+            stripeSessionId: stripeSessionId || undefined,
+            stripePaymentIntentId: paymentIntentId || undefined,
+            isAnonymous: meta.isAnonymous,
+            encouragementMessage: meta.encouragementMessage,
+            team: meta.teamId || null
+        });
+    } catch (err) {
+        if (err.code === 11000) {
+            const dup = await findExistingStripeDonation({ stripeSessionId, paymentIntentId });
+            if (dup && dup.status === 'verified') {
+                return { ok: true, alreadyVerified: true, transactionId: String(dup._id) };
+            }
+        }
+        throw err;
+    }
+
+    await applyVerifiedDonationEffects({ transaction, foundCase });
+
+    systemLogger.info('Donation created after Stripe success', {
+        source,
+        transactionId: String(transaction._id),
+        caseId: meta.caseId
+    });
+
+    return { ok: true, verified: true, transactionId: String(transaction._id) };
+}
+
+async function verifyDonationByTransactionId(transactionId, {
+    stripeSessionId,
+    paymentIntent,
+    paymentIntentId,
+    source = 'unknown'
+} = {}) {
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+        return { ok: false, reason: 'transaction_not_found' };
+    }
+    if (transaction.status === 'verified') {
+        return { ok: true, alreadyVerified: true, transactionId: String(transaction._id) };
+    }
+
+    const foundCase = await Case.findById(transaction.case);
+    if (!foundCase) {
+        return { ok: false, reason: 'case_not_found' };
+    }
+
+    if (stripeSessionId) {
+        transaction.stripeSessionId = stripeSessionId;
+    }
+    const piId = paymentIntentId || resolvePaymentIntentId(paymentIntent);
+    if (piId) {
+        transaction.stripePaymentIntentId = piId;
+    }
+    await transaction.save();
+
+    await finalizeVerifiedTransaction({ transaction, foundCase });
+
+    systemLogger.info('Donation verified via Stripe (legacy pending record)', {
+        source,
+        transactionId: String(transaction._id),
+        caseId: String(transaction.case)
+    });
+
+    return { ok: true, verified: true, transactionId: String(transaction._id) };
+}
+
+async function verifyDonationFromCheckoutSession(session, reqForLocale = null, source = 'checkout_session') {
+    if (!isStripeCheckoutSessionPaid(session)) {
+        return { ok: false, reason: 'not_paid' };
+    }
+
+    const paymentIntentId = resolvePaymentIntentId(session.payment_intent);
+    const legacyTransactionId = session.metadata && session.metadata.transactionId;
+
+    if (legacyTransactionId) {
+        return verifyDonationByTransactionId(legacyTransactionId, {
+            stripeSessionId: session.id,
+            paymentIntent: session.payment_intent,
+            reqForLocale,
+            source
+        });
+    }
+
+    return createVerifiedDonationFromStripeMetadata(session, {
+        stripeSessionId: session.id,
+        paymentIntentId,
+        source
+    });
+}
+
+async function cleanupAbandonedStripeDonation(payload) {
+    const transactionId = payload.metadata && payload.metadata.transactionId;
+    if (!transactionId) return;
+
+    const deleted = await Transaction.deleteOne({
+        _id: transactionId,
+        status: 'pending',
+        paymentMethod: 'stripe_checkout'
+    });
+
+    if (deleted.deletedCount) {
+        systemLogger.info('Removed abandoned Stripe checkout donation record', { transactionId });
+    }
+}
 
 exports.getCheckout = async (req, res) => {
     try {
         const { case: caseId, type } = req.query;
         const foundCase = await Case.findById(caseId);
-        
+
         if (!foundCase) {
             req.flash('error', 'الحالة غير موجودة');
             return res.redirect('/cases');
         }
 
-        // 1. Check if Case is Satisfied
         if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') {
             req.flash('error', res.__('flash_case_satisfied'));
             return res.redirect(`/cases/${caseId}`);
         }
 
-        // 2. Check if Monthly Sponsorship is already taken
         if (type === 'monthly' && foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date()) {
             req.flash('error', res.__('flash_case_sponsored'));
             return res.redirect(`/cases/${caseId}`);
         }
 
-        const amount = type === 'monthly' ? foundCase.monthlySponsorshipAmount : 50; // default 50 for direct
+        const amount = type === 'monthly' ? foundCase.monthlySponsorshipAmount : 50;
 
-        // Fetch operation percentages
         const institutionSetting = await Setting.findOne({ key: 'institution_fee_percentage' });
         const gatewaySetting = await Setting.findOne({ key: 'gateway_fee_percentage' });
-        
+
         const institutionPercentage = institutionSetting ? institutionSetting.value : 0;
         const gatewayPercentage = gatewaySetting ? gatewaySetting.value : 0;
         const operationPercentage = institutionPercentage + gatewayPercentage;
 
-        res.render('pages/donations/checkout', { 
+        res.render('pages/donations/checkout', {
             title: type === 'monthly' ? res.__('checkout_title_monthly') : res.__('checkout_title_direct'),
             foundCase,
             type,
@@ -184,51 +427,45 @@ exports.processDonation = async (req, res) => {
             req.flash('error', res.__(donatableCheck.key));
             return res.redirect(`/cases/${caseId}`);
         }
-        
-        // Fetch current operation percentages
+
         const institutionSetting = await Setting.findOne({ key: 'institution_fee_percentage' });
         const gatewaySetting = await Setting.findOne({ key: 'gateway_fee_percentage' });
-        
+
         const institutionPercentage = institutionSetting ? institutionSetting.value : 0;
         const gatewayPercentage = gatewaySetting ? gatewaySetting.value : 0;
         const operationPercentage = institutionPercentage + gatewayPercentage;
-        
+
         const baseAmount = Number(amount);
-        let finalCaseAmount, totalAmountToCharge;
         const feeCovered = req.body.isFeeCovered === 'true' || req.body.isFeeCovered === true;
         const feeCalc = calculateFees(baseAmount, institutionPercentage, gatewayPercentage, feeCovered);
-        finalCaseAmount = feeCalc.finalCaseAmount;
-        totalAmountToCharge = feeCalc.totalAmountToCharge;
+        const finalCaseAmount = feeCalc.finalCaseAmount;
+        const totalAmountToCharge = feeCalc.totalAmountToCharge;
 
-        // Create pending transaction before redirecting to Stripe Checkout
-        const transaction = new Transaction({
-            donor: req.user._id,
-            case: caseId,
-            amount: finalCaseAmount,
+        const donationMetadata = buildStripeDonationMetadata({
+            donorId: req.user._id,
+            caseId,
+            type,
+            finalCaseAmount,
+            totalAmount: totalAmountToCharge,
             institutionPercentage,
             gatewayPercentage,
             operationPercentage,
             institutionFee: feeCalc.institutionFee,
             gatewayFee: feeCalc.gatewayFee,
             operationFee: feeCalc.operationFee,
-            totalAmount: totalAmountToCharge,
-            type,
-            status: 'pending',
-            paymentMethod: 'stripe_checkout',
             isAnonymous: !!isAnonymous,
-            encouragementMessage: encouragementMessage,
-            team: teamId || null
+            encouragementMessage,
+            teamId: teamId || null
         });
 
-        await transaction.save();
         const session = await stripe.checkout.sessions.create({
             mode: 'payment',
             customer_email: req.user.email || undefined,
             success_url: `${process.env.BASE_URL}/donations/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.BASE_URL}/donations/cancel?transactionId=${transaction._id}`,
-            metadata: {
-                transactionId: String(transaction._id),
-                caseId: String(caseId)
+            cancel_url: `${process.env.BASE_URL}/donations/cancel`,
+            metadata: donationMetadata,
+            payment_intent_data: {
+                metadata: donationMetadata
             },
             line_items: [
                 {
@@ -244,10 +481,6 @@ exports.processDonation = async (req, res) => {
                 }
             ]
         });
-
-        transaction.stripeSessionId = session.id;
-        transaction.stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
-        await transaction.save();
 
         return res.redirect(303, session.url);
     } catch (err) {
@@ -265,35 +498,22 @@ exports.handleCheckoutSuccess = async (req, res) => {
         }
 
         const { session_id: sessionId } = req.query;
-        if (sessionId) {
-            const session = await stripe.checkout.sessions.retrieve(sessionId, {
-                expand: ['payment_intent']
-            });
-
-            const transactionId = session.metadata && session.metadata.transactionId;
-            const paymentStatus = session.payment_status;
-            const checkoutStatus = session.status;
-            const paid = paymentStatus === 'paid' || checkoutStatus === 'complete';
-
-            if (transactionId && paid) {
-                const transaction = await Transaction.findById(transactionId);
-                if (transaction && transaction.status !== 'verified') {
-                    const foundCase = await Case.findById(transaction.case);
-                    if (foundCase) {
-                        transaction.stripeSessionId = session.id || transaction.stripeSessionId;
-                        if (typeof session.payment_intent === 'string') {
-                            transaction.stripePaymentIntentId = session.payment_intent;
-                        } else if (session.payment_intent && session.payment_intent.id) {
-                            transaction.stripePaymentIntentId = session.payment_intent.id;
-                        }
-                        await transaction.save();
-                        await finalizeVerifiedTransaction({ transaction, foundCase, reqForLocale: req });
-                    }
-                }
-            }
+        if (!sessionId) {
+            req.flash('error', 'لم تكتمل عملية الدفع.');
+            return res.redirect('/dashboard');
         }
 
-        req.flash('success', 'تم استلام عملية الدفع والتحقق منها.');
+        const session = await stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ['payment_intent']
+        });
+        const result = await verifyDonationFromCheckoutSession(session, req, 'success_url');
+
+        if (result.verified || result.alreadyVerified) {
+            req.flash('success', 'تم استلام عملية الدفع والتحقق منها.');
+        } else {
+            req.flash('error', 'لم تكتمل عملية الدفع بنجاح.');
+        }
+
         return res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
@@ -304,6 +524,11 @@ exports.handleCheckoutSuccess = async (req, res) => {
 
 exports.handleCheckoutCancel = async (req, res) => {
     try {
+        const { transactionId } = req.query;
+        if (transactionId) {
+            await cleanupAbandonedStripeDonation({ metadata: { transactionId } });
+        }
+
         req.flash('error', 'تم إلغاء عملية الدفع قبل الإتمام.');
         return res.redirect('/cases');
     } catch (err) {
@@ -315,61 +540,122 @@ exports.handleCheckoutCancel = async (req, res) => {
 
 exports.handleStripeWebhook = async (req, res) => {
     if (!stripe || !stripeWebhookSecret) {
-        return res.status(400).send('Stripe webhook is not configured');
+        systemLogger.error('Stripe webhook rejected: missing configuration');
+        return res.status(503).send('Stripe webhook is not configured');
     }
 
     const signature = req.headers['stripe-signature'];
+    if (!signature) {
+        return res.status(400).send('Missing Stripe signature');
+    }
+
     let event;
 
     try {
         event = stripe.webhooks.constructEvent(req.body, signature, stripeWebhookSecret);
     } catch (err) {
-        console.error('Stripe webhook signature verification failed:', err.message);
+        systemLogger.warn('Stripe webhook signature verification failed', { error: err.message });
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    try {
-        if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
-            const session = event.data.object;
-            const transactionId = session.metadata && session.metadata.transactionId;
-            if (transactionId) {
-                const transaction = await Transaction.findById(transactionId);
-                if (transaction && transaction.status !== 'verified') {
-                    const foundCase = await Case.findById(transaction.case);
-                    if (foundCase) {
-                        transaction.stripeSessionId = session.id || transaction.stripeSessionId;
-                        if (typeof session.payment_intent === 'string') {
-                            transaction.stripePaymentIntentId = session.payment_intent;
-                        }
-                        await transaction.save();
+    const logVerificationOutcome = (result, context) => {
+        if (result.verified || result.alreadyVerified) return;
+        systemLogger.warn('Stripe webhook event did not verify donation', {
+            ...context,
+            reason: result.reason || 'unknown'
+        });
+    };
 
-                        await finalizeVerifiedTransaction({ transaction, foundCase });
-                    }
+    try {
+        if (
+            event.type === 'checkout.session.completed' ||
+            event.type === 'checkout.session.async_payment_succeeded'
+        ) {
+            const result = await verifyDonationFromCheckoutSession(
+                event.data.object,
+                null,
+                `webhook:${event.type}`
+            );
+            logVerificationOutcome(result, { eventType: event.type, sessionId: event.data.object.id });
+            if (result.verified) {
+                systemLogger.info('Webhook verified donation', {
+                    eventType: event.type,
+                    transactionId: result.transactionId
+                });
+            } else if (result.alreadyVerified) {
+                systemLogger.info('Webhook donation already verified', {
+                    eventType: event.type,
+                    transactionId: result.transactionId
+                });
+            }
+        }
+
+        if (event.type === 'payment_intent.succeeded') {
+            const paymentIntent = event.data.object;
+            const meta = paymentIntent.metadata || {};
+
+            if (meta.transactionId) {
+                const result = await verifyDonationByTransactionId(meta.transactionId, {
+                    paymentIntentId: paymentIntent.id,
+                    source: 'webhook:payment_intent.succeeded'
+                });
+                logVerificationOutcome(result, { eventType: event.type, paymentIntentId: paymentIntent.id });
+                if (result.verified || result.alreadyVerified) {
+                    systemLogger.info('Webhook payment_intent verified donation', {
+                        transactionId: result.transactionId,
+                        legacy: true
+                    });
+                }
+            } else if (meta.donorId && meta.schemaVersion === '2') {
+                const result = await createVerifiedDonationFromStripeMetadata(paymentIntent, {
+                    paymentIntentId: paymentIntent.id,
+                    source: 'webhook:payment_intent.succeeded'
+                });
+                logVerificationOutcome(result, { eventType: event.type, paymentIntentId: paymentIntent.id });
+                if (result.verified || result.alreadyVerified) {
+                    systemLogger.info('Webhook payment_intent verified donation', {
+                        transactionId: result.transactionId
+                    });
                 }
             }
         }
 
-        if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
-            const payload = event.data.object;
-            let transaction = null;
-
-            if (payload.metadata && payload.metadata.transactionId) {
-                transaction = await Transaction.findById(payload.metadata.transactionId);
-            } else if (payload.id) {
-                transaction = await Transaction.findOne({
-                    $or: [{ stripeSessionId: payload.id }, { stripePaymentIntentId: payload.id }]
-                });
-            }
-
-            if (transaction && transaction.status === 'pending') {
-                transaction.status = 'failed';
-                await transaction.save();
-            }
+        if (
+            event.type === 'checkout.session.expired' ||
+            event.type === 'checkout.session.async_payment_failed' ||
+            event.type === 'payment_intent.payment_failed'
+        ) {
+            await cleanupAbandonedStripeDonation(event.data.object);
         }
 
         return res.status(200).json({ received: true });
     } catch (err) {
-        console.error('Stripe webhook handling failed:', err);
+        systemLogger.error('Stripe webhook handling failed', { error: err.message, eventType: event.type });
         return res.status(500).json({ received: false });
     }
 };
+
+exports.getStripeWebhookStatus = (req, res) => {
+    const baseUrl = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    res.json({
+        configured: Boolean(stripe && stripeWebhookSecret),
+        stripeEnabled: Boolean(stripe),
+        webhookSecretSet: Boolean(stripeWebhookSecret),
+        endpoint: `${baseUrl}/donations/webhook`,
+        metadataSchema: '2',
+        events: [
+            'checkout.session.completed',
+            'checkout.session.async_payment_succeeded',
+            'checkout.session.async_payment_failed',
+            'checkout.session.expired',
+            'payment_intent.succeeded',
+            'payment_intent.payment_failed'
+        ]
+    });
+};
+
+if (stripe && !stripeWebhookSecret) {
+    systemLogger.warn(
+        'STRIPE_SECRET_KEY is set but STRIPE_WEBHOOK_SECRET is missing — donations may not verify if the donor closes the browser before the success page'
+    );
+}

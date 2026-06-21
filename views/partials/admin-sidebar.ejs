@@ -90,6 +90,10 @@
                 <i class="fas fa-receipt"></i>
                 <span>سجل التبرعات</span>
             </a>
+            <a href="/admin/password-recovery" class="admin-nav-item <%= (typeof title !== 'undefined' && (title.includes('استعادة كلمة المرور') || title.includes('Password Recovery'))) ? 'active' : '' %>">
+                <i class="fas fa-key"></i>
+                <span><%= __('admin_nav_password_recovery') %></span>
+            </a>
             <a href="/admin/settings" class="admin-nav-item <%= title.includes('إعدادات النظام') || title.includes('Settings') ? 'active' : '' %>">
                 <i class="fas fa-cogs"></i>
                 <span><%= __('admin_nav_settings') %></span>

@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { 
         type: String, 
@@ -52,8 +53,17 @@ const userSchema = new mongoose.Schema({
     },
     /** Set when a beneficiary accepts the electronic acknowledgment at registration (audit). */
     beneficiaryTermsAcceptedAt: { type: Date },
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangedAt: { type: Date },
+    tempPasswordSetAt: { type: Date },
+    tempPasswordSetBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    tempPasswordReason: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
+
+userSchema.index({ 'paymentDetails.iban': 1 }, { unique: true, sparse: true });
 
 // Hash password before saving
 userSchema.pre('save', async function() {
@@ -70,6 +80,23 @@ userSchema.pre('save', async function() {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.createPasswordResetToken = function() {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+    const minutes = parseInt(process.env.PASSWORD_RESET_EXPIRES_MINUTES, 10) || 60;
+    this.passwordResetExpires = Date.now() + minutes * 60 * 1000;
+    return resetToken;
+};
+
+userSchema.statics.findByEmail = function(email) {
+    const normalized = (email || '').trim().toLowerCase();
+    if (!normalized) return this.findOne({ _id: null });
+    return this.findOne({ email: normalized }).collation({ locale: 'en', strength: 2 });
 };
 
 module.exports = mongoose.model('User', userSchema);

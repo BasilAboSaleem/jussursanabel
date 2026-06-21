@@ -10,18 +10,18 @@ const transactionSchema = new mongoose.Schema({
     operationPercentage: { type: Number, default: 0 }, // Sum of both
     institutionFee: { type: Number, default: 0 },
     gatewayFee: { type: Number, default: 0 },
-    operationFee: { type: Number, default: 0 }, // Sum of both
+    operationFee: { type: Number, default: 0 }, // Stripe + institution (checkout display)
     totalAmount: { type: Number, required: true }, // amount + operationFee
     netDonationAmount: { type: Number }, // The actual final amount assigned to case after any bank shortfalls
     type: { type: String, enum: ['direct', 'monthly'], required: true },
     paymentMethod: { type: String, default: 'receipt_upload' }, // For P2P
-    stripePaymentIntentId: { type: String, index: true, sparse: true },
-    stripeSessionId: { type: String, index: true, sparse: true },
+    stripePaymentIntentId: { type: String },
+    stripeSessionId: { type: String },
     receiptImage: { type: String }, 
     status: { 
         type: String, 
         enum: ['pending', 'verified', 'failed'], 
-        default: 'pending' 
+        default: 'verified' 
     },
     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     verifiedAt: { type: Date },
@@ -41,5 +41,7 @@ transactionSchema.index({ case: 1, status: 1, createdAt: -1 });
 transactionSchema.index({ donor: 1, createdAt: -1 });
 transactionSchema.index({ status: 1, disbursementStatus: 1, createdAt: -1 });
 transactionSchema.index({ type: 1, createdAt: -1 });
+transactionSchema.index({ stripeSessionId: 1 }, { unique: true, sparse: true });
+transactionSchema.index({ stripePaymentIntentId: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

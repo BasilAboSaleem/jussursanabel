@@ -12,6 +12,7 @@
     "logs:pm2": "pm2 logs jussur-sanabel",
     "load:k6": "k6 run load-tests/k6-smoke.js",
     "load:artillery": "artillery run load-tests/artillery.yml",
+    "stripe:webhook:listen": "stripe listen --forward-to localhost:3000/donations/webhook",
     "cap:sync": "npx cap sync android",
     "cap:open:android": "npx cap open android",
     "cap:run:android": "npx cap run android"

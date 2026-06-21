@@ -34,7 +34,7 @@
                         </h1>
 
                         <div style="background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(1.35rem, 3.2vw, 1.9rem); font-weight: 900; margin-bottom: 14px; letter-spacing: -0.2px; display: inline-block; text-shadow: 0 12px 24px rgba(16, 185, 129, 0.1);">
-                            ربط مباشر. كرامة محفوظة.
+                            <%= __('hero_tagline') %>
                         </div>
 
                         <div style="width: 56px; height: 3px; background: var(--secondary); border-radius: 10px; margin-bottom: 16px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);"></div>
@@ -52,8 +52,8 @@
                             </a>
                         </div>
                         <div class="hero-trust-row">
-                            <span><i class="fas fa-badge-check"></i> <%= locals.currentLocale === 'ar' ? 'توثيق ميداني' : 'Field Verified' %></span>
-                            <span><i class="fas fa-shield-heart"></i> <%= locals.currentLocale === 'ar' ? 'خصوصية وكرامة' : 'Privacy & Dignity' %></span>
+                            <span><i class="fas fa-badge-check"></i> <%= __('hero_trust_verified') %></span>
+                            <span><i class="fas fa-shield-heart"></i> <%= __('hero_trust_privacy') %></span>
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                                             <div class="progress-fill" style="width: <%= Math.min((item.raisedAmount / (item.targetAmount || 1) * 100), 100) %>%; background: var(--secondary); border-radius: 10px;"></div>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; margin-top: 10px; color: #fff;">
-                                            <span>$<%= item.raisedAmount %> جُمع</span>
+                                            <span>$<%= item.raisedAmount %> <%= __('index_case_raised_short') %></span>
                                             <span>$<%= item.targetAmount %></span>
                                         </div>
                                     </div>
@@ -191,12 +191,12 @@
         <div class="reveal-on-scroll" style="display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 55px;">
             <a href="/cases" class="btn-lux btn-lux-outline" style="padding: 16px 36px; border-radius: 50px; font-size: 1rem; font-weight: 800;">
                 <i class="fas fa-list"></i>
-                تصفح كل الحالات
+                <%= __('index_all_cases') %>
             </a>
             <a href="/stories" class="btn-lux btn-lux-primary" style="padding: 16px 36px; border-radius: 50px; font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 25px rgba(16,185,129,0.35); gap: 12px;">
                 <i class="fas fa-play-circle" style="font-size: 1.2rem;"></i>
-                شاهد قصص سنابل
-                <span style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 2px 10px; font-size: 0.78rem;">LIVE</span>
+                <%= __('index_watch_stories') %>
+                <span style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 2px 10px; font-size: 0.78rem;"><%= __('index_live_badge') %></span>
             </a>
         </div>
     </section>
@@ -222,7 +222,7 @@
                         <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; border-inline-start: 4px solid #fff; flex: 1;">
                              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                                 <i class="fas fa-route" style="color: #fff; font-size: 1.5rem;"></i>
-                                <div style="font-weight: 900; font-size: 1.8rem; color: #fff;"><%= locals.currentLocale === 'ar' ? 'مباشر' : 'DIRECT' %></div>
+                                <div style="font-weight: 900; font-size: 1.8rem; color: #fff;"><%= __('index_feature_direct_highlight') %></div>
                              </div>
                              <div style="color: #fff; font-size: 0.85rem; opacity: 0.8;"><%= __('index_feature_2_title') %></div>
                         </div>

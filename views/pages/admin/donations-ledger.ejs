@@ -21,8 +21,12 @@
         <div style="font-weight: 900; color: #10b981; font-size: 1.2rem;">$<%= (totals.sumAmount || 0).toFixed(2) %></div>
       </div>
       <div class="glass-panel" style="padding: 12px 18px; text-align:center;">
-        <div style="font-size: 0.75rem; color: var(--text-muted);">إجمالي الرسوم</div>
-        <div style="font-weight: 900; color: var(--secondary); font-size: 1.2rem;">$<%= (totals.sumOperationFee || 0).toFixed(2) %></div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">رسوم المؤسسة (معنا)</div>
+        <div style="font-weight: 900; color: #8b5cf6; font-size: 1.2rem;">$<%= (totals.sumInstitutionFee || 0).toFixed(2) %></div>
+      </div>
+      <div class="glass-panel" style="padding: 12px 18px; text-align:center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">رسوم Stripe (معلومة)</div>
+        <div style="font-weight: 900; color: #94a3b8; font-size: 1.2rem;">$<%= (totals.sumGatewayFee || 0).toFixed(2) %></div>
       </div>
       <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger/export<%= exportQueryString ? ('?' + exportQueryString) : '' %>">
         <i class="fas fa-file-excel"></i> تصدير Excel
@@ -115,9 +119,9 @@
           <th style="padding: 14px 16px;">الحالة</th>
           <th style="padding: 14px 16px;">الحالة/النوع</th>
           <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الأساسي</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">بوابة</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">مؤسسة</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">إجمالي الرسوم</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">Stripe <span style="font-weight:400;font-size:0.7rem;color:#94a3b8;">(معلومة)</span></th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">المؤسسة</th>
+          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">المتوقع بالبنك</th>
           <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الإجمالي</th>
           <th style="padding: 14px 16px;">Stripe</th>
         </tr>
@@ -150,9 +154,9 @@
               <div style="font-size: 0.75rem; color:#64748b; margin-top: 4px;"><%= t.paymentMethod %></div>
             </td>
             <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800;">$<%= Number(t.amount || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">$<%= Number(t.gatewayFee || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">$<%= Number(t.institutionFee || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: var(--secondary);">$<%= Number(t.operationFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; color: #94a3b8;">$<%= Number(t.gatewayFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: #8b5cf6;">$<%= Number(t.institutionFee || 0).toFixed(2) %></td>
+            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: var(--secondary);">$<%= (Number(t.amount || 0) + Number(t.institutionFee || 0)).toFixed(2) %></td>
             <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 900;">$<%= Number(t.totalAmount || 0).toFixed(2) %></td>
             <td style="padding: 14px 16px; font-size: 0.78rem; color:#64748b;">
               <div title="<%= t.stripeSessionId || '' %>"><b>S</b>: <%= t.stripeSessionId ? String(t.stripeSessionId).slice(0, 18) : '—' %></div>

@@ -52,6 +52,8 @@ router.get('/donations-ledger/export', restrictTo('super_admin'), adminControlle
 // System Settings (Super Admin Only)
 router.get('/settings', restrictTo('super_admin'), settingsController.getSettings);
 router.post('/settings/update', restrictTo('super_admin'), settingsController.updateSettings);
+router.get('/password-recovery', restrictTo('super_admin'), adminController.getPasswordRecovery);
+router.post('/users/:id/temporary-password', restrictTo('super_admin'), adminController.issueTemporaryPassword);
 
 // Chat Monitoring
 router.get('/monitor-chats', adminController.getChatMonitor);
@@ -78,14 +80,18 @@ router.post('/escalations/:id/resolve', restrictTo('super_admin'), adminControll
 
 // Donation Distribution Center (توزيع السنابل)
 const distributionController = require('../controllers/distributionController');
+const transactionController = require('../controllers/transactionController');
+router.get('/stripe-webhook-status', restrictTo('super_admin'), transactionController.getStripeWebhookStatus);
 router.get('/distribution', distributionController.getDistributionCenter);
 router.post('/distribution/confirm-bank', restrictTo('super_admin'), distributionController.confirmBankReceipt);
 router.get('/distribution/receipt/:id', distributionController.getBankReceiptDetails);
 router.post('/distribution/revert-bank/:id', restrictTo('super_admin'), distributionController.revertBankReceipt);
+router.post('/distribution/confirm-disbursement-batch', restrictTo('super_admin'), distributionController.confirmDisbursementBatch);
 router.post('/distribution/generate-payout', restrictTo('super_admin'), distributionController.generatePayout);
 router.post('/distribution/revert-payout/:id', restrictTo('super_admin'), distributionController.revertPayout);
 
 // Excel Export Routes
+router.get('/distribution/export/bank-disbursement', distributionController.exportBankDisbursementBatch);
 router.get('/distribution/export/bank-transactions', distributionController.exportBankTransactions);
 router.get('/distribution/export/receipts-history', distributionController.exportReceiptsHistory);
 router.get('/distribution/export/payouts-history', distributionController.exportPayoutsHistory);

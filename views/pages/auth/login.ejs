@@ -36,23 +36,39 @@
             </div>
         <% } %>
 
+        <% if (success && success.length > 0) { %>
+            <div style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; padding: 18px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
+                <i class="fas fa-circle-check" style="margin-left: 8px;"></i> <%= success %>
+            </div>
+        <% } %>
+
         <form action="/auth/login" method="POST" class="premium-form">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
             <div class="form-group" style="margin-bottom: 25px;">
-                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;">البريد الإلكتروني</label>
+                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;"><%= __('login_identifier_label') %></label>
                 <div style="position: relative;">
-                    <i class="fas fa-envelope" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
-                    <input type="email" name="email" required class="form-input-soft" placeholder="name@example.com">
+                    <i class="fas fa-user" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
+                    <input type="text" name="identifier" required class="form-input-soft" placeholder="<%= __('login_identifier_placeholder') %>" autocomplete="username">
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 35px;">
+            <div class="form-group" style="margin-bottom: 20px;">
                 <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;">كلمة المرور</label>
                 <div style="position: relative;">
                     <i class="fas fa-key" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
-                    <input type="password" name="password" required class="form-input-soft" placeholder="••••••••">
+                    <input type="password" name="password" required class="form-input-soft" placeholder="••••••••" autocomplete="current-password">
                 </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; gap: 12px;">
+                <label style="display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.75); cursor: pointer; font-size: 0.95rem;">
+                    <input type="checkbox" name="rememberMe" style="width: 18px; height: 18px; accent-color: var(--secondary); cursor: pointer;">
+                    <%= __('login_remember_me') %>
+                </label>
+                <a href="/auth/forgot-password" style="color: var(--secondary); font-weight: 700; text-decoration: none; font-size: 0.95rem;">
+                    <%= __('login_forgot_password') %>
+                </a>
             </div>
 
             <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; height: 60px; border-radius: 20px; font-size: 1.15rem; font-weight: 900; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);">

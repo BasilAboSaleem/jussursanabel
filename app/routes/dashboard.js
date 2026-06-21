@@ -13,8 +13,7 @@ router.post('/testimonial', protect, dashboardController.updateTestimonial);
 
 // Phase 11: Proof of Impact (Case Updates)
 const { upload } = require('../utils/cloudinary');
-const csurf = require('csurf');
-const csrfProtection = csurf({ cookie: true });
+const { csrfProtection } = require('../middlewares/csrf');
 router.post('/case/:id/proof-of-impact', protect, upload.array('images', 5), csrfProtection, dashboardController.uploadProofOfImpact);
 
 module.exports = router;

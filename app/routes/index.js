@@ -5,6 +5,7 @@ const { pageCache } = require('../middlewares/cache');
 
 router.get('/', pageCache(90), indexController.getHomepage);
 router.get('/stories', pageCache(120), indexController.getStoriesHub);
+router.get('/api/stories/feed', indexController.getStoriesFeed);
 router.get('/contact', pageCache(300), indexController.getContact);
 router.post('/contact', indexController.postContact);
 router.get('/transparency', pageCache(300), indexController.getTransparency);

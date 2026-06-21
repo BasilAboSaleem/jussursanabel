@@ -40,15 +40,12 @@
         });
 
     </script>
+    <%- include('./dashboard-table-mobile') %>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const userId = document.body.dataset.userId;
-        const userRole = document.body.dataset.userRole;
-        if (userId) {
-            socket.emit('join', { userId, role: userRole });
-        }
+        // Rooms are joined automatically after JWT auth on connect.
     </script>
     <%- include('../partials/realtime-notifications') %>
     

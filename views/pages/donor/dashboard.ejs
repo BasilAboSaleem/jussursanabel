@@ -659,7 +659,7 @@
         }
 
         Swal.fire({
-            width: 700,
+            width: Math.min(700, window.innerWidth - 24),
             html: certHtml,
             showCancelButton: true,
             cancelButtonText: lang === 'ar' ? 'إغلاق' : 'Close',

@@ -82,8 +82,7 @@
     const socket = io();
     const currentAdminId = '<%= user._id %>';
     
-    // Join support admin room
-    socket.emit('join', { userId: currentAdminId, role: 'admin' });
+    // Rooms are joined automatically after JWT auth on connect.
 
     // Listen for new support messages sitewide (for notifications or list updates)
     socket.on('newSupportMessage', (data) => {

@@ -117,8 +117,7 @@
     const currentTicketId = '<%= ticket ? ticket._id : "" %>';
     const socketIsAdmin = <%= isAdmin %>;
 
-    // Join room on connection
-    socket.emit('join', { userId: currentUserId, role: socketIsAdmin ? 'admin' : 'donor' });
+    // Rooms are joined automatically after JWT auth on connect.
 
     // Scroll to bottom helper
     function scrollToBottom() {
@@ -212,19 +211,7 @@
             });
 
             if (response.ok) {
-                // 2. Emit via Socket (Server will broadcast to others AND sender)
-                socket.emit('sendSupportMessage', {
-                    senderId: currentUserId,
-                    receiverId: socketIsAdmin ? '<%= ticket ? (ticket.user._id || ticket.user) : "" %>' : null,
-                    ticketId: currentTicketId,
-                    content: content,
-                    isAdmin: socketIsAdmin,
-                    isAdminTeam: socketIsAdmin,
-                    senderName: '<%= user.name %>'
-                });
-                
                 input.value = '';
-                // No location.reload() here!
             }
         } catch (error) {
             console.error('Error:', error);

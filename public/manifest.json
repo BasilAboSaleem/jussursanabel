@@ -1,7 +1,7 @@
 {
-  "name": "Subul",
-  "short_name": "Subul",
-  "description": "سُبُل - منصة خيرية للربط بين المتبرعين والمحتاجين",
+  "name": "Jusoor",
+  "short_name": "Jusoor",
+  "description": "Jusoor — a charitable platform connecting donors with families in need",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

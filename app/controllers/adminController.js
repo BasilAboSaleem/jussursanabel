@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const Transaction = require('../models/Transaction');
 const Case = require('../models/Case');
 const User = require('../models/User');
@@ -17,6 +18,33 @@ const fs = require('fs');
 const path = require('path');
 const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
+const { normalizePalestinianId } = require('../utils/palestinianIdValidator');
+
+const PASSWORD_RECOVERY_ROLES = ['donor', 'beneficiary', 'family', 'guardian'];
+
+function generateTempPassword() {
+    return crypto.randomBytes(6).toString('base64url').slice(0, 10);
+}
+
+function buildPasswordRecoverySearchQuery(searchTerm) {
+    const q = (searchTerm || '').trim();
+    if (!q) return null;
+
+    const orConditions = [
+        { name: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
+        { email: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }
+    ];
+
+    const normalizedId = normalizePalestinianId(q);
+    if (normalizedId) {
+        orConditions.push({ idNumber: normalizedId });
+    }
+
+    return {
+        role: { $in: PASSWORD_RECOVERY_ROLES },
+        $or: orConditions
+    };
+}
 
 function dateRange(from, to) {
     const q = {};
@@ -309,11 +337,14 @@ exports.getAdminDashboard = async (req, res) => {
         }
 
         const pendingCases = await Case.find({ status: 'pending' }).sort({ createdAt: -1 });
-        const pendingTransactions = await Transaction.find({ status: 'pending' }).populate('donor case').sort({ createdAt: -1 });
+        const pendingTransactions = await Transaction.find({
+            status: 'pending',
+            paymentMethod: { $ne: 'stripe_checkout' }
+        }).populate('donor case').sort({ createdAt: -1 });
         const allTransactions = await Transaction.find({ status: 'verified' });
         
         const totalPlatformDonations = allTransactions.reduce((acc, curr) => acc + curr.amount, 0);
-        const totalOperationFees = allTransactions.reduce((acc, curr) => acc + (curr.operationFee || 0), 0);
+        const totalOperationFees = allTransactions.reduce((acc, curr) => acc + (curr.institutionFee || 0), 0);
         const activeMonthlySponsorships = allTransactions.filter(t => t.type === 'monthly').length;
         
         const recentCases = await Case.find().limit(10).sort({ createdAt: -1 });
@@ -1028,7 +1059,7 @@ exports.getDonationsLedger = async (req, res) => {
         const {
             from,
             to,
-            status = 'all',
+            status = 'verified',
             type = 'all',
             paymentMethod = 'all',
             disbursementStatus = 'all',
@@ -1136,9 +1167,9 @@ exports.exportDonationsLedger = async (req, res) => {
             'الحالة المستفيدة',
             'الفريق',
             'قيمة التبرع الأساسية ($)',
-            'رسوم بوابة الدفع ($)',
-            'رسوم المؤسسة ($)',
-            'إجمالي رسوم التشغيل ($)',
+            'رسوم Stripe (معلوماتية — ليست في البنك) ($)',
+            'رسوم المؤسسة (متوقعة في البنك) ($)',
+            'إجمالي رسوم التشغيل عند الدفع ($)',
             'الإجمالي المحصل ($)',
             'نسبة التشغيل (%)',
             'Stripe Session',
@@ -1253,13 +1284,13 @@ exports.getOperationFeesDetail = async (req, res) => {
         // Fetch all verified transactions that have an operation fee
         const transactions = await Transaction.find({ 
             status: 'verified',
-            operationFee: { $gt: 0 } 
+            institutionFee: { $gt: 0 } 
         })
         .populate('donor', 'name email')
         .populate('case', 'title')
         .sort({ createdAt: -1 });
 
-        const totalFees = transactions.reduce((acc, curr) => acc + (curr.operationFee || 0), 0);
+        const totalFees = transactions.reduce((acc, curr) => acc + (curr.institutionFee || 0), 0);
 
         res.render('pages/admin/operation-fees', {
             title: res.__('admin_fees_title'),
@@ -1539,7 +1570,7 @@ exports.getAnalytics = async (req, res) => {
         // 1. Overview KPIs
         const totalRaisedRaw = await Transaction.aggregate([
             { $match: { status: 'verified' } },
-            { $group: { _id: null, total: { $sum: "$amount" }, fees: { $sum: { $ifNull: ["$operationFee", 0] } }, count: { $sum: 1 } } }
+            { $group: { _id: null, total: { $sum: "$amount" }, fees: { $sum: { $ifNull: ["$institutionFee", 0] } }, count: { $sum: 1 } } }
         ]);
         const kpis = totalRaisedRaw[0] || { total: 0, fees: 0, count: 0 };
 
@@ -2178,5 +2209,90 @@ exports.resolveAdminRequest = async (req, res) => {
         console.error(err);
         req.flash('error', 'حدث خطأ أثناء معالجة الطلب');
         res.redirect('/admin/escalations');
+    }
+};
+
+exports.getPasswordRecovery = async (req, res) => {
+    try {
+        const search = (req.query.q || '').trim();
+        let users = [];
+
+        if (search.length >= 2) {
+            const query = buildPasswordRecoverySearchQuery(search);
+            users = await User.find(query)
+                .select('name email idNumber role status mustChangePassword tempPasswordSetAt')
+                .sort({ name: 1 })
+                .limit(25);
+        }
+
+        res.render('pages/admin/password-recovery', {
+            title: res.__('admin_password_recovery_title'),
+            users,
+            search
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(res.__('error_server'));
+    }
+};
+
+exports.issueTemporaryPassword = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const target = await User.findById(req.params.id);
+
+        if (!target) {
+            return res.status(404).json({ success: false, message: res.__('flash_user_not_found') });
+        }
+
+        if (!PASSWORD_RECOVERY_ROLES.includes(target.role)) {
+            return res.status(403).json({ success: false, message: res.__('admin_password_recovery_staff_blocked') });
+        }
+
+        if (target.role === 'super_admin') {
+            return res.status(403).json({ success: false, message: res.__('admin_password_recovery_super_blocked') });
+        }
+
+        if (target.isSoftDeleted || target.status === 'suspended') {
+            return res.status(400).json({ success: false, message: res.__('admin_password_recovery_account_inactive') });
+        }
+
+        const trimmedReason = (reason || '').trim();
+        if (trimmedReason.length < 10) {
+            return res.status(400).json({ success: false, message: res.__('admin_password_recovery_reason_required') });
+        }
+
+        const tempPassword = generateTempPassword();
+
+        target.password = tempPassword;
+        target.mustChangePassword = true;
+        target.tempPasswordSetAt = new Date();
+        target.tempPasswordSetBy = req.user._id;
+        target.tempPasswordReason = trimmedReason;
+        target.passwordResetToken = undefined;
+        target.passwordResetExpires = undefined;
+        await target.save({ validateBeforeSave: false });
+
+        await logActivity(
+            req.user._id,
+            'password_temp_issue',
+            'User',
+            target._id,
+            `إصدار كلمة مرور مؤقتة للمستخدم ${target.name} (${target.email}) — السبب: ${trimmedReason}`
+        );
+
+        const loginHint = target.idNumber
+            ? res.__('admin_password_recovery_login_id_hint', { idNumber: target.idNumber })
+            : res.__('admin_password_recovery_login_email_hint', { email: target.email });
+
+        return res.json({
+            success: true,
+            tempPassword,
+            userName: target.name,
+            loginHint
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: res.__('admin_password_recovery_issue_error') });
     }
 };

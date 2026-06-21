@@ -30,14 +30,69 @@ if (redisUrl) {
   });
 }
 
+function waitForRedisReady(client, timeoutMs = 10000) {
+  if (client.status === "ready") return Promise.resolve(true);
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Redis connect timeout"));
+    }, timeoutMs);
+
+    const onReady = () => {
+      cleanup();
+      resolve(true);
+    };
+    const onError = (err) => {
+      cleanup();
+      reject(err);
+    };
+    const cleanup = () => {
+      clearTimeout(timer);
+      client.off("ready", onReady);
+      client.off("error", onError);
+    };
+
+    client.once("ready", onReady);
+    client.once("error", onError);
+
+    if (client.status === "wait") {
+      client.connect().catch(onError);
+    }
+  });
+}
+
 async function connectRedisIfNeeded() {
   if (!redisClient) return false;
   if (redisClient.status === "ready") return true;
+
   try {
-    await redisClient.connect();
-    systemLogger.info("Redis connected");
-    return true;
+    if (
+      redisClient.status === "connecting" ||
+      redisClient.status === "connect" ||
+      redisClient.status === "reconnecting"
+    ) {
+      await waitForRedisReady(redisClient);
+      return redisClient.status === "ready";
+    }
+
+    if (redisClient.status === "wait") {
+      await redisClient.connect();
+      return redisClient.status === "ready";
+    }
+
+    await waitForRedisReady(redisClient);
+    return redisClient.status === "ready";
   } catch (err) {
+    if (/already connecting|already connected/i.test(err.message)) {
+      try {
+        await waitForRedisReady(redisClient);
+        return redisClient.status === "ready";
+      } catch (waitErr) {
+        systemLogger.error("Failed to connect Redis", { error: waitErr.message });
+        return false;
+      }
+    }
     systemLogger.error("Failed to connect Redis", { error: err.message });
     return false;
   }
@@ -48,4 +103,3 @@ module.exports = {
   connectRedisIfNeeded,
   redisEnabled: Boolean(redisClient),
 };
-

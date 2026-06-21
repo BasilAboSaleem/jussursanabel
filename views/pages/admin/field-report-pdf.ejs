@@ -226,14 +226,35 @@
             <div class="data-box" style="grid-column: 1 / -1;"><div class="data-label">عنوان السكن الأساسي المسجل في الحساب</div><div class="data-val"><%= caseRecord.guardian ? (caseRecord.guardian.address || '-') : '-' %></div></div>
         </div>
 
-        <% if (caseRecord.guardian && caseRecord.guardian.paymentDetails) { %>
-            <div class="sub-section-title">البيانات البنكية والمالية المسجلة للمستفيد</div>
-            <div class="grid-3">
-                <div class="data-box"><div class="data-label">الأيبان (بنك فلسطين)</div><div class="data-val" dir="ltr"><%= caseRecord.guardian.paymentDetails.iban || 'غير مسجل' %></div></div>
-                <div class="data-box"><div class="data-label">محفظة جوال بي (JawwalPay)</div><div class="data-val" dir="ltr"><%= caseRecord.guardian.paymentDetails.jawwalPayNumber || 'غير مسجل' %></div></div>
-                <div class="data-box"><div class="data-label">محفظة بال بي (PalPay)</div><div class="data-val" dir="ltr"><%= caseRecord.guardian.paymentDetails.palpayNumber || 'غير مسجل' %></div></div>
+        <% const paymentDetails = caseRecord.guardian && caseRecord.guardian.paymentDetails; %>
+        <% const guardianName = caseRecord.guardian ? (caseRecord.guardian.name || '') : ''; %>
+        <% const ibanValue = paymentDetails && paymentDetails.iban ? paymentDetails.iban : ''; %>
+        <% const accountHolderValue = paymentDetails && paymentDetails.accountHolder ? paymentDetails.accountHolder : ''; %>
+        <% const accountHolderMatches = accountHolderValue && guardianName && accountHolderValue.replace(/\s+/g, ' ').toLowerCase() === guardianName.replace(/\s+/g, ' ').toLowerCase(); %>
+
+        <div class="sub-section-title">بيانات الحساب البنكي للمستفيد (للتحقق الميداني)</div>
+        <div class="grid-2">
+            <div class="data-box">
+                <div class="data-label">الآيبان (IBAN) — بنك فلسطين / بنوك فلسطينية</div>
+                <div class="data-val" dir="ltr"><%= ibanValue || 'غير مسجل' %></div>
             </div>
-        <% } %>
+            <div class="data-box">
+                <div class="data-label">اسم صاحب الحساب البنكي</div>
+                <div class="data-val"><%= accountHolderValue || 'غير مسجل' %></div>
+            </div>
+            <div class="data-box">
+                <div class="data-label">مطابقة اسم صاحب الحساب مع اسم المستفيد</div>
+                <div class="data-val" style="color: <%= accountHolderMatches ? 'var(--primary)' : '#b91c1c' %>;">
+                    <%= accountHolderMatches ? '✓ مطابق — الحساب مسجل باسم المستفيد' : (ibanValue ? '✗ غير مطابق — يتطلب تحققاً ميدانياً' : 'غير متوفر') %>
+                </div>
+            </div>
+            <div class="data-box">
+                <div class="data-label">حالة الحساب البنكي في النظام</div>
+                <div class="data-val" style="color: <%= ibanValue ? 'var(--primary)' : '#b91c1c' %>;">
+                    <%= ibanValue ? 'مسجل — تحويل بنكي فقط (لا محافظ إلكترونية)' : 'غير مكتمل — لا يُقبل تسجيل حالات جديدة بدون آيبان' %>
+                </div>
+            </div>
+        </div>
 
         <!-- Section 2: Case Breakdown -->
         <div class="section-title">ثانياً: تفاصيل الطلب والحالة المراد التحقق منها</div>
@@ -339,6 +360,13 @@
         <div class="manual-section" style="margin-top: 15px;">
             <h3>منطقة تعبئة نتائج لجان البحث الميداني (للتقييم اليدوي)</h3>
             
+            <div style="font-size: 11px; margin-bottom: 5px; color:#555;">التحقق من الحساب البنكي (آيبان مسجل باسم المستفيد نفسه):</div>
+            <div class="checkbox-row">
+                <div class="checkbox-item"><div class="box"></div> تم التحقق — الحساب البنكي باسم المستفيد ومطابق للهوية</div>
+                <div class="checkbox-item"><div class="box"></div> الحساب باسم شخص آخر — مرفوض</div>
+                <div class="checkbox-item"><div class="box"></div> لم يُتحقق بعد</div>
+            </div>
+
             <div style="font-size: 11px; margin-bottom: 5px; color:#555;">المصادقة على صحة ودقة البيانات أعلاه:</div>
             <div class="checkbox-row">
                 <div class="checkbox-item"><div class="box"></div> مطابقة وجديرة تماماً</div>

@@ -1630,8 +1630,8 @@ html[dir="ltr"] .sidebar-close-btn {
         width: 100%;
     }
 
-    /* Only table-responsive gets horizontal scroll */
-    .table-responsive {
+    /* Only wide admin tables scroll horizontally — card tables use data-label */
+    .table-responsive.table-scroll-h {
         overflow-x: auto !important;
         overflow-y: visible !important;
         -webkit-overflow-scrolling: touch;
@@ -1640,18 +1640,17 @@ html[dir="ltr"] .sidebar-close-btn {
         max-width: 100%;
         padding: 0 !important;
     }
-    
-    .admin-page-content table, 
-    .dashboard-container-lux table,
-    .premium-table-lux,
-    .table {
-        min-width: 800px !important; /* Force scroll trigger earlier */
-        margin-bottom: 0px !important;
+
+    .table-responsive.table-scroll-h > table {
+        min-width: 640px !important;
+        margin-bottom: 0 !important;
     }
-    
-    /* Ensure table headers are readable */
-    th {
-        white-space: nowrap !important;
+
+    .admin-page-content .premium-table-lux:has(td[data-label]),
+    .admin-page-content .donor-premium-table:has(td[data-label]),
+    .dashboard-container-lux .premium-table-lux:has(td[data-label]),
+    .donor-dashboard-container .donor-premium-table:has(td[data-label]) {
+        min-width: 0 !important;
     }
 }
 
@@ -2016,6 +2015,7 @@ html[dir="ltr"] .sidebar-close-btn {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
+@media (max-width: 992px) {
     div[style*="border-bottom: 2px dashed rgba(16, 185, 129, 0.4)"] {
         display: none !important;
     }
@@ -2064,8 +2064,8 @@ html[dir="ltr"] .sidebar-close-btn {
         overflow-x: visible !important;
     }
 
-    /* Force horizontal scroll for responsive tables only */
-    .table-responsive {
+    /* Force horizontal scroll for wide data tables only */
+    .table-responsive.table-scroll-h {
         width: 100%;
         overflow-x: auto;
         overflow-y: visible;
@@ -2075,13 +2075,14 @@ html[dir="ltr"] .sidebar-close-btn {
         scrollbar-color: var(--secondary) transparent;
     }
 
-.table-responsive::-webkit-scrollbar {
+.table-responsive.table-scroll-h::-webkit-scrollbar {
     height: 6px;
 }
 
-.table-responsive::-webkit-scrollbar-thumb {
+.table-responsive.table-scroll-h::-webkit-scrollbar-thumb {
     background: var(--secondary);
     border-radius: 10px;
+}
 }
 
 /* Mobile-Specific Section Refinements */
@@ -2102,18 +2103,10 @@ html[dir="ltr"] .sidebar-close-btn {
     .mobile-text-center {
         text-align: center !important;
     }
-}
 
-    .table-responsive > table {
-        min-width: 800px !important;
-    }
-
-    /* General Mobile Refinements */
-    .section-zen { padding: 60px 0 !important; }
     .section-title-luxury { font-size: 1.8rem !important; }
     .luxury-card { padding: 20px !important; }
     
-    /* Ensure grids stack correctly on small screens */
     .grid-2, .grid-3, .grid-4 { 
         grid-template-columns: 1fr !important; 
         gap: 15px !important; 

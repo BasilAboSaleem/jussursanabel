@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- SEO & Meta Tags -->
-    <meta name="description" content="<%= locals.metaDescription || ' سُبُل - منصة خيرية موثوقة للربط المباشر بين المتبرعين والمحتاجين في غزة بكل شفافية وكرامة.' %>">
-    <meta name="keywords" content="تبرع, غزة, جسور, منصة سُبُل, صدقة, كفالة يتيم, سُبُل للعطاء, مساعدة أسر, فلسطين, زكاة, مساعدات , عمل خيري">
+    <meta name="description" content="<%= locals.metaDescription || __('meta_default_description') %>">
+    <meta name="keywords" content="<%= __('meta_default_keywords') %>">
     <meta name="author" content="جسور">
     <!-- Open Graph (Facebook, WhatsApp, etc.) -->
     <meta property="og:title" content="<%= title %> — <%= __('hero_title') %>">
@@ -14,7 +14,7 @@
     <meta property="og:image" content="<%= locals.ogImage || asset('/assets/images/logo.png') %>">
     <meta property="og:url" content="<%= locals.fullUrl || '' %>">
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="ar_AR">
+    <meta property="og:locale" content="<%= locals.currentLocale === 'en' ? 'en_US' : 'ar_AR' %>">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<%= title %> — <%= __('hero_title') %>">

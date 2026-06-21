@@ -16,9 +16,9 @@ const compression = require("compression");
 const methodOverride = require("method-override");
 const i18n = require("i18n");
 const { cloudinaryEnabled } = require("./app/utils/storyVideo");
-const { connectRedisIfNeeded, redisClient } = require("./app/utils/redis");
-const { startQueueWorkers } = require("./app/utils/queue");
+const { redisClient } = require("./app/utils/redis");
 const { metricsMiddleware, metricsHandler } = require("./app/utils/monitoring");
+const { protectMetrics } = require("./app/middlewares/metricsAuth");
 const { sanitizeRequest } = require("./app/middlewares/securitySanitizer");
 
 i18n.configure({
@@ -30,11 +30,7 @@ i18n.configure({
   updateFiles: false
 });
 
-const csurf = require("csurf");
-
-// Config / DB
-const connectDB = require("./app/constants/db"); 
-connectDB();
+const { csrfProtection, shouldSkipGlobalCsrf } = require("./app/middlewares/csrf");
 
 // Middlewares
 const authMiddleware = require("./app/middlewares/auth");
@@ -42,6 +38,7 @@ const { apiLimiter, authLimiter, paymentLimiter } = require("./app/middlewares/r
 const { systemLogger } = require("./app/utils/logger");
 const { sendAlert } = require("./app/utils/alerting");
 const { verifyProductionEnv } = require("./app/utils/envGuard");
+const transactionController = require("./app/controllers/transactionController");
 
 verifyProductionEnv();
 
@@ -86,7 +83,14 @@ app.get("/health/ready", async (req, res) => {
   }
 });
 
-app.get("/metrics", metricsHandler);
+app.get("/metrics", protectMetrics, metricsHandler);
+
+// Stripe webhook must use raw body and bypass session/CSRF middleware
+app.post(
+  "/donations/webhook",
+  express.raw({ type: "application/json" }),
+  transactionController.handleStripeWebhook
+);
 
 // View Engine Setup
 app.set("view engine", "ejs");
@@ -197,31 +201,16 @@ app.use(
 );
 app.use(flash());
 
-// CSRF Protection
-const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: process.env.CSRF_SAME_SITE || "lax",
-  },
-});
+// CSRF Protection (multipart routes validate CSRF after multer on their routers)
 app.use((req, res, next) => {
-  // Skip CSRF check for multipart uploads as multer needs to parse body first
-  // and global csurf runs before route-specific multer
-  if (
-    req.originalUrl.includes('/proof-of-impact') ||
-    req.originalUrl.includes('/updates') ||
-    req.originalUrl.includes('/media-content') ||
-    (req.originalUrl.includes('/cases/') && req.originalUrl.includes('/status')) ||
-    req.originalUrl.includes('/donations/webhook')
-  ) {
-    return next();
-  }
+  if (shouldSkipGlobalCsrf(req)) return next();
   csrfProtection(req, res, next);
 });
 
 // Global view locals
 app.use(authMiddleware.isLoggedIn); // Check if user is logged in for every request
+app.use(authMiddleware.enforcePasswordChange);
+app.use(authMiddleware.enforceBeneficiaryApproval);
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
@@ -247,24 +236,17 @@ const messageRoutes = require("./app/routes/messages");
 const profileRoutes = require("./app/routes/profile");
 const supportRoutes = require("./app/routes/support");
 const notificationRoutes = require("./app/routes/notifications");
-const transactionController = require("./app/controllers/transactionController");
 
 app.use("/", indexRoutes);
 app.use("/auth", authLimiter, authRoutes);
 app.use("/cases", caseRoutes);
 app.use("/admin", adminRoutes);
-app.post("/donations/webhook", express.raw({ type: "application/json" }), transactionController.handleStripeWebhook);
 app.use("/donations", paymentLimiter, donationRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/messages", messageRoutes);
 app.use("/profile", profileRoutes);
 app.use("/support", supportRoutes);
 app.use("/notifications", notificationRoutes);
-
-// Initialize optional infrastructure in background
-connectRedisIfNeeded().then(() => {
-  startQueueWorkers();
-});
 
 // 404 Handler
 app.use((req, res) => {
@@ -278,6 +260,18 @@ app.use((req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    systemLogger.warn('CSRF token validation failed', { method: req.method, url: req.originalUrl, ip: req.ip });
+    req.flash('error', req.getLocale() === 'ar'
+      ? 'انتهت صلاحية الجلسة. يرجى تحديث الصفحة والمحاولة مرة أخرى.'
+      : 'Your session expired. Please refresh the page and try again.');
+    const referer = req.get('Referrer') || req.get('Referer');
+    if (referer && !referer.includes('/auth/login')) {
+      return res.redirect(referer);
+    }
+    return res.redirect('/');
+  }
+
   systemLogger.error(`[${req.method} ${req.originalUrl}] ${err.message}`, { stack: err.stack, ip: req.ip });
   const status = err.status || 500;
   if (status >= 500) {

@@ -5,9 +5,155 @@ const ChatRequest = require('../models/ChatRequest');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
 const { logActivity } = require('../utils/logger');
-const { getPlayableStoryVideoUrl, cloudinaryEnabled } = require('../utils/storyVideo');
+const { getPlayableStoryVideoUrl, resolveStoryVideo, cloudinaryEnabled, prepareStoryVideo } = require('../utils/storyVideo');
+const { caseCardImageUrl } = require('../utils/imageUrl');
 
 const PLATFORM_ADMIN_ROLES = new Set(['admin', 'super_admin', 'regulator', 'media']);
+
+const CASES_LIST_SELECT =
+    'title type description image location area raisedAmount targetAmount createdAt status isFieldVerified isSatisfied storyVideo isStoryHidden';
+
+function isMobileClient(req) {
+    const ua = req.get('user-agent') || '';
+    return /Mobile|Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+}
+
+function parseCasesListQuery(req) {
+    const selectedType = ['orphan', 'family'].includes(req.query.type) ? req.query.type : 'all';
+    const verifiedOnly = req.query.verified === '1' || req.query.verified === 'true';
+    const sort = ['newest', 'urgent', 'verified'].includes(req.query.sort) ? req.query.sort : 'newest';
+    const defaultLimit = isMobileClient(req) ? 12 : 24;
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || defaultLimit, 1), 48);
+    const requestedPage = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    return { selectedType, verifiedOnly, sort, limit, requestedPage, defaultLimit };
+}
+
+function buildCasesListFilter({ selectedType, verifiedOnly }) {
+    const filter = { status: 'approved', isHidden: { $ne: true } };
+
+    if (selectedType !== 'all') {
+        filter.type = selectedType;
+    }
+
+    if (verifiedOnly) {
+        filter.isFieldVerified = true;
+    }
+
+    return filter;
+}
+
+function formatCaseForList(item) {
+    const hasStory = Boolean(
+        item.storyVideo &&
+        item.storyVideo.trim() &&
+        item.isStoryHidden !== true &&
+        prepareStoryVideo(item.storyVideo).storyVideoPlayable
+    );
+
+    return {
+        _id: item._id,
+        title: item.title,
+        type: item.type,
+        description: item.description,
+        image: caseCardImageUrl(item.image),
+        area: item.area || '',
+        raisedAmount: item.raisedAmount || 0,
+        targetAmount: item.targetAmount,
+        isFieldVerified: Boolean(item.isFieldVerified),
+        isSatisfied: Boolean(item.isSatisfied),
+        hasStory,
+        storyUrl: hasStory ? `/stories?caseId=${item._id}` : null,
+        fundingPercent: item.targetAmount > 0
+            ? Math.min(Math.round((item.raisedAmount / item.targetAmount) * 100), 100)
+            : 0
+    };
+}
+
+async function fetchCasesList({ filter, sort, skip, limit }) {
+    if (sort === 'urgent') {
+        return Case.aggregate([
+            { $match: filter },
+            {
+                $addFields: {
+                    fundingRatio: {
+                        $cond: [
+                            {
+                                $and: [
+                                    { $gt: ['$targetAmount', 0] },
+                                    { $ne: ['$targetAmount', null] }
+                                ]
+                            },
+                            { $divide: ['$raisedAmount', '$targetAmount'] },
+                            1
+                        ]
+                    }
+                }
+            },
+            { $sort: { fundingRatio: 1, createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $project: {
+                    title: 1,
+                    type: 1,
+                    description: 1,
+                    image: 1,
+                    location: 1,
+                    area: 1,
+                    raisedAmount: 1,
+                    targetAmount: 1,
+                    createdAt: 1,
+                    status: 1,
+                    isFieldVerified: 1,
+                    isSatisfied: 1,
+                    storyVideo: 1,
+                    isStoryHidden: 1
+                }
+            }
+        ]);
+    }
+
+    const sortObj = sort === 'verified'
+        ? { isFieldVerified: -1, createdAt: -1 }
+        : { createdAt: -1 };
+
+    return Case.find(filter)
+        .select(CASES_LIST_SELECT)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean();
+}
+
+function buildCasesListUrl(state, overrides = {}) {
+    const merged = {
+        type: state.selectedType,
+        limit: state.limit,
+        verified: state.verifiedOnly ? '1' : '',
+        sort: state.sort !== 'newest' ? state.sort : '',
+        page: '',
+        ...overrides
+    };
+
+    const params = new URLSearchParams();
+    if (merged.type && merged.type !== 'all') params.set('type', merged.type);
+    if (merged.verified) params.set('verified', merged.verified);
+    if (merged.sort) params.set('sort', merged.sort);
+    if (merged.limit) params.set('limit', String(merged.limit));
+    if (merged.page && Number(merged.page) > 1) params.set('page', String(merged.page));
+
+    const qs = params.toString();
+    return '/cases' + (qs ? `?${qs}` : '');
+}
+
+function hasOwnBankAccount(user) {
+    const iban = (user?.paymentDetails?.iban || '').replace(/\s+/g, '').toUpperCase();
+    const accountHolder = (user?.paymentDetails?.accountHolder || '').trim();
+    const userName = (user?.name || '').trim();
+    if (!iban || !accountHolder || !userName) return false;
+    return accountHolder.replace(/\s+/g, ' ').toLowerCase() === userName.replace(/\s+/g, ' ').toLowerCase();
+}
 
 function canViewFamilyStructure(user, caseDoc) {
     if (!user) return false;
@@ -19,7 +165,12 @@ function canViewFamilyStructure(user, caseDoc) {
 exports.getRegisterCase = async (req, res) => {
     try {
         if (req.user.status === 'pending') {
-            return res.render('pages/auth/pending-verification', { title: res.__('common_pending') });
+            return res.redirect('/auth/pending');
+        }
+
+        if (!hasOwnBankAccount(req.user)) {
+            req.flash('error', res.__('flash_bank_account_required_for_case'));
+            return res.redirect('/dashboard');
         }
 
         // Feature: Restrict to 1 active case per beneficiary
@@ -55,6 +206,11 @@ exports.createCase = async (req, res) => {
     try {
         if (req.user.status === 'pending') {
             req.flash('error', res.__('flash_activate_first'));
+            return res.redirect('/auth/pending');
+        }
+
+        if (!hasOwnBankAccount(req.user)) {
+            req.flash('error', res.__('flash_bank_account_required_for_case'));
             return res.redirect('/dashboard');
         }
 
@@ -84,14 +240,14 @@ exports.createCase = async (req, res) => {
         }
 
         const rawStoryVideo = storyVideo ? storyVideo.trim() : '';
-        const normalizedStoryVideo = rawStoryVideo ? getPlayableStoryVideoUrl(rawStoryVideo) : undefined;
+        const storyResolved = rawStoryVideo ? resolveStoryVideo(rawStoryVideo) : null;
+        const normalizedStoryVideo = storyResolved && storyResolved.valid ? storyResolved.storedUrl : undefined;
         if (storyVideo && !normalizedStoryVideo) {
-            req.flash('error', 'رابط فيديو القصة غير مدعوم. استخدم رابط YouTube Shorts أو رابط Cloudinary.');
+            req.flash('error', res.__('story_video_invalid_link'));
             return res.redirect('back');
         }
-        // If Cloudinary isn't configured, direct-video links often fail on mobile due to codec/CORS/range issues.
-        if (rawStoryVideo && normalizedStoryVideo === rawStoryVideo && !cloudinaryEnabled) {
-            req.flash('error', 'تم تعطيل روابط الفيديو المباشرة مؤقتاً لأن Cloudinary غير مُعدّ على السيرفر، وهذا يسبب مشكلة (صوت بدون صورة) على الجوال. الرجاء استخدام YouTube Shorts أو إعداد Cloudinary.');
+        if (rawStoryVideo && storyResolved && storyResolved.provider === 'html5' && !cloudinaryEnabled) {
+            req.flash('error', res.__('story_video_cloudinary_required'));
             return res.redirect('back');
         }
 
@@ -169,31 +325,26 @@ exports.createCase = async (req, res) => {
 
 exports.getAllCases = async (req, res) => {
     try {
-        const requestedPage = Math.max(parseInt(req.query.page, 10) || 1, 1);
-        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 24, 1), 60);
-        const selectedType = ['orphan', 'family'].includes(req.query.type) ? req.query.type : 'all';
-        const filter = { status: 'approved', isHidden: { $ne: true } };
-
-        if (selectedType !== 'all') {
-            filter.type = selectedType;
-        }
+        const listQuery = parseCasesListQuery(req);
+        const { selectedType, verifiedOnly, sort, limit, requestedPage } = listQuery;
+        const filter = buildCasesListFilter({ selectedType, verifiedOnly });
 
         const totalCases = await Case.countDocuments(filter);
         const totalPages = Math.max(Math.ceil(totalCases / limit), 1);
         const page = Math.min(requestedPage, totalPages);
         const skip = (page - 1) * limit;
 
-        const cases = await Case.find(filter)
-            .select('title type description image location raisedAmount targetAmount createdAt status')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean();
+        const rawCases = await fetchCasesList({ filter, sort, skip, limit });
+        const cases = rawCases.map(formatCaseForList);
 
         res.render('pages/cases/all-cases', {
             title: res.__('cases_list'),
             cases,
             selectedType,
+            verifiedOnly,
+            selectedSort: sort,
+            defaultLimit: listQuery.defaultLimit,
+            buildCasesUrl: (overrides) => buildCasesListUrl(listQuery, overrides),
             pagination: {
                 page,
                 limit,
@@ -204,6 +355,36 @@ exports.getAllCases = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send(res.__('error_server'));
+    }
+};
+
+exports.getCasesFeed = async (req, res) => {
+    try {
+        const listQuery = parseCasesListQuery(req);
+        const { selectedType, verifiedOnly, sort, limit, requestedPage } = listQuery;
+        const filter = buildCasesListFilter({ selectedType, verifiedOnly });
+
+        const totalCases = await Case.countDocuments(filter);
+        const totalPages = Math.max(Math.ceil(totalCases / limit), 1);
+        const page = Math.min(requestedPage, totalPages);
+        const skip = (page - 1) * limit;
+
+        const rawCases = await fetchCasesList({ filter, sort, skip, limit });
+        const cases = rawCases.map(formatCaseForList);
+
+        res.json({
+            cases,
+            pagination: {
+                page,
+                limit,
+                total: totalCases,
+                totalPages,
+                hasMore: page < totalPages
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: res.__('error_server') });
     }
 };
 

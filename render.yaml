@@ -21,6 +21,10 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
+      - key: JWT_REMEMBER_EXPIRES_IN
+        value: 30d
+      - key: PASSWORD_RESET_EXPIRES_MINUTES
+        value: 60
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -36,6 +40,10 @@ services:
       - key: EMAIL_PASSWORD
         sync: false
       - key: EMAIL_FROM
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
         sync: false
       - key: REDIS_URL
         fromService:

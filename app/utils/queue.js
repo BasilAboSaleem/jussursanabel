@@ -1,31 +1,21 @@
 const { Queue, Worker } = require("bullmq");
-const nodemailer = require("nodemailer");
 const { redisClient, redisEnabled } = require("./redis");
 const { systemLogger } = require("./logger");
+const { buildMailTransporter, isEmailConfigured } = require("./emailConfig");
 
 let emailQueue = null;
 let emailWorker = null;
 let queueStarted = false;
 
-function buildTransporter() {
-  if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || "smtp.gmail.com",
-      port: Number(process.env.EMAIL_PORT || 465),
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-  }
-  return null;
-}
-
 function startQueueWorkers() {
   if (queueStarted) return;
   if (!redisEnabled || !redisClient) {
     systemLogger.info("Queue workers skipped (Redis disabled)");
+    return;
+  }
+
+  if (!isEmailConfigured()) {
+    systemLogger.warn("Email queue worker not started (SMTP not configured)");
     return;
   }
 
@@ -48,10 +38,9 @@ function startQueueWorkers() {
   emailWorker = new Worker(
     "emails",
     async (job) => {
-      const transporter = buildTransporter();
+      const transporter = buildMailTransporter();
       if (!transporter) {
-        systemLogger.warn("Email worker skipped sending (email env not configured)");
-        return;
+        throw new Error("SMTP not configured");
       }
       await transporter.sendMail(job.data);
     },
@@ -73,7 +62,7 @@ function startQueueWorkers() {
 }
 
 async function enqueueEmail(mailOptions) {
-  if (!emailQueue) return false;
+  if (!emailQueue || !isEmailConfigured()) return false;
   await emailQueue.add("send", mailOptions, {
     jobId: `email:${Date.now()}:${mailOptions.to}`,
   });
@@ -84,4 +73,3 @@ module.exports = {
   startQueueWorkers,
   enqueueEmail,
 };
-

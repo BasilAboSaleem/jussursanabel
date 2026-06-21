@@ -7,8 +7,8 @@ ios/
 createSuperAdmin.js
 seed-family.js
 seed.js
-logs/*.log
-logs/*-audit.json
+logs/*
+!logs/.gitkeep
 .cursor/
 tmp/*.tmp
 

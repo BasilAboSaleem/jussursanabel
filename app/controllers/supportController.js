@@ -2,10 +2,11 @@ const SupportTicket = require('../models/SupportTicket');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { logActivity } = require('../utils/logger');
+const { isSupportAdmin, emitSupportMessage } = require('../utils/socketAuth');
 
 exports.getSupportPage = async (req, res) => {
     try {
-        const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+        const isAdmin = isSupportAdmin(req.user.role);
         const adminTicketId = req.query.adminTicketId;
 
         let ticket;
@@ -76,25 +77,39 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({ message: 'التذكرة مغلقة أو غير موجودة' });
         }
 
-        // If user is admin, they are responding. If user is ticket owner, they are asking.
-        const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
-        
+        const isAdmin = isSupportAdmin(req.user.role);
+        const isOwner = String(ticket.user) === String(req.user._id);
+
+        if (!isAdmin && !isOwner) {
+            return res.status(403).json({ message: 'غير مصرح بإرسال رسالة على هذه التذكرة' });
+        }
+
+        const trimmed = (content || '').trim();
+        if (!trimmed) {
+            return res.status(400).json({ message: 'محتوى الرسالة مطلوب' });
+        }
+
         const newMessage = new Message({
             sender: req.user._id,
-            receiver: isAdmin ? ticket.user : null, // If admin sends, receiver is the user. 
+            receiver: isAdmin ? ticket.user : null,
             supportTicket: ticketId,
-            content
+            content: trimmed
         });
 
         await newMessage.save();
-        
-        // Update ticket last activity
+
         ticket.lastMessageAt = Date.now();
         if (isAdmin && ticket.status === 'open') {
             ticket.status = 'in_progress';
         }
         await ticket.save();
 
+        const io = req.app.get('io');
+        if (io) {
+            emitSupportMessage(io, { message: newMessage, ticket, sender: req.user });
+        }
+
+        await newMessage.populate('sender', 'name avatar role');
         res.status(201).json(newMessage);
     } catch (error) {
         res.status(500).json({ message: 'فشل في إرسال الرسالة' });
@@ -146,8 +161,11 @@ exports.resolveTicket = async (req, res) => {
                 ticketId: id,
                 message: resolutionMessage.content
             });
-            // Also notify the specific room
-            io.to(id.toString()).emit('newSupportMessage', resolutionMessage);
+            emitSupportMessage(io, {
+                message: resolutionMessage,
+                ticket,
+                sender: req.user
+            });
         }
 
         // Add to administrative activity log

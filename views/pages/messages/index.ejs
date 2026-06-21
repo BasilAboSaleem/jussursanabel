@@ -713,7 +713,6 @@
 
     socket.on('connect', () => {
         console.log('🔌 Connected to chat server');
-        if (currentUserId) socket.emit('join', currentUserId);
     });
 
     socket.on('consentStatusChanged', (data) => {

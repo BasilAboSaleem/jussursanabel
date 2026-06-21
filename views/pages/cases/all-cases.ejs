@@ -2,7 +2,7 @@
 
 <main style="overflow: hidden;">
     <!-- 1. Majestic Hero Section -->
-    <section class="hero-luxury" style="min-height: 55vh; padding: 90px 5% 100px; display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
+    <section class="hero-luxury cases-hero-luxury" style="display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
         <!-- Brand Gradient Overlay -->
         <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25) 0%, transparent 70%);"></div>
         <div class="bg-mesh" style="opacity: 0.6;"></div>
@@ -24,16 +24,19 @@
     </section>
 
     <!-- 2. The Floating Filter Bridge -->
-    <div class="container" style="position: relative; z-index: 50; margin-top: -55px; display: flex; justify-content: center;">
-        <div class="reveal-on-scroll filter-bar-capsule" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 30px 70px rgba(0,0,0,0.1); padding: 15px; border-radius: 40px; display: inline-flex; align-items: center; gap: 10px; position: relative;">
-            <a href="/cases?type=all&limit=<%= pagination?.limit || 24 %>" class="filter-btn-lux <%= (selectedType || 'all') === 'all' ? 'active' : '' %>" data-filter="all">
+    <div class="container cases-filter-bridge" style="position: relative; z-index: 50; display: flex; justify-content: center;">
+        <div class="reveal-on-scroll filter-bar-capsule" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 30px 70px rgba(0,0,0,0.1); padding: 15px; border-radius: 40px; display: inline-flex; align-items: center; gap: 10px; position: relative; flex-wrap: wrap; justify-content: center;">
+            <a href="<%= buildCasesUrl({ type: 'all', page: '' }) %>" class="filter-btn-lux <%= (selectedType || 'all') === 'all' ? 'active' : '' %>" data-filter="all">
                 <i class="fas fa-border-all"></i> <%= __('cases_filter_all') %>
             </a>
-            <a href="/cases?type=orphan&limit=<%= pagination?.limit || 24 %>" class="filter-btn-lux <%= selectedType === 'orphan' ? 'active' : '' %>" data-filter="orphan">
+            <a href="<%= buildCasesUrl({ type: 'orphan', page: '' }) %>" class="filter-btn-lux <%= selectedType === 'orphan' ? 'active' : '' %>" data-filter="orphan">
                 <i class="fas fa-child-reaching"></i> <%= __('cases_type_orphan') %>
             </a>
-            <a href="/cases?type=family&limit=<%= pagination?.limit || 24 %>" class="filter-btn-lux <%= selectedType === 'family' ? 'active' : '' %>" data-filter="family">
+            <a href="<%= buildCasesUrl({ type: 'family', page: '' }) %>" class="filter-btn-lux <%= selectedType === 'family' ? 'active' : '' %>" data-filter="family">
                 <i class="fas fa-users-gear"></i> <%= __('cases_type_family') %>
+            </a>
+            <a href="<%= buildCasesUrl({ verified: verifiedOnly ? '' : '1', page: '' }) %>" class="filter-btn-lux <%= verifiedOnly ? 'active' : '' %>" data-filter="verified">
+                <i class="fas fa-user-shield"></i> <%= __('cases_filter_verified') %>
             </a>
         </div>
     </div>
@@ -45,20 +48,24 @@
                 <i class="fas fa-layer-group" style="color: var(--secondary);"></i>
                 <span>
                     <%= pagination?.total || 0 %>
-                    <%= locals.currentLocale === 'ar' ? 'حالة متاحة' : 'available cases' %>
+                    <%= __('cases_available_count') %>
                 </span>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <% if ((pagination?.total || 0) > (pagination?.limit || 24)) { %>
-                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;"><%= locals.currentLocale === 'ar' ? 'العدد في الصفحة:' : 'Per page:' %></span>
-                    <a href="/cases?type=<%= selectedType || 'all' %>&limit=24" class="per-page-chip <%= (pagination?.limit || 24) === 24 ? 'active' : '' %>">24</a>
-                    <a href="/cases?type=<%= selectedType || 'all' %>&limit=36" class="per-page-chip <%= (pagination?.limit || 24) === 36 ? 'active' : '' %>">36</a>
-                    <a href="/cases?type=<%= selectedType || 'all' %>&limit=48" class="per-page-chip <%= (pagination?.limit || 24) === 48 ? 'active' : '' %>">48</a>
-                <% } else { %>
-                    <span class="single-page-status" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">
-                        <%= locals.currentLocale === 'ar' ? 'صفحة 1 من 1' : 'Page 1 of 1' %>
-                    </span>
+            <div class="cases-sort-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;"><%= __('cases_sort_label') %>:</span>
+                <a href="<%= buildCasesUrl({ sort: '', page: '' }) %>" class="per-page-chip <%= (selectedSort || 'newest') === 'newest' ? 'active' : '' %>"><%= __('cases_sort_newest') %></a>
+                <a href="<%= buildCasesUrl({ sort: 'urgent', page: '' }) %>" class="per-page-chip <%= selectedSort === 'urgent' ? 'active' : '' %>"><%= __('cases_sort_urgent') %></a>
+                <a href="<%= buildCasesUrl({ sort: 'verified', page: '' }) %>" class="per-page-chip <%= selectedSort === 'verified' ? 'active' : '' %>"><%= __('cases_sort_verified') %></a>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <% if ((pagination?.total || 0) > 12) { %>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;"><%= __('cases_per_page') %></span>
+                    <a href="<%= buildCasesUrl({ limit: 12, page: '' }) %>" class="per-page-chip <%= (pagination?.limit || defaultLimit || 24) === 12 ? 'active' : '' %>">12</a>
+                    <a href="<%= buildCasesUrl({ limit: 24, page: '' }) %>" class="per-page-chip <%= (pagination?.limit || defaultLimit || 24) === 24 ? 'active' : '' %>">24</a>
+                    <a href="<%= buildCasesUrl({ limit: 36, page: '' }) %>" class="per-page-chip <%= (pagination?.limit || defaultLimit || 24) === 36 ? 'active' : '' %>">36</a>
+                    <a href="<%= buildCasesUrl({ limit: 48, page: '' }) %>" class="per-page-chip <%= (pagination?.limit || defaultLimit || 24) === 48 ? 'active' : '' %>">48</a>
                 <% } %>
             </div>
         </div>
@@ -69,7 +76,7 @@
                     <div class="luxury-card case-card h-100 reveal-on-scroll" data-type="<%= item.type %>" style="transition-delay: <%= index * 0.1 %>s">
                         <!-- Image Container with improved aesthetics -->
                         <div class="card-image-wrapper">
-                            <img src="<%= item.image %>" alt="<%= item.title %>" class="case-image">
+                            <img src="<%= item.image %>" alt="<%= item.title %>" class="case-image" loading="lazy" decoding="async" width="480" height="360">
                             <!-- Soft Overlay for depth -->
                             <div class="image-overlay"></div>
                             <!-- Badge -->
@@ -82,6 +89,12 @@
                                 <div class="verified-badge" title="<%= __('cases_verified_tooltip') %>">
                                     <i class="fas fa-check-circle"></i> <%= __('cases_verified_text') %>
                                 </div>
+                            <% } %>
+
+                            <% if (item.hasStory) { %>
+                                <a href="<%= item.storyUrl %>" class="story-video-badge" title="<%= __('cases_story_badge') %>">
+                                    <i class="fas fa-circle-play"></i> <%= __('cases_story_badge') %>
+                                </a>
                             <% } %>
 
                             <% if (item.isSatisfied) { %>
@@ -117,6 +130,11 @@
                                     <span class="target-text"><%= __('cases_target_text') %> $<%= item.targetAmount || __('cases_target_open') %></span>
                                 </div>
 
+                                <% if (item.hasStory) { %>
+                                    <a href="<%= item.storyUrl %>" class="btn-lux btn-sm btn-story-link">
+                                        <i class="fas fa-circle-play"></i> <%= __('cases_btn_watch_story') %>
+                                    </a>
+                                <% } %>
                                 <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
                                     <%= __('cases_btn_details') %> <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
                                 </a>
@@ -141,12 +159,10 @@
                 const totalPages = pagination.totalPages;
                 const startPage = Math.max(1, currentPage - 2);
                 const endPage = Math.min(totalPages, currentPage + 2);
-                const typeParam = selectedType || 'all';
-                const limitParam = pagination.limit || 24;
-                const pageUrl = (p) => `/cases?type=${typeParam}&limit=${limitParam}&page=${p}`;
+                const pageUrl = (p) => buildCasesUrl({ page: p });
             %>
 
-            <nav aria-label="Cases pagination" class="cases-pagination" style="display: flex; justify-content: center; margin-top: 38px;">
+            <nav aria-label="Cases pagination" class="cases-pagination cases-pagination-desktop" style="display: flex; justify-content: center; margin-top: 38px;">
                 <ul class="pagination-lux" style="display: flex; list-style: none; padding: 0; gap: 8px; flex-wrap: wrap; justify-content: center;">
                     <% if (currentPage > 1) { %>
                         <li><a class="page-link-lux" href="<%= pageUrl(currentPage - 1) %>" aria-label="Previous"><i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i></a></li>
@@ -175,11 +191,30 @@
                     <% } %>
                 </ul>
             </nav>
+
+            <div id="casesLoadMoreWrap" class="cases-load-more-wrap" style="display: none; justify-content: center; margin-top: 28px;">
+                <button type="button" id="casesLoadMoreBtn" class="btn-lux btn-lux-primary" style="min-width: 220px; justify-content: center; border-radius: 999px; padding: 14px 28px; font-weight: 800;">
+                    <i class="fas fa-chevron-down"></i> <%= __('cases_load_more') %>
+                </button>
+            </div>
         <% } %>
     </section>
 </main>
 
 <style>
+    .cases-hero-luxury {
+        min-height: 55vh;
+        padding: 90px 5% 100px;
+    }
+
+    .cases-filter-bridge {
+        margin-top: -55px;
+    }
+
+    .cases-load-more-wrap {
+        display: none;
+    }
+
     .filter-bar-capsule {
         z-index: 100;
         min-width: fit-content;
@@ -304,6 +339,56 @@
         border: 1px solid rgba(255,255,255,0.2);
     }
 
+    .story-video-badge {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+        z-index: 11;
+        background: rgba(2, 6, 23, 0.82);
+        color: #fff;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .story-video-badge:hover {
+        transform: translateY(-2px);
+        background: rgba(16, 185, 129, 0.92);
+        color: #fff;
+    }
+
+    .btn-story-link {
+        width: 100%;
+        justify-content: center;
+        border-radius: 16px;
+        padding: 12px 20px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        background: rgba(2, 6, 23, 0.06);
+        color: var(--primary);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .btn-story-link:hover {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--secondary);
+    }
+
     .card-body-content {
         padding: 20px 30px 30px;
         flex-grow: 1;
@@ -327,7 +412,7 @@
         line-height: 1.8;
         height: 3.6em;
         overflow: hidden;
-        display: -webkit- box;
+        display: -webkit-box;
         -webkit-line-clamp: 2;
         line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -471,7 +556,31 @@
 </style>
 
 <script>
-    // Reveal on scroll logic
+    window.__CASES_BOOT__ = <%- JSON.stringify({
+        page: pagination?.page || 1,
+        totalPages: pagination?.totalPages || 1,
+        type: selectedType || 'all',
+        verified: Boolean(verifiedOnly),
+        sort: selectedSort || 'newest',
+        limit: pagination?.limit || defaultLimit || 24,
+        langDir: langDir,
+        labels: {
+            orphan: __('cases_type_orphan'),
+            family: __('cases_type_family'),
+            verifiedTooltip: __('cases_verified_tooltip'),
+            verifiedText: __('cases_verified_text'),
+            satisfiedText: __('cases_satisfied_text'),
+            storyBadge: __('cases_story_badge'),
+            watchStory: __('cases_btn_watch_story'),
+            raisedText: __('cases_raised_text'),
+            targetText: __('cases_target_text'),
+            targetOpen: __('cases_target_open'),
+            detailsBtn: __('cases_btn_details'),
+            loadMore: __('cases_load_more'),
+            loading: __('cases_loading')
+        }
+    }) %>;
+
     const observerOptions = { threshold: 0.1 };
     const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -482,8 +591,7 @@
     }, observerOptions);
 
     document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
-
-    // Cards are now filtered/paginated server-side for better performance at large scale.
 </script>
+<script src="/assets/js/cases-list.js" defer></script>
 
 <%- include('../../partials/footer-bottom') %>

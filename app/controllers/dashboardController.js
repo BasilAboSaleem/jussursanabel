@@ -10,7 +10,7 @@ exports.getDashboard = async (req, res) => {
         const user = req.user;
 
         if (user.role === 'donor') {
-            const transactions = await Transaction.find({ donor: user._id }).populate('case').sort({ createdAt: -1 });
+            const transactions = await Transaction.find({ donor: user._id, status: 'verified' }).populate('case').sort({ createdAt: -1 });
             const totalDonated = transactions.reduce((acc, curr) => curr.status === 'verified' ? acc + curr.amount : acc, 0);
             
             // Phase 3: Detailed Sponsorship Hub data
