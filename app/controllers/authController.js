@@ -196,7 +196,8 @@ exports.register = async (req, res) => {
             address,
             paymentDetails: role === 'beneficiary' ? paymentDetails : undefined,
             beneficiaryTermsAcceptedAt: role === 'beneficiary' ? new Date() : undefined,
-            status: role === 'donor' ? 'active' : 'pending'
+            status: role === 'donor' ? 'active' : 'pending',
+            activatedAt: role === 'donor' ? new Date() : undefined
         });
 
         try {

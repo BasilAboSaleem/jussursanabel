@@ -800,6 +800,11 @@ exports.updateUserStatus = async (req, res) => {
         if (role && req.user.role === 'super_admin') updateData.role = role;
 
         const oldUser = await User.findById(req.params.id);
+
+        if (oldUser.status === 'pending' && status === 'active') {
+            updateData.activatedAt = new Date();
+        }
+
         const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
         
         // Phase 6: Notify user if activated
@@ -1320,7 +1325,8 @@ exports.createAdmin = async (req, res) => {
             email,
             password,
             role: safeRole,
-            status: 'active'
+            status: 'active',
+            activatedAt: new Date()
         });
 
         await logActivity(req.user._id, 'user_create', 'User', newUser._id, 

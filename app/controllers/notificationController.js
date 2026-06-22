@@ -1,6 +1,10 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { logActivity } = require('../utils/logger');
+const {
+    buildUserNotificationFilter,
+    formatNotificationForUser
+} = require('../utils/notificationQuery');
 
 exports.createNotification = async (req, res) => {
     try {
@@ -59,27 +63,31 @@ exports.createNotification = async (req, res) => {
 exports.getUserNotifications = async (req, res) => {
     try {
         const user = req.user;
-        
-        // Fetch notifications that target this user specifically, or their role, or "all"
-        const notifications = await Notification.find({
-            $or: [
-                { recipient: user._id },
-                { targetType: user.role },
-                { targetType: 'all' }
-            ]
-        }).sort({ createdAt: -1 }).limit(50).populate('sender', 'name avatar');
+        const isDropdown = req.query.scope === 'dropdown';
+        const filter = buildUserNotificationFilter(user, { unreadOnly: isDropdown });
 
-        // Add 'isReadByMe' virtual field
-        const formatted = notifications.map(n => {
-            const obj = n.toObject();
-            obj.isReadByMe = n.recipient ? n.isRead : n.readBy.some(id => id.toString() === user._id.toString());
-            return obj;
-        });
+        const baseQuery = Notification.find(filter)
+            .sort({ createdAt: -1 })
+            .populate('sender', 'name avatar');
+
+        let totalUnread = 0;
+        if (isDropdown) {
+            totalUnread = await Notification.countDocuments(filter);
+        }
+
+        const notifications = await baseQuery.limit(isDropdown ? 4 : 50).exec();
+
+        const formatted = notifications.map(n => formatNotificationForUser(n, user._id));
 
         // If browser request → render HTML page; if fetch/AJAX → return JSON
         const wantsJSON = req.xhr || req.headers.accept?.includes('application/json');
         if (wantsJSON) {
-            return res.json({ success: true, notifications: formatted });
+            const payload = { success: true, notifications: formatted };
+            if (isDropdown) {
+                payload.totalUnread = totalUnread;
+                payload.hasMore = totalUnread > 4;
+            }
+            return res.json(payload);
         }
 
         // Render the notifications history page

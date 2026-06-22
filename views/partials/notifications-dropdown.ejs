@@ -31,8 +31,8 @@
             </div>
         </div>
 
-        <div class="notif-footer-lux">
-            <a href="/notifications" class="font-cairo">مشاهدة السجل الكامل للاشعارات <i class="fa-solid fa-arrow-left-long ms-1"></i></a>
+        <div class="notif-footer-lux" id="notifFooter" style="display: none;">
+            <a href="/notifications" class="font-cairo">عرض كل الإشعارات <i class="fa-solid fa-arrow-left-long ms-1"></i></a>
         </div>
     </div>
 </div>
@@ -198,6 +198,7 @@
         const notifCountBadge = document.getElementById('notifCount');
         const notifTotalBadge = document.getElementById('notifTotalBadge');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
+        const notifFooter = document.getElementById('notifFooter');
 
         if (!notifBtn || !notifPanel) return;
 
@@ -219,26 +220,28 @@
 
         async function loadNotifications() {
             try {
-                const res = await fetch('/notifications', { headers: { 'Accept': 'application/json' } });
+                const res = await fetch('/notifications?scope=dropdown', { headers: { 'Accept': 'application/json' } });
                 const data = await res.json();
-                if (data.success) renderNotifications(data.notifications);
+                if (data.success) renderNotifications(data.notifications, data.totalUnread, data.hasMore);
             } catch (err) { console.error('Notif load err:', err); }
         }
 
-        function renderNotifications(notifications) {
+        function renderNotifications(notifications, totalUnread, hasMore) {
+            const unreadCount = typeof totalUnread === 'number' ? totalUnread : (notifications || []).length;
+
             if (!notifications || notifications.length === 0) {
                 notifList.innerHTML = `
                     <div class="notif-empty-state">
                         <i class="fa-solid fa-bell-slash"></i>
-                        <h6 class="font-cairo">لا توجد إشعارات حالياً</h6>
+                        <h6 class="font-cairo">لا توجد إشعارات جديدة</h6>
                     </div>`;
                 notifCountBadge.style.display = 'none';
                 notifTotalBadge.innerText = '0 جديد';
                 notifBtn.classList.remove('has-new');
+                if (notifFooter) notifFooter.style.display = 'none';
                 return;
             }
 
-            const unreadCount = notifications.filter(n => !n.isReadByMe).length;
             if (unreadCount > 0) {
                 notifCountBadge.innerText = unreadCount > 9 ? '9+' : unreadCount;
                 notifCountBadge.style.display = 'flex';
@@ -246,8 +249,12 @@
                 notifBtn.classList.add('has-new');
             } else {
                 notifCountBadge.style.display = 'none';
-                notifTotalBadge.innerText = 'كلها مقروءة';
+                notifTotalBadge.innerText = '0 جديد';
                 notifBtn.classList.remove('has-new');
+            }
+
+            if (notifFooter) {
+                notifFooter.style.display = hasMore ? 'block' : 'none';
             }
 
             const timeAgo = (date) => {
@@ -261,7 +268,7 @@
             };
 
             notifList.innerHTML = notifications.map(n => `
-                <div class="notif-item-lux ${!n.isReadByMe ? 'unread' : ''}" onclick="markAsRead('${n._id}', '${n.link || '#'}')">
+                <div class="notif-item-lux unread" onclick="markAsRead('${n._id}', '${n.link || '#'}')">
                     <div class="notif-item-icon ${n.type || 'info'}">
                         <i class="fa-solid ${getIcon(n.type)}"></i>
                     </div>

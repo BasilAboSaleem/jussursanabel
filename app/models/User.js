@@ -60,6 +60,8 @@ const userSchema = new mongoose.Schema({
     tempPasswordSetAt: { type: Date },
     tempPasswordSetBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     tempPasswordReason: { type: String },
+    /** When the account became active; used to exclude pre-activation broadcast notifications. */
+    activatedAt: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 
