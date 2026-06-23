@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-06-23T09:14:13.714Z",
+  "baseUrl": "http://localhost:3000",
+  "slo": {
+    "p95MsMax": 1200,
+    "errorRateMax": 0.01
+  },
+  "results": [
+    {
+      "profile": "baseline",
+      "path": "/health",
+      "connections": 10,
+      "durationSec": 20,
+      "totalRequests": 345838,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "p95Ms": 1,
+      "avgMs": 0,
+      "throughputRps": 17292.6,
+      "passed": true,
+      "violations": []
+    },
+    {
+      "profile": "stress-homepage",
+      "path": "/",
+      "connections": 15,
+      "durationSec": 30,
+      "totalRequests": 91623,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "p95Ms": 8,
+      "avgMs": 4,
+      "throughputRps": 3054.67,
+      "passed": true,
+      "violations": []
+    },
+    {
+      "profile": "stress-cases",
+      "path": "/cases",
+      "connections": 15,
+      "durationSec": 30,
+      "totalRequests": 118476,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "p95Ms": 6,
+      "avgMs": 3,
+      "throughputRps": 3949.37,
+      "passed": true,
+      "violations": []
+    },
+    {
+      "profile": "soak-cases",
+      "path": "/cases",
+      "connections": 8,
+      "durationSec": 90,
+      "totalRequests": 388354,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "p95Ms": 3,
+      "avgMs": 1,
+      "throughputRps": 4315.65,
+      "passed": true,
+      "violations": []
+    }
+  ],
+  "passed": true
+}

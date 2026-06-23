@@ -7,8 +7,15 @@ const http = require("http");
 const connectDB = require("./app/constants/db");
 const { systemLogger } = require("./app/utils/logger");
 const { verifySmtpConnection } = require("./app/utils/emailConfig");
-const { connectRedisIfNeeded } = require("./app/utils/redis");
-const { startQueueWorkers } = require("./app/utils/queue");
+const { connectRedisIfNeeded, verifyRedisInfrastructure } = require("./app/utils/redis");
+const { startQueueWorkers, getQueueHealth, stopQueueWorkers } = require("./app/utils/queue");
+const { attachSocketRedisAdapter } = require("./app/utils/socketRedis");
+const { verifyLogConfiguration } = require("./app/utils/logger");
+const {
+  startObservabilityWatchdog,
+  stopObservabilityWatchdog,
+} = require("./app/utils/observabilityWatchdog");
+const { isAlertsEnabled } = require("./app/utils/alerting");
 
 process.on("uncaughtException", (err) => {
   if (err.code === "EADDRINUSE") return;
@@ -23,12 +30,16 @@ process.on("unhandledRejection", (err) => {
 
 async function initInfrastructure() {
   const redisOk = await connectRedisIfNeeded();
+  let queueResult = { started: false, reason: "redis_unavailable" };
+
   if (redisOk) {
-    startQueueWorkers();
-    systemLogger.info("Redis and email queue workers ready");
+    queueResult = startQueueWorkers();
+    systemLogger.info("Redis connected", { queue: queueResult });
   } else if (process.env.REDIS_URL) {
     systemLogger.warn("Redis unavailable — emails will be sent directly via SMTP");
   }
+
+  return { redisOk, queueResult };
 }
 
 async function purgeIncompleteStripeDonations() {
@@ -96,11 +107,22 @@ async function bootstrap() {
 
   app.set("io", io);
 
-  await initInfrastructure();
+  const infra = await initInfrastructure();
+  const socketAdapterActive = await attachSocketRedisAdapter(io);
+  const queueHealth = await getQueueHealth();
+  await verifyRedisInfrastructure({ socketAdapterActive, queueHealth });
+
+  const redisReady = infra.redisOk;
+  const { verifyRateLimitInfrastructure } = require("./app/middlewares/rateLimiter");
+  await verifyRateLimitInfrastructure({ redisReady });
+
   await purgeIncompleteStripeDonations();
 
   const { startScheduler } = require("./app/utils/scheduler");
   startScheduler(app);
+
+  verifyLogConfiguration();
+  startObservabilityWatchdog();
 
   server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
@@ -115,6 +137,15 @@ async function bootstrap() {
 
   server.listen(PORT, "0.0.0.0", async () => {
     console.log(`🚀 Server running at: ${BASE_URL}`);
+    if (infra.redisOk) {
+      console.log(`✅ Redis connected${socketAdapterActive ? " (Socket.IO adapter active)" : ""}`);
+    }
+    if (queueHealth.running) {
+      console.log("✅ Email queue workers running");
+    }
+    if (isAlertsEnabled()) {
+      console.log(`✅ Observability alerts enabled${process.env.ALERT_WEBHOOK_URL ? "" : " (webhook not set — log only)"}`);
+    }
 
     const smtpCheck = await verifySmtpConnection();
     if (smtpCheck.ok) {
@@ -132,6 +163,20 @@ async function bootstrap() {
   });
 
   module.exports = server;
+
+  const shutdown = async (signal) => {
+    systemLogger.info(`Received ${signal}, shutting down gracefully`);
+    try {
+      await stopQueueWorkers();
+      stopObservabilityWatchdog();
+    } catch (err) {
+      systemLogger.error("Error stopping queue workers", { error: err.message });
+    }
+    server.close(() => process.exit(0));
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
 bootstrap().catch((err) => {

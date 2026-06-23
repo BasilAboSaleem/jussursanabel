@@ -65,9 +65,11 @@
             ? `$${item.targetAmount}`
             : escapeHtml(boot.labels.targetOpen);
 
-        const fundingPercent = item.targetAmount > 0
-            ? Math.min((item.raisedAmount / item.targetAmount) * 100, 100)
-            : 0;
+        const fundingPercent = item.fundingBarPercent != null
+            ? item.fundingBarPercent
+            : (item.targetAmount > 0
+                ? Math.min((item.raisedAmount / item.targetAmount) * 100, 100)
+                : 0);
 
         const storyBtnHtml = item.hasStory
             ? `<a href="${escapeHtml(item.storyUrl)}" class="btn-lux btn-sm" style="width: 100%; justify-content: center; border-radius: 16px; padding: 12px 20px; font-weight: 800; margin-bottom: 10px; background: rgba(2,6,23,0.06); color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">

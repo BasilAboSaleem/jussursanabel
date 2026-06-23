@@ -123,7 +123,7 @@
 
                             <div class="card-footer-stats">
                                 <div class="progress-track">
-                                    <div class="progress-fill" style="width: <%= Math.min((item.raisedAmount / (item.targetAmount || 1) * 100), 100) %>%;"></div>
+                                    <div class="progress-fill" style="width: <%= typeof item.fundingBarPercent !== 'undefined' ? item.fundingBarPercent : Math.min((item.raisedAmount / (item.targetAmount || 1) * 100), 100) %>%;"></div>
                                 </div>
                                 <div class="stats-labels">
                                     <span class="raised-text"><%= __('cases_raised_text') %> $<%= item.raisedAmount %></span>

@@ -12,6 +12,12 @@
     "logs:pm2": "pm2 logs jussur-sanabel",
     "load:k6": "k6 run load-tests/k6-smoke.js",
     "load:artillery": "artillery run load-tests/artillery.yml",
+    "load:gate": "node scripts/load-gate.js",
+    "verify:rate-limits": "node scripts/verify-rate-limits.js",
+    "verify:redis": "node scripts/verify-redis.js",
+    "verify:observability": "node scripts/verify-observability.js",
+    "verify:stripe-webhook": "node scripts/verify-stripe-webhook.js",
+    "verify:go-nogo": "node scripts/verify-go-nogo.js",
     "stripe:webhook:listen": "stripe listen --forward-to localhost:3000/donations/webhook",
     "cap:sync": "npx cap sync android",
     "cap:open:android": "npx cap open android",
@@ -21,6 +27,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "nodemonConfig": {
+    "watch": [".env", "app", "server.js", "locales"]
+  },
   "engines": {
     "node": ">=18.0.0"
   },
@@ -64,6 +73,7 @@
     "@capacitor/cli": "^6.1.2",
     "@capacitor/core": "^6.1.2",
     "@capacitor/ios": "^6.1.2",
+    "autocannon": "^8.0.0",
     "nodemon": "^3.1.14",
     "pm2": "^6.0.14"
   }

@@ -6,6 +6,7 @@ const messageController = require('../controllers/messageController');
 const notificationController = require('../controllers/notificationController');
 const { protect, restrictTo, viewOnly, mediaRouteGuard } = require('../middlewares/auth');
 const { upload } = require('../utils/cloudinary');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // All admin routes are protected and restricted
 router.use(protect);
@@ -32,10 +33,10 @@ const caseStatusUpload = upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'gallery', maxCount: 20 }
 ]);
-router.post('/cases/:id/status', caseStatusUpload, adminController.updateCase);
-router.post('/cases/:id/media-content', caseStatusUpload, adminController.saveCaseMediaContent);
+router.post('/cases/:id/status', caseStatusUpload, csrfProtection, adminController.updateCase);
+router.post('/cases/:id/media-content', caseStatusUpload, csrfProtection, adminController.saveCaseMediaContent);
 router.post('/cases/:id/toggle-satisfaction', adminController.toggleCaseSatisfaction);
-router.post('/cases/:id/updates', upload.array('attachments', 10), adminController.addCaseUpdate);
+router.post('/cases/:id/updates', upload.array('attachments', 10), csrfProtection, adminController.addCaseUpdate);
 router.post('/cases/:id/hard-delete', restrictTo('super_admin'), adminController.hardDeleteCase);
 router.post('/cases/:id/toggle-visibility', restrictTo('super_admin'), adminController.toggleCaseVisibility);
 router.post('/cases/:id/story-hard-delete', restrictTo('super_admin'), adminController.hardDeleteStory);

@@ -70,18 +70,21 @@
                                         </td>
                                         <td style="padding: 15px 20px;">
                                             <span class="badge <%= 
+                                                (c.status === 'completed' || c.status === 'fully_sponsored') ? 'badge-success' :
                                                 c.status === 'approved' ? 'badge-teal' : 
                                                 c.status === 'field_verification' ? 'badge-gold' : 
                                                 c.status === 'media_review' ? 'badge-navy' : 
                                                 c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                            %>" style="font-size: 0.7rem;<%= c.status === 'media_review' ? ' background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
+                                            %>" style="font-size: 0.7rem;<%= c.status === 'media_review' ? ' background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? ' background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
                                                 <i class="fas <%= 
+                                                    (c.status === 'completed' || c.status === 'fully_sponsored') ? 'fa-heart-circle-check' :
                                                     c.status === 'approved' ? 'fa-check-circle' : 
                                                     c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
                                                     c.status === 'media_review' ? 'fa-photo-film' :
                                                     c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
                                                 %>"></i>
                                                 <%= 
+                                                    (c.status === 'completed' || c.status === 'fully_sponsored') ? 'مكتملة' :
                                                     c.status === 'approved' ? 'موثقة ونشطة' : 
                                                     c.status === 'field_verification' ? 'مسح ميداني حالياً' : 
                                                     c.status === 'media_review' ? 'تدقيق إعلامي' :

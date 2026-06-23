@@ -927,6 +927,8 @@
 	"status_pending": "Pending review",
 	"status_rejected": "Rejected",
 	"status_fully_sponsored": "Fully funded",
+	"status_completed": "Completed",
+	"notif_case_completed_msg": "Congratulations! Your case funding goal has been reached and it is now marked as completed. Thank you to everyone who contributed.",
 	"status_approved": "Approved",
 	"log_case_status_update": "Case status updated to: {status}",
 	"log_case_media_review": "Case moved to media review",

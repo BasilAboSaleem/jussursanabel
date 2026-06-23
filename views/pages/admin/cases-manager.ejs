@@ -66,12 +66,14 @@
                     </td>
                     <td style="padding: 20px;">
                         <span class="badge <%= 
+                            item.status === 'completed' || item.status === 'fully_sponsored' ? 'badge-success' :
                             item.status === 'approved' ? 'badge-success' : 
                             item.status === 'field_verification' ? 'badge-teal' : 
                             item.status === 'media_review' ? 'badge-purple' :
                             item.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                        %>" style="<%= item.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
+                        %>" style="<%= item.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((item.status === 'completed' || item.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
                             <%= 
+                                (item.status === 'completed' || item.status === 'fully_sponsored') ? (__('status_completed') || 'مكتملة') :
                                 item.status === 'approved' ? __('common_approved_desc') : 
                                 item.status === 'field_verification' ? __('common_field_verification') : 
                                 item.status === 'media_review' ? __('common_media_review') :
@@ -153,7 +155,7 @@
                                         <% } %>
                                     <% } %>
                                     
-                                    <% if (['field_verification', 'media_review', 'approved', 'fully_sponsored'].includes(item.status)) { %>
+                                    <% if (['field_verification', 'media_review', 'approved', 'completed', 'fully_sponsored'].includes(item.status)) { %>
                                         <div style="height: 1px; background: rgba(0,0,0,0.05); margin: 5px 0;"></div>
                                         <a href="/admin/cases/<%= item._id %>/field-report" target="_blank" class="dropdown-item" style="color: var(--primary); font-weight: 700;">
                                             <i class="fas fa-print"></i> <%= __('admin_cases_btn_print_report') || 'طباعة تقرير التحقق الميداني' %>
@@ -372,7 +374,7 @@
     }
 
     function openUpdateModal(id, title) {
-        document.getElementById('updateForm').action = '/admin/cases/' + id + '/updates?_csrf=<%= csrfToken %>';
+        document.getElementById('updateForm').action = '/admin/cases/' + id + '/updates';
         document.getElementById('updateModalTitle').innerText = '<%= __("admin_cases_manager_modal_update_prefix") %>' + title;
         document.getElementById('updateModal').style.display = 'flex';
     }

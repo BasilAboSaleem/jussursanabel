@@ -1,23 +1,33 @@
 const Case = require('../models/Case');
 const Testimonial = require('../models/Testimonial');
 const { prepareStoryVideo } = require('../utils/storyVideo');
+const { PUBLIC_CASE_STATUSES } = require('../utils/caseSatisfaction');
 
 exports.getHomepage = async (req, res) => {
     try {
-        // Fetch featured or recent cases that have a video story attached
-        const cases = await Case.find({ 
-            status: 'approved', 
-            isHidden: { $ne: true },
-            storyVideo: { $exists: true, $ne: '' } 
-        })
-            .select('title type description image raisedAmount targetAmount storyVideo createdAt')
-            .sort({ createdAt: -1 })
-            .limit(Number(process.env.HOMEPAGE_CASES_LIMIT || 8))
-            .lean();
-        
+        const casesLimit = Number(process.env.HOMEPAGE_CASES_LIMIT || 8);
+        const testimonialsLimit = Number(process.env.HOMEPAGE_TESTIMONIALS_LIMIT || 12);
+
+        const [cases, testimonials] = await Promise.all([
+            Case.find({
+                status: { $in: PUBLIC_CASE_STATUSES },
+                isHidden: { $ne: true },
+                storyVideo: { $exists: true, $ne: '' }
+            })
+                .select('title type description image raisedAmount targetAmount storyVideo createdAt')
+                .sort({ createdAt: -1 })
+                .limit(casesLimit)
+                .lean(),
+            Testimonial.find({ status: 'approved' })
+                .select('content user locationAr rating createdAt')
+                .populate('user', 'name avatar')
+                .sort({ createdAt: -1 })
+                .limit(testimonialsLimit)
+                .lean()
+        ]);
+
         const isEn = req.getLocale() === 'en';
 
-        // Mock data if DB is empty for initial run
         const demoCases = cases.length > 0 ? cases : (isEn ? [
             {
                 _id: '1',
@@ -57,14 +67,6 @@ exports.getHomepage = async (req, res) => {
                 targetAmount: 1500
             }
         ]);
-
-        // Fetch approved testimonials
-        const testimonials = await Testimonial.find({ status: 'approved' })
-            .select('content user locationAr rating createdAt')
-            .populate('user', 'name avatar')
-            .sort({ createdAt: -1 })
-            .limit(Number(process.env.HOMEPAGE_TESTIMONIALS_LIMIT || 12))
-            .lean();
 
         const preparedCases = demoCases.map((item) => {
             const plain = typeof item.toObject === 'function' ? item.toObject() : item;
@@ -183,7 +185,7 @@ exports.getTransparency = (req, res) => {
 };
 
 const STORIES_FEED_FILTER = {
-    status: 'approved',
+    status: { $in: PUBLIC_CASE_STATUSES },
     isHidden: { $ne: true },
     isStoryHidden: { $ne: true },
     storyVideo: { $exists: true, $ne: '' }

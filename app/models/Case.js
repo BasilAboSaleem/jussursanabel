@@ -12,7 +12,7 @@ const caseSchema = new mongoose.Schema({
     monthlySponsorshipAmount: { type: Number, default: 100 }, // suggested amount
     status: { 
         type: String, 
-        enum: ['pending', 'field_verification', 'media_review', 'approved', 'rejected', 'fully_sponsored'], 
+        enum: ['pending', 'field_verification', 'media_review', 'approved', 'rejected', 'completed', 'fully_sponsored'], 
         default: 'pending' 
     },
     verificationNotes: { type: String },
@@ -74,7 +74,7 @@ const caseSchema = new mongoose.Schema({
     sponsorshipExpiryDate: { type: Date },
     currentSponsor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isSatisfied: { type: Boolean, default: false },
-    satisfiedBy: { type: String, enum: ['admin', 'guardian', 'none'], default: 'none' },
+    satisfiedBy: { type: String, enum: ['admin', 'guardian', 'goal_reached', 'none'], default: 'none' },
     needs: [{ type: String }],
     // Phase 2: Trust & Impact
     impactMetrics: [{

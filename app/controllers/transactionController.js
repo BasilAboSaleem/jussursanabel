@@ -6,17 +6,21 @@ const User = require('../models/User');
 const { logActivity, systemLogger } = require('../utils/logger');
 const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
-const Stripe = require('stripe');
+const { getStripeClient } = require('../utils/stripeConfig');
 
-const stripeSecretKey = process.env.Live_Secret_KEY || process.env.STRIPE_SECRET_KEY || process.env.TEST_SECRET_KEY;
-const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripeCurrency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
-const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+const {
+    collectWebhookSecrets,
+    getStripeWebhookRawBody,
+    constructStripeWebhookEvent,
+    getWebhookSignatureHint,
+} = require('../utils/stripeWebhook');
+const { isDonationsClosed, applyGoalReachedState } = require('../utils/caseSatisfaction');
 
 const toMinorUnits = (value) => Math.round(Number(value || 0) * 100);
 
 const verifyCaseIsDonatable = (foundCase, type) => {
-    if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') {
+    if (isDonationsClosed(foundCase)) {
         return { ok: false, key: 'flash_case_satisfied_short' };
     }
     if (type === 'monthly' && foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date()) {
@@ -56,11 +60,7 @@ const applyVerifiedDonationEffects = async ({ transaction, foundCase }) => {
         foundCase.sponsorshipExpiryDate = expiryDate;
         foundCase.currentSponsor = transaction.donor;
     }
-    if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
-        foundCase.status = 'fully_sponsored';
-        foundCase.isSatisfied = true;
-        foundCase.satisfiedBy = 'admin';
-    }
+    applyGoalReachedState(foundCase);
     await foundCase.save();
 
     await logActivity(
@@ -371,7 +371,7 @@ exports.getCheckout = async (req, res) => {
             return res.redirect('/cases');
         }
 
-        if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') {
+        if (isDonationsClosed(foundCase)) {
             req.flash('error', res.__('flash_case_satisfied'));
             return res.redirect(`/cases/${caseId}`);
         }
@@ -409,6 +409,7 @@ exports.getCheckout = async (req, res) => {
 
 exports.processDonation = async (req, res) => {
     try {
+        const stripe = getStripeClient();
         if (!stripe) {
             req.flash('error', 'Stripe غير مهيأ على الخادم.');
             return res.redirect('/cases');
@@ -492,6 +493,7 @@ exports.processDonation = async (req, res) => {
 
 exports.handleCheckoutSuccess = async (req, res) => {
     try {
+        const stripe = getStripeClient();
         if (!stripe) {
             req.flash('error', 'Stripe غير مهيأ على الخادم.');
             return res.redirect('/dashboard');
@@ -539,7 +541,10 @@ exports.handleCheckoutCancel = async (req, res) => {
 };
 
 exports.handleStripeWebhook = async (req, res) => {
-    if (!stripe || !stripeWebhookSecret) {
+    const stripe = getStripeClient();
+    const webhookSecrets = collectWebhookSecrets();
+
+    if (!stripe || webhookSecrets.length === 0) {
         systemLogger.error('Stripe webhook rejected: missing configuration');
         return res.status(503).send('Stripe webhook is not configured');
     }
@@ -549,12 +554,24 @@ exports.handleStripeWebhook = async (req, res) => {
         return res.status(400).send('Missing Stripe signature');
     }
 
+    const rawBody = getStripeWebhookRawBody(req);
+    if (!rawBody || rawBody.length === 0) {
+        systemLogger.warn('Stripe webhook rejected: body is not raw', {
+            bodyType: req.body === undefined ? 'undefined' : typeof req.body,
+        });
+        return res.status(400).send('Webhook requires raw JSON body');
+    }
+
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.body, signature, stripeWebhookSecret);
+        event = constructStripeWebhookEvent(stripe, rawBody, signature);
     } catch (err) {
-        systemLogger.warn('Stripe webhook signature verification failed', { error: err.message });
+        systemLogger.warn('Stripe webhook signature verification failed', {
+            error: err.message,
+            secretsTried: webhookSecrets.length,
+            hint: getWebhookSignatureHint(webhookSecrets.length),
+        });
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -636,13 +653,19 @@ exports.handleStripeWebhook = async (req, res) => {
 };
 
 exports.getStripeWebhookStatus = (req, res) => {
+    const stripe = getStripeClient();
     const baseUrl = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const secrets = collectWebhookSecrets();
     res.json({
-        configured: Boolean(stripe && stripeWebhookSecret),
+        configured: Boolean(stripe && secrets.length > 0),
         stripeEnabled: Boolean(stripe),
-        webhookSecretSet: Boolean(stripeWebhookSecret),
+        webhookSecretSet: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+        cliWebhookSecretSet: Boolean(process.env.STRIPE_CLI_WEBHOOK_SECRET),
+        signingSecretsConfigured: secrets.length,
         endpoint: `${baseUrl}/donations/webhook`,
         metadataSchema: '2',
+        localTestingNote:
+            'stripe listen uses a different whsec_ than Dashboard — set STRIPE_CLI_WEBHOOK_SECRET from the CLI output.',
         events: [
             'checkout.session.completed',
             'checkout.session.async_payment_succeeded',
@@ -654,7 +677,7 @@ exports.getStripeWebhookStatus = (req, res) => {
     });
 };
 
-if (stripe && !stripeWebhookSecret) {
+if (getStripeClient() && collectWebhookSecrets().length === 0) {
     systemLogger.warn(
         'STRIPE_SECRET_KEY is set but STRIPE_WEBHOOK_SECRET is missing — donations may not verify if the donor closes the browser before the success page'
     );

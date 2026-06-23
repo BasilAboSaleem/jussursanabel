@@ -97,3 +97,30 @@ Environment: local single VPS-style node process
 - `/cases` throughput improved to ~`39 req/s` with much lower average latency than previous stressed runs.
 - Stability under soak is significantly better (no errors, tight p99).
 
+---
+
+## Round 3 — Load Gate SLO (`npm run load:gate`)
+
+Date: 2026-06-23  
+Environment: local single node + Redis, early public page cache enabled  
+Report: `load-tests/latest-gate-report.json`
+
+| Profile | Path | p95 | avg | error rate | result |
+|---------|------|-----|-----|------------|--------|
+| baseline | `/health` | 1ms | 0ms | 0% | PASS |
+| stress-homepage | `/` | 9ms | 5ms | 0% | PASS |
+| stress-cases | `/cases` | 6ms | 4ms | 0% | PASS |
+| soak-cases | `/cases` | 3ms | 1ms | 0% | PASS |
+
+SLO targets: error rate &lt; 1%, public page p95 ≤ 1200ms.
+
+### Changes that unlocked the gate
+
+- `earlyPublicPageCache` middleware serves anonymous cache HITs before session/CSRF/compression.
+- In-memory L1 + Redis L2 page cache with stampede coalescing on MISS.
+- Load gate warm-up runs 5 rounds across public paths before stress/soak.
+
+### Note for production benchmarking
+
+Run the server with `LOAD_TEST_MODE=true` during the gate only, then restore to `false`. For PM2 cluster runs, use `npm run start:pm2` as documented in Round 2.
+

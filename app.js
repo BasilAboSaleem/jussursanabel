@@ -16,7 +16,6 @@ const compression = require("compression");
 const methodOverride = require("method-override");
 const i18n = require("i18n");
 const { cloudinaryEnabled } = require("./app/utils/storyVideo");
-const { redisClient } = require("./app/utils/redis");
 const { metricsMiddleware, metricsHandler } = require("./app/utils/monitoring");
 const { protectMetrics } = require("./app/middlewares/metricsAuth");
 const { sanitizeRequest } = require("./app/middlewares/securitySanitizer");
@@ -31,10 +30,16 @@ i18n.configure({
 });
 
 const { csrfProtection, shouldSkipGlobalCsrf } = require("./app/middlewares/csrf");
+const {
+  buildHelmetConfig,
+  resolveTrustProxy,
+  sessionCookieOptions,
+  isProduction,
+} = require("./app/config/security");
 
 // Middlewares
 const authMiddleware = require("./app/middlewares/auth");
-const { apiLimiter, authLimiter, paymentLimiter } = require("./app/middlewares/rateLimiter");
+const { apiLimiter, authLimiter, paymentLimiter, selfTestLimiter } = require("./app/middlewares/rateLimiter");
 const { systemLogger } = require("./app/utils/logger");
 const { sendAlert } = require("./app/utils/alerting");
 const { verifyProductionEnv } = require("./app/utils/envGuard");
@@ -45,16 +50,21 @@ verifyProductionEnv();
 // App Initialization
 const app = express();
 app.disable("x-powered-by");
-const isProduction = process.env.NODE_ENV === "production";
 const rawCorsOrigins = process.env.CORS_ORIGINS || process.env.BASE_URL || "";
 const allowedOrigins = rawCorsOrigins
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
-if (isProduction) {
-  app.set("trust proxy", Number(process.env.TRUST_PROXY || 1));
+const trustProxy = resolveTrustProxy();
+if (trustProxy !== false) {
+  app.set("trust proxy", trustProxy);
 }
+
+app.use((req, res, next) => {
+  res.removeHeader("X-Powered-By");
+  next();
+});
 
 const assetBaseUrl = (process.env.CDN_BASE_URL || "").replace(/\/$/, "");
 app.locals.asset = (pathValue = "") => {
@@ -71,24 +81,32 @@ app.get("/health", (req, res) => {
 
 app.get("/health/ready", async (req, res) => {
   try {
-    const redisStatus = redisClient ? redisClient.status : "disabled";
-    return res.status(200).json({
-      ok: true,
-      redis: redisStatus,
+    const { evaluateReadiness } = require("./app/utils/readiness");
+    const readiness = await evaluateReadiness();
+
+    return res.status(readiness.ok ? 200 : 503).json({
+      ok: readiness.ok,
+      mongo: readiness.mongo,
+      redis: readiness.redis,
+      queue: readiness.queue,
+      socketAdapter: readiness.socketAdapter,
+      checks: readiness.checks,
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
+    return res.status(503).json({ ok: false, error: err.message });
   }
 });
 
 app.get("/metrics", protectMetrics, metricsHandler);
 
+const bodyLimit = process.env.APP_BODY_LIMIT || "5mb";
+
 // Stripe webhook must use raw body and bypass session/CSRF middleware
 app.post(
   "/donations/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: () => true, limit: bodyLimit }),
   transactionController.handleStripeWebhook
 );
 
@@ -99,7 +117,6 @@ app.set("views", path.join(__dirname, "views"));
 // app.set("layout", "layouts/main-layout");
 
 // Global Middleware
-const bodyLimit = process.env.APP_BODY_LIMIT || "5mb";
 const jsonParser = express.json({ limit: bodyLimit });
 const urlEncodedParser = express.urlencoded({ extended: true, limit: bodyLimit });
 app.use((req, res, next) => {
@@ -112,7 +129,15 @@ app.use((req, res, next) => {
 });
 app.use(cookieParser());
 app.use(i18n.init);
-app.use(hpp());
+const { earlyPublicPageCache } = require("./app/middlewares/cache");
+app.use(earlyPublicPageCache);
+app.use(
+  hpp({
+    checkQuery: true,
+    checkBody: true,
+    checkBodyOnlyForContentType: ["application/x-www-form-urlencoded", "application/json"],
+  })
+);
 app.use(sanitizeRequest);
 app.use(express.static(path.join(__dirname, "public"), { maxAge: "30d" }));
 
@@ -149,27 +174,8 @@ app.use(compression());
 app.use(methodOverride("_method"));
 app.use(metricsMiddleware);
 
-// Security
-app.use(helmet({ 
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        baseUri: ["'self'"],
-        objectSrc: ["'none'"],
-        frameAncestors: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://js.stripe.com"],
-        scriptSrcAttr: ["'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-        imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-        connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
-        frameSrc: ["'self'", "https://checkout.stripe.com", "https://js.stripe.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"],
-        mediaSrc: ["'self'", "https:", "blob:"],
-        formAction: ["'self'", "https://checkout.stripe.com"],
-      },
-    },
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" }
-}));
+// Security headers (Helmet + CSP)
+app.use(helmet(buildHelmetConfig()));
 app.use(apiLimiter); // Apply global rate limiter
 
 if (process.env.NODE_ENV !== "production") {
@@ -182,7 +188,7 @@ app.use(
     secret: process.env.SESSION_SECRET || (isProduction ? undefined : "subulDevSecrets"),
     resave: false,
     saveUninitialized: false,
-    proxy: isProduction,
+    proxy: trustProxy !== false,
     store: process.env.MONGODB_URI
       ? MongoStore.create({
           mongoUrl: process.env.MONGODB_URI,
@@ -191,12 +197,7 @@ app.use(
           crypto: { secret: process.env.SESSION_SECRET || (isProduction ? undefined : "subulDevSecrets") },
         })
       : undefined,
-    cookie: {
-      httpOnly: true,
-      secure: isProduction,
-      maxAge: 1000 * 60 * 60 * 24,
-      sameSite: process.env.SESSION_SAME_SITE || "lax",
-    },
+    cookie: sessionCookieOptions(),
   })
 );
 app.use(flash());
@@ -236,6 +237,12 @@ const messageRoutes = require("./app/routes/messages");
 const profileRoutes = require("./app/routes/profile");
 const supportRoutes = require("./app/routes/support");
 const notificationRoutes = require("./app/routes/notifications");
+
+if (process.env.ENABLE_RATE_LIMIT_SELFTEST === "true" && !isProduction) {
+  app.get("/__internal/rate-limit-selftest", selfTestLimiter, (req, res) => {
+    res.json({ ok: true, message: "rate limit self-test ok" });
+  });
+}
 
 app.use("/", indexRoutes);
 app.use("/auth", authLimiter, authRoutes);

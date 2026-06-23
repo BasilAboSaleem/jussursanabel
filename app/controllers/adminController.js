@@ -19,6 +19,7 @@ const path = require('path');
 const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
 const { normalizePalestinianId } = require('../utils/palestinianIdValidator');
+const { applyGoalReachedState, hasReachedFundingGoal, normalizeLegacyCompletedStatus } = require('../utils/caseSatisfaction');
 
 const PASSWORD_RECOVERY_ROLES = ['donor', 'beneficiary', 'family', 'guardian'];
 
@@ -607,8 +608,8 @@ exports.updateCase = async (req, res) => {
             } else if (toStatus === 'rejected') {
                 notifMessage = res.__('notif_case_rejected_msg', { reason: rejectionReason || '—' });
                 notifType = 'danger';
-            } else if (toStatus === 'fully_sponsored') {
-                notifMessage = res.__('notif_case_satisfied_msg');
+            } else if (toStatus === 'completed' || toStatus === 'fully_sponsored') {
+                notifMessage = res.__('notif_case_completed_msg') || res.__('notif_case_satisfied_msg');
                 notifType = 'success';
             } else if (toStatus === 'media_review') {
                 notifMessage = res.__('notif_case_media_review_msg');
@@ -1028,12 +1029,7 @@ exports.updateTransactionStatus = async (req, res) => {
                     foundCase.currentSponsor = transaction.donor;
                 }
 
-                // Check if target is reached
-                if (foundCase.targetAmount && foundCase.raisedAmount >= foundCase.targetAmount) {
-                    foundCase.status = 'fully_sponsored';
-                    foundCase.isSatisfied = true;
-                    foundCase.satisfiedBy = 'admin';
-                }
+                applyGoalReachedState(foundCase);
                 await foundCase.save();
             }
         }
@@ -1237,18 +1233,27 @@ exports.toggleCaseSatisfaction = async (req, res) => {
             return res.redirect('/admin/cases-manager');
         }
 
-        foundCase.isSatisfied = !foundCase.isSatisfied;
-        foundCase.satisfiedBy = foundCase.isSatisfied ? 'admin' : 'none';
-        
-        // Ensure status doesn't change incorrectly
-        if (foundCase.isSatisfied && foundCase.status !== 'approved') {
-            // Optional: logical check if we want to force status to something else, 
-            // but for now we keep it as is unless it's already approved.
+        if (foundCase.satisfiedBy === 'admin') {
+            if (hasReachedFundingGoal(foundCase)) {
+                foundCase.isSatisfied = true;
+                foundCase.satisfiedBy = 'goal_reached';
+                foundCase.status = 'completed';
+            } else {
+                foundCase.isSatisfied = false;
+                foundCase.satisfiedBy = 'none';
+            }
+            if (foundCase.status === 'fully_sponsored') {
+                foundCase.status = 'completed';
+            }
+        } else {
+            foundCase.isSatisfied = true;
+            foundCase.satisfiedBy = 'admin';
         }
 
         await foundCase.save();
 
-        const statusText = foundCase.isSatisfied ? res.__('case_satisfied_yes') : res.__('case_satisfied_no');
+        const donationsClosed = foundCase.satisfiedBy === 'admin';
+        const statusText = donationsClosed ? res.__('case_satisfied_yes') : res.__('case_satisfied_no');
         await logActivity(req.user._id, 'case_update', 'Case', id, 
             res.__('log_case_satisfied', { status: statusText }));
 
@@ -1258,8 +1263,8 @@ exports.toggleCaseSatisfaction = async (req, res) => {
                 recipient: foundCase.guardian,
                 sender: req.user._id,
                 title: res.__('notif_case_satisfied_title'),
-                message: foundCase.isSatisfied ? res.__('notif_case_satisfied_msg') : res.__('notif_case_unsatisfied_msg'),
-                type: foundCase.isSatisfied ? 'success' : 'warning',
+                message: donationsClosed ? res.__('notif_case_satisfied_msg') : res.__('notif_case_unsatisfied_msg'),
+                type: donationsClosed ? 'success' : 'warning',
                 targetType: 'specific',
                 link: `/cases/${foundCase._id}`
             });

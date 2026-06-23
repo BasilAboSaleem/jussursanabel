@@ -62,25 +62,28 @@
                         </div>
                     </div>
                     
-                    <% const heroProgress = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
+                    <% const heroProgress = typeof fundingBarPercent !== 'undefined' ? fundingBarPercent : Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
                     <div class="case-hero-progress-track">
                         <div class="case-hero-progress-fill" style="<%= 'width: ' + heroProgress + '%' %>"></div>
                     </div>
                     
-                    <% if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') { %>
+                    <div class="case-hero-cta-stack">
+                    <% if (typeof showCompletedBadge !== 'undefined' && showCompletedBadge) { %>
                         <div class="case-hero-satisfied-badge">
                             <div class="satisfied-glow"></div>
-                            <i class="fas fa-heart-circle-check"></i>
+                            <i class="fas fa-heart-circle-check" aria-hidden="true"></i>
                             <div class="satisfied-text">
-                                <span class="satisfied-main"><%= __('case_details_satisfied_title') %></span>
-                                <span class="satisfied-sub">بفضل الله وكرمه تم اكتفاء الحالة</span>
+                                <span class="satisfied-main"><%= __('cases_satisfied_text') %></span>
+                                <p class="satisfied-sub"><%= __('case_details_satisfied_desc') %></p>
                             </div>
                         </div>
-                    <% } else { %>
+                    <% } %>
+                    <% if (typeof donationsClosed === 'undefined' || !donationsClosed) { %>
                         <a href="/donations/checkout?case=<%= foundCase._id %>&type=direct" class="hero-donate-btn w-100 d-flex justify-content-center align-items-center gap-2">
-                            <i class="fas fa-donate"></i> تبرع الآن
+                            <i class="fas fa-donate"></i> <%= __('case_details_btn_direct') %>
                         </a>
                     <% } %>
+                    </div>
                 </div>
             </div>
         </div>
@@ -319,7 +322,7 @@
                             <span class="case-side-target"><%= __('cases_target_text') %>: $<%= foundCase.targetAmount %></span>
                         </div>
                         <div class="progress-track case-progress-track">
-                            <% const progressPercent = Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
+                            <% const progressPercent = typeof fundingBarPercent !== 'undefined' ? fundingBarPercent : Math.min((foundCase.raisedAmount / (foundCase.targetAmount || 1) * 100), 100); %>
                             <div class="progress-fill" data-progress="<%= progressPercent %>"></div>
                             
                             <!-- Milestone Markers -->
@@ -375,7 +378,7 @@
                         const isSponsored = foundCase.sponsorshipExpiryDate && foundCase.sponsorshipExpiryDate > new Date();
                     %>
 
-                    <% if (foundCase.isSatisfied || foundCase.status === 'fully_sponsored') { %>
+                    <% if (typeof donationsClosed !== 'undefined' && donationsClosed) { %>
                         <div class="case-side-box case-satisfied-premium">
                             <div class="case-satisfied-icon"><i class="fas fa-heart-circle-check fa-3x"></i></div>
                             <h4 class="font-cairo"><%= __('case_details_satisfied_title') %></h4>
@@ -803,7 +806,7 @@
         background: rgba(255, 255, 255, 0.15);
         border-radius: 20px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-        margin-bottom: 30px;
+        margin-bottom: 22px;
         position: relative;
         overflow: hidden;
     }
@@ -847,6 +850,95 @@
         transform: translateY(-3px);
         box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
     }
+
+    .case-hero-cta-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .case-hero-satisfied-badge {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px 20px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(6, 95, 70, 0.55) 0%, rgba(16, 185, 129, 0.28) 100%);
+        border: 1px solid rgba(110, 231, 183, 0.5);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        overflow: visible;
+    }
+
+    .case-hero-satisfied-badge .satisfied-glow {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at 15% 40%, rgba(110, 231, 183, 0.2), transparent 65%);
+        pointer-events: none;
+    }
+
+    .case-hero-satisfied-badge > i {
+        flex-shrink: 0;
+        font-size: 1.85rem;
+        color: #6ee7b7;
+        margin-top: 2px;
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+    }
+
+    .case-hero-satisfied-badge .satisfied-text {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .case-hero-satisfied-badge .satisfied-main {
+        font-family: 'Cairo', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: #ecfdf5;
+        line-height: 1.35;
+        letter-spacing: 0.01em;
+    }
+
+    .case-hero-satisfied-badge .satisfied-sub {
+        margin: 0;
+        font-family: 'Cairo', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.94);
+        line-height: 1.7;
+    }
+
+    .case-satisfied-premium {
+        border: 2px solid rgba(16, 185, 129, 0.35);
+        text-align: center;
+        background: linear-gradient(to bottom right, #ecfdf5, #ffffff);
+        padding: 24px 20px;
+    }
+    .case-satisfied-premium .case-satisfied-icon {
+        color: #10b981;
+        margin-bottom: 12px;
+    }
+    .case-satisfied-premium h4 {
+        margin: 0 0 10px;
+        font-weight: 950;
+        color: #065f46;
+    }
+    .case-satisfied-premium p {
+        margin: 0;
+        color: #047857;
+        font-size: 0.92rem;
+        font-weight: 700;
+        line-height: 1.7;
+    }
+
     .case-hero-fade {
         position: absolute;
         bottom: 0;

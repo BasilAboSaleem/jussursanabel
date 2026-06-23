@@ -4,6 +4,7 @@ const ChatRequest = require('../models/ChatRequest');
 const Testimonial = require('../models/Testimonial');
 const CaseUpdate = require('../models/CaseUpdate');
 const { logActivity } = require('../utils/logger');
+const { hasReachedFundingGoal } = require('../utils/caseSatisfaction');
 
 exports.getDashboard = async (req, res) => {
     try {
@@ -72,6 +73,11 @@ exports.getDashboard = async (req, res) => {
         }
 
         if (user.role === 'beneficiary' || user.role === 'family' || user.role === 'guardian') {
+            await Case.updateMany(
+                { guardian: user._id, status: 'fully_sponsored' },
+                { $set: { status: 'completed' } }
+            );
+
             const myCases = await Case.find({ guardian: user._id }).sort({ createdAt: -1 });
             const approvedChats = await ChatRequest.find({ 
                 family: user._id, 
@@ -169,8 +175,8 @@ exports.toggleCaseSatisfaction = async (req, res) => {
         // Rule: Only 1 active case per beneficiary at all times.
         // If they want to RE-ENABLE this case (cancel satisfaction),
         // we must ensure they have NO other active (non-satisfied, approved) case.
-        const isReEnabling = foundCase.isSatisfied === true; // going from satisfied → active
-        if (isReEnabling) {
+        const isReOpeningDonations = foundCase.satisfiedBy === 'guardian';
+        if (isReOpeningDonations) {
             const otherActiveCase = await Case.findOne({
                 guardian: req.user._id,
                 _id: { $ne: foundCase._id },
@@ -186,8 +192,21 @@ exports.toggleCaseSatisfaction = async (req, res) => {
             }
         }
 
-        foundCase.isSatisfied = !foundCase.isSatisfied;
-        foundCase.satisfiedBy = foundCase.isSatisfied ? 'guardian' : 'none';
+        if (foundCase.satisfiedBy === 'goal_reached') {
+            foundCase.satisfiedBy = 'guardian';
+            foundCase.isSatisfied = true;
+        } else if (foundCase.satisfiedBy === 'guardian') {
+            if (hasReachedFundingGoal(foundCase)) {
+                foundCase.isSatisfied = true;
+                foundCase.satisfiedBy = 'goal_reached';
+            } else {
+                foundCase.isSatisfied = false;
+                foundCase.satisfiedBy = 'none';
+            }
+        } else {
+            foundCase.isSatisfied = true;
+            foundCase.satisfiedBy = 'guardian';
+        }
         
         await foundCase.save();
 

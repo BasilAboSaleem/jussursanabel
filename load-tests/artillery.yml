@@ -2,14 +2,14 @@ config:
   target: "http://localhost:3000"
   phases:
     - duration: 60
-      arrivalRate: 20
+      arrivalRate: 5
       name: warmup
     - duration: 120
-      arrivalRate: 80
+      arrivalRate: 15
       name: ramp
     - duration: 60
-      arrivalRate: 120
-      name: sustained
+      arrivalRate: 25
+      name: sustained-beta
   defaults:
     headers:
       User-Agent: "artillery-load-test"
@@ -27,4 +27,3 @@ scenarios:
           url: "/contact"
       - get:
           url: "/health"
-

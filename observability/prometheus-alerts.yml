@@ -4,6 +4,20 @@ groups:
       - alert: HighHttp5xxRate
         expr: |
           (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP 5xx rate is above 2%"
+          description: "Error ratio over 5 minutes exceeded SLO threshold."
+
+      - alert: HighHttp5xxRateHistogram
+        expr: |
+          (
             sum(rate(http_request_duration_ms_count{status_code=~"5.."}[5m]))
             /
             sum(rate(http_request_duration_ms_count[5m]))
@@ -29,7 +43,7 @@ groups:
           description: "Latency SLO breached for 10 minutes."
 
       - alert: ReadinessDown
-        expr: up{job="jussur-ready"} == 0
+        expr: app_readiness_ok == 0
         for: 2m
         labels:
           severity: critical

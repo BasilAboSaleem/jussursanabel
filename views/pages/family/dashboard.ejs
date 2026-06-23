@@ -36,8 +36,13 @@
     <div class="grid-auto-3" style="margin-bottom: 40px;">
         <div class="luxury-card glass-panel stat-card-lux secondary-active">
             <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
-            <div class="stat-label">الحالات النشطة (الموثقة)</div>
+            <div class="stat-label">الحالات الموثقة النشطة</div>
             <div class="stat-value"><%= myCases.filter(c => c.status === 'approved').length %></div>
+        </div>
+        <div class="luxury-card glass-panel stat-card-lux" style="border-top: 3px solid #10b981;">
+            <div class="stat-icon" style="color: #10b981;"><i class="fas fa-check-double"></i></div>
+            <div class="stat-label">حالات مكتملة</div>
+            <div class="stat-value"><%= myCases.filter(c => c.status === 'completed' || c.status === 'fully_sponsored').length %></div>
         </div>
         <div class="luxury-card glass-panel stat-card-lux accent-active">
             <div class="stat-icon"><i class="fas fa-clock"></i></div>
@@ -97,18 +102,21 @@
                                         <td data-label="حالة التوثيق">
                                             <div class="status-cell">
                                                 <span class="badge <%= 
+                                                    (c.status === 'completed' || c.status === 'fully_sponsored') ? 'badge-success' :
                                                     c.status === 'approved' ? 'badge-teal' : 
                                                     c.status === 'field_verification' ? 'badge-gold' : 
                                                     c.status === 'media_review' ? 'badge-navy' : 
                                                     c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                                %>" style="<%= c.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : '' %>">
+                                                %>" style="<%= c.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
                                                     <i class="fas <%= 
+                                                        (c.status === 'completed' || c.status === 'fully_sponsored') ? 'fa-heart-circle-check' :
                                                         c.status === 'approved' ? 'fa-check-circle' : 
                                                         c.status === 'field_verification' ? 'fa-truck-ramp-box' : 
                                                         c.status === 'media_review' ? 'fa-photo-film' :
                                                         c.status === 'rejected' ? 'fa-times-circle' : 'fa-clock' 
                                                     %>"></i>
                                                     <%= 
+                                                        (c.status === 'completed' || c.status === 'fully_sponsored') ? 'مكتملة' :
                                                         c.status === 'approved' ? 'موثقة' : 
                                                         c.status === 'field_verification' ? 'مسح ميداني' : 
                                                         c.status === 'media_review' ? 'تدقيق إعلامي' :
@@ -126,16 +134,19 @@
                                                 <form action="/dashboard/case/<%= c._id %>/toggle-satisfaction" method="POST" style="margin: 0;">
                                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                     <% 
-                                                        const isAdminSatisfied = c.isSatisfied && c.satisfiedBy === 'admin';
+                                                        const isAdminSatisfied = c.satisfiedBy === 'admin';
+                                                        const isGoalReachedOpen = c.satisfiedBy === 'goal_reached';
+                                                        const isGuardianClosed = c.satisfiedBy === 'guardian';
                                                         const btnTitle = isAdminSatisfied ? 
                                                             (lang === 'ar' ? 'تم إغلاق الحالة بقرار إداري - لا يمكن إعادة فتحها من هنا' : 'Case closed by admin - cannot be reopened here') : 
-                                                            (c.isSatisfied ? (lang === 'ar' ? 'إعادة التفعيل واستقبال الدعم' : 'Reactivate and receive support') : (lang === 'ar' ? 'إعلان الاكتفاء من التبرعات' : 'Declare direct satisfaction'));
+                                                            (isGoalReachedOpen ? (lang === 'ar' ? 'إعلان الاكتفاء وإيقاف استقبال التبرعات' : 'Declare satisfaction and stop receiving donations') :
+                                                            (isGuardianClosed ? (lang === 'ar' ? 'إعادة فتح التبرعات' : 'Reopen donations') : (lang === 'ar' ? 'إعلان الاكتفاء من التبرعات' : 'Declare direct satisfaction')));
                                                     %>
                                                     <button type="submit" 
-                                                        class="btn-action-lux <%= c.isSatisfied ? 'active' : 'warning' %>" 
+                                                        class="btn-action-lux <%= (isGuardianClosed || isAdminSatisfied) ? 'active' : 'warning' %>" 
                                                         title="<%= btnTitle %>"
                                                         <%= isAdminSatisfied ? 'disabled style="opacity: 0.5; cursor: not-allowed; filter: grayscale(1);"' : '' %> >
-                                                        <i class="fas <%= c.isSatisfied ? 'fa-heart-circle-check' : 'fa-hand-holding-heart' %>"></i>
+                                                        <i class="fas <%= (isGuardianClosed || isAdminSatisfied) ? 'fa-heart-circle-check' : 'fa-hand-holding-heart' %>"></i>
                                                     </button>
                                                 </form>
                                             </div>

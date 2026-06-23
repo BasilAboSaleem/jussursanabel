@@ -7,6 +7,13 @@ const fs = require('fs');
 const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrl, resolveStoryVideo, cloudinaryEnabled, prepareStoryVideo } = require('../utils/storyVideo');
 const { caseCardImageUrl } = require('../utils/imageUrl');
+const {
+    PUBLIC_CASE_STATUSES,
+    fundingPercent,
+    fundingBarPercent,
+    isDonationsClosed,
+    showsCompletedBadge
+} = require('../utils/caseSatisfaction');
 
 const PLATFORM_ADMIN_ROLES = new Set(['admin', 'super_admin', 'regulator', 'media']);
 
@@ -30,7 +37,7 @@ function parseCasesListQuery(req) {
 }
 
 function buildCasesListFilter({ selectedType, verifiedOnly }) {
-    const filter = { status: 'approved', isHidden: { $ne: true } };
+    const filter = { status: { $in: PUBLIC_CASE_STATUSES }, isHidden: { $ne: true } };
 
     if (selectedType !== 'all') {
         filter.type = selectedType;
@@ -61,12 +68,11 @@ function formatCaseForList(item) {
         raisedAmount: item.raisedAmount || 0,
         targetAmount: item.targetAmount,
         isFieldVerified: Boolean(item.isFieldVerified),
-        isSatisfied: Boolean(item.isSatisfied),
+        isSatisfied: showsCompletedBadge(item),
         hasStory,
         storyUrl: hasStory ? `/stories?caseId=${item._id}` : null,
-        fundingPercent: item.targetAmount > 0
-            ? Math.min(Math.round((item.raisedAmount / item.targetAmount) * 100), 100)
-            : 0
+        fundingPercent: fundingPercent(item),
+        fundingBarPercent: fundingBarPercent(item)
     };
 }
 
@@ -395,6 +401,11 @@ exports.getCaseDetails = async (req, res) => {
             return res.status(404).render('errors/error', { title: '404', message: res.__('flash_case_not_found'), error: {} });
         }
 
+        if (foundCase.status === 'fully_sponsored') {
+            foundCase.status = 'completed';
+            Case.findByIdAndUpdate(req.params.id, { status: 'completed' }).catch(() => {});
+        }
+
         // Fetch recent transactions for this case (public ones)
         const recentDonors = await Transaction.find({ 
             case: req.params.id, 
@@ -438,6 +449,10 @@ exports.getCaseDetails = async (req, res) => {
             teams,
             chatRequest,
             canViewFamilyStructure: showFamilyStructure,
+            donationsClosed: isDonationsClosed(foundCase),
+            showCompletedBadge: showsCompletedBadge(foundCase),
+            fundingPercent: fundingPercent(foundCase),
+            fundingBarPercent: fundingBarPercent(foundCase),
             metaDescription,
             ogImage: foundCase.image,
             fullUrl,

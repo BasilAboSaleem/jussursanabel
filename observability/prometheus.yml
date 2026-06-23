@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - prometheus-alerts.yml
+
+scrape_configs:
+  - job_name: jussur-sanabel
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['localhost:3000']

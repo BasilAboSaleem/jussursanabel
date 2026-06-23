@@ -11,7 +11,10 @@ logs/*
 !logs/.gitkeep
 .cursor/
 tmp/*.tmp
-
+SECURITY_RUNBOOK.md
+DEPLOYMENT_CHECKLIST.md
+LOAD_TEST_RESULTS.md
+system_rollback_backup.md
 # Android (Capacitor) — احتفظ بالمشروع، لا ترفع مخرجات البناء
 android/.gradle/
 android/app/build/
