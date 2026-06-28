@@ -3,8 +3,7 @@ const User = require('../models/User');
 const ChatRequest = require('../models/ChatRequest');
 const Case = require('../models/Case');
 const Notification = require('../models/Notification');
-const cloudinary = require('../utils/cloudinary');
-const fs = require('fs');
+const { persistChatImage } = require('../utils/cloudinary');
 
 const getUserId = (b) => {
     if (!b) return null;
@@ -443,16 +442,7 @@ exports.sendMessage = async (req, res) => {
 
         // 2. Handle image upload if present (ONLY after security clearance)
         if (req.file) {
-            try {
-                const result = await cloudinary.uploader.upload(req.file.path, {
-                    folder: 'jussur/chat'
-                });
-                imageUrl = result.secure_url;
-                fs.unlinkSync(req.file.path);
-            } catch (uploadErr) {
-                console.error('Cloudinary upload error:', uploadErr);
-                return res.status(500).json({ error: res.__('flash_upload_error') });
-            }
+            imageUrl = await persistChatImage(req.file.path);
         }
 
         if (!content && !imageUrl) {
@@ -510,11 +500,19 @@ exports.sendMessage = async (req, res) => {
 
 exports.requestChat = async (req, res) => {
     try {
+        if (req.user.role !== 'donor') {
+            return res.status(403).json({ error: res.__('error_chat_request_donors_only') });
+        }
+
         const { caseId } = req.body;
         const foundCase = await Case.findById(caseId).populate('guardian');
         
         if (!foundCase) {
             return res.status(404).json({ error: res.__('flash_case_not_found') });
+        }
+
+        if (!foundCase.guardian) {
+            return res.status(400).json({ error: res.__('error_case_no_guardian') });
         }
 
         // Enforcement of Bans
@@ -545,10 +543,26 @@ exports.requestChat = async (req, res) => {
                     link: `/messages/${existing.donor.equals(req.user._id) ? existing.family : existing.donor}`
                 });
             }
-            return res.json({ 
-                message: res.__('msg_already_requested'), 
-                status: existing.status 
-            });
+            if (existing.status === 'pending') {
+                return res.json({ 
+                    message: res.__('msg_already_requested'), 
+                    status: existing.status 
+                });
+            }
+            if (existing.status === 'rejected') {
+                existing.status = 'pending';
+                existing.adminComment = undefined;
+                existing.donorAgreed = false;
+                existing.familyAgreed = false;
+                existing.case = caseId;
+                await existing.save();
+
+                const { logActivity } = require('../utils/logger');
+                await logActivity(req.user._id, 'chat_request_create', 'ChatRequest', existing._id,
+                    res.__('log_chat_request_resubmitted', { title: foundCase.title }));
+
+                return res.json({ success: true, message: res.__('msg_request_resent_success') });
+            }
         }
 
         const newRequest = await ChatRequest.create({
@@ -588,14 +602,89 @@ exports.adminHandleRequest = async (req, res) => {
     try {
         const { logActivity } = require('../utils/logger');
         const { requestId, status, adminComment } = req.body;
-        
-        await ChatRequest.findByIdAndUpdate(requestId, {
-            status,
-            adminComment
-        });
 
-        await logActivity(req.user._id, 'chat_request_handle', 'ChatRequest', requestId, 
+        const chatRequest = await ChatRequest.findById(requestId).populate('donor family case');
+        if (!chatRequest) {
+            req.flash('error', res.__('flash_request_not_found'));
+            return res.redirect('/admin/chat-requests');
+        }
+
+        const previousStatus = chatRequest.status;
+
+        chatRequest.status = status;
+        chatRequest.adminComment = adminComment;
+        await chatRequest.save();
+
+        await logActivity(req.user._id, 'chat_request_handle', 'ChatRequest', requestId,
             res.__('log_chat_request_handled', { status, comment: adminComment || res.__('msg_no_comment') }));
+
+        if (status !== previousStatus && (status === 'approved' || status === 'rejected')) {
+            const io = req.app.get('io');
+            const caseTitle = (chatRequest.case && chatRequest.case.title) ? chatRequest.case.title : '—';
+
+            if (status === 'approved') {
+                const donorNotif = await Notification.create({
+                    recipient: chatRequest.donor._id,
+                    sender: req.user._id,
+                    title: res.__('notif_chat_request_approved_title'),
+                    message: res.__('notif_chat_request_approved_msg_donor', { title: caseTitle }),
+                    type: 'success',
+                    targetType: 'specific',
+                    link: `/messages/${chatRequest.family._id}`
+                });
+
+                const familyNotif = await Notification.create({
+                    recipient: chatRequest.family._id,
+                    sender: req.user._id,
+                    title: res.__('notif_chat_request_approved_title'),
+                    message: res.__('notif_chat_request_approved_msg_family', { donor: chatRequest.donor.name }),
+                    type: 'info',
+                    targetType: 'specific',
+                    link: `/messages/${chatRequest.donor._id}`
+                });
+
+                if (io) {
+                    io.to(chatRequest.donor._id.toString()).emit('newNotification', {
+                        title: donorNotif.title,
+                        message: donorNotif.message,
+                        type: donorNotif.type,
+                        link: donorNotif.link
+                    });
+                    io.to(chatRequest.family._id.toString()).emit('newNotification', {
+                        title: familyNotif.title,
+                        message: familyNotif.message,
+                        type: familyNotif.type,
+                        link: familyNotif.link
+                    });
+                }
+            } else if (status === 'rejected') {
+                const caseLink = chatRequest.case && chatRequest.case._id
+                    ? `/cases/${chatRequest.case._id}`
+                    : '/messages';
+
+                const donorNotif = await Notification.create({
+                    recipient: chatRequest.donor._id,
+                    sender: req.user._id,
+                    title: res.__('notif_chat_request_rejected_title'),
+                    message: res.__('notif_chat_request_rejected_msg', {
+                        title: caseTitle,
+                        reason: adminComment || '—'
+                    }),
+                    type: 'danger',
+                    targetType: 'specific',
+                    link: caseLink
+                });
+
+                if (io) {
+                    io.to(chatRequest.donor._id.toString()).emit('newNotification', {
+                        title: donorNotif.title,
+                        message: donorNotif.message,
+                        type: donorNotif.type,
+                        link: donorNotif.link
+                    });
+                }
+            }
+        }
 
         req.flash('success', res.__('flash_request_updated'));
         res.redirect('/admin/chat-requests');

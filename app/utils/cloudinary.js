@@ -28,4 +28,36 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-module.exports = { cloudinary, upload };
+function isCloudinaryConfigured() {
+    return Boolean(
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+    );
+}
+
+/**
+ * Persist a chat image: Cloudinary when configured, otherwise local /uploads/ path.
+ * @param {string} filePath - Absolute path from multer
+ * @returns {Promise<string>}
+ */
+async function persistChatImage(filePath) {
+    const localUrl = `/uploads/${path.basename(filePath)}`;
+
+    if (!isCloudinaryConfigured()) {
+        return localUrl;
+    }
+
+    try {
+        const result = await cloudinary.uploader.upload(filePath, { folder: 'jussur/chat' });
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+        return result.secure_url;
+    } catch (err) {
+        console.error('Cloudinary upload failed, using local storage:', err.message);
+        return localUrl;
+    }
+}
+
+module.exports = { cloudinary, upload, isCloudinaryConfigured, persistChatImage };

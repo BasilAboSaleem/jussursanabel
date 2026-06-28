@@ -673,6 +673,7 @@
 
 
     <div id="supportConfig" data-initial-support="<%= (activeContact && (activeContact.role === 'admin' || activeContact.role === 'super_admin')) ? 'true' : 'false' %>" style="display: none;"></div>
+    <div id="initialChatConfig" data-contact-id="<%= (typeof activeContact !== 'undefined' && activeContact) ? activeContact._id : '' %>" style="display: none;"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -1028,7 +1029,16 @@
     if (initialSupportBadge) initialSupportBadge.style.display = initialIsSupport ? 'inline-flex' : 'none';
 
     window.addEventListener('load', () => {
-        // On initial page load, always show placeholder - no conversation selected
+        const initialConfig = document.getElementById('initialChatConfig');
+        const initialContactId = initialConfig && initialConfig.dataset.contactId
+            ? String(initialConfig.dataset.contactId).trim()
+            : '';
+
+        if (initialContactId) {
+            switchContact(initialContactId);
+            return;
+        }
+
         chatPlaceholder.style.display = 'flex';
         activeChatUI.style.display = 'none';
         closeMobileChatMode();
