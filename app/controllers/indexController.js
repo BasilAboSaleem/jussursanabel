@@ -1,6 +1,6 @@
 const Case = require('../models/Case');
 const Testimonial = require('../models/Testimonial');
-const { prepareStoryVideo } = require('../utils/storyVideo');
+const { prepareStoryVideoAsync } = require('../utils/storyVideo');
 const { PUBLIC_CASE_STATUSES } = require('../utils/caseSatisfaction');
 
 exports.getHomepage = async (req, res) => {
@@ -68,13 +68,13 @@ exports.getHomepage = async (req, res) => {
             }
         ]);
 
-        const preparedCases = demoCases.map((item) => {
+        const preparedCases = await Promise.all(demoCases.map(async (item) => {
             const plain = typeof item.toObject === 'function' ? item.toObject() : item;
             return {
                 ...plain,
-                ...prepareStoryVideo(plain.storyVideo || '', { youtubeMuted: 1 })
+                ...(await prepareStoryVideoAsync(plain.storyVideo || '', { youtubeMuted: 1 }))
             };
-        });
+        }));
 
         const defaultTestimonials = isEn ? [
             {
@@ -191,8 +191,8 @@ const STORIES_FEED_FILTER = {
     storyVideo: { $exists: true, $ne: '' }
 };
 
-function formatStoryForClient(story, { youtubeMuted = 0 } = {}) {
-    const videoMeta = prepareStoryVideo(story.storyVideo || '', { youtubeMuted });
+async function formatStoryForClient(story, { youtubeMuted = 0 } = {}) {
+    const videoMeta = await prepareStoryVideoAsync(story.storyVideo || '', { youtubeMuted });
     if (!videoMeta.storyVideoPlayable) return null;
 
     const targetAmount = Number(story.targetAmount) || 0;
@@ -260,9 +260,9 @@ exports.getStoriesFeed = async (req, res) => {
             .limit(limit)
             .lean();
 
-        const items = stories
-            .map((story) => formatStoryForClient(story, { youtubeMuted: 0 }))
-            .filter(Boolean);
+        const items = (await Promise.all(
+            stories.map((story) => formatStoryForClient(story, { youtubeMuted: 0 }))
+        )).filter(Boolean);
 
         res.set('Cache-Control', 'private, max-age=30');
         res.json({

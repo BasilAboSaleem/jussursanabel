@@ -17,7 +17,7 @@ const { buildExcel } = require('../utils/excelXml');
 const fs = require('fs');
 const path = require('path');
 const { logActivity } = require('../utils/logger');
-const { getPlayableStoryVideoUrl } = require('../utils/storyVideo');
+const { getPlayableStoryVideoUrlAsync } = require('../utils/storyVideo');
 const { normalizePalestinianId } = require('../utils/palestinianIdValidator');
 const { applyGoalReachedState, hasReachedFundingGoal, normalizeLegacyCompletedStatus } = require('../utils/caseSatisfaction');
 
@@ -501,7 +501,7 @@ exports.updateCase = async (req, res) => {
             }
             const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
             if (rawVideo) {
-                const normalized = getPlayableStoryVideoUrl(rawVideo);
+                const normalized = await getPlayableStoryVideoUrlAsync(rawVideo);
                 if (!normalized) {
                     req.flash('error', res.__('admin_media_story_video_invalid'));
                     return res.redirect(`/admin/cases/${req.params.id}/media-review`);
@@ -703,7 +703,7 @@ exports.saveCaseMediaContent = async (req, res) => {
 
         const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
         if (rawVideo) {
-            const normalized = getPlayableStoryVideoUrl(rawVideo);
+            const normalized = await getPlayableStoryVideoUrlAsync(rawVideo);
             if (!normalized) {
                 req.flash('error', res.__('admin_media_story_video_invalid'));
                 return res.redirect(`/admin/cases/${req.params.id}/media-review`);

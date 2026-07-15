@@ -13,7 +13,8 @@ const TIKTOK_HOSTS = [
     'tiktok.com',
     'www.tiktok.com',
     'm.tiktok.com',
-    'vm.tiktok.com'
+    'vm.tiktok.com',
+    'vt.tiktok.com'
 ];
 
 const INSTAGRAM_HOSTS = [
@@ -24,6 +25,12 @@ const INSTAGRAM_HOSTS = [
 const DIRECT_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.m4v', '.mov'];
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const cloudinaryEnabled = Boolean(CLOUDINARY_CLOUD_NAME);
+const TIKTOK_EXPAND_TIMEOUT_MS = 8000;
+const TIKTOK_FETCH_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    Accept: 'text/html,application/xhtml+xml'
+};
+const tiktokExpandCache = new Map();
 
 function isYouTubeUrl(urlString = '') {
     try {
@@ -88,6 +95,14 @@ function extractTikTokVideoId(urlString = '') {
 
         const videoMatch = url.pathname.match(/\/video\/(\d+)/i);
         if (videoMatch && videoMatch[1]) return videoMatch[1];
+
+        const mobileMatch = url.pathname.match(/\/v\/(\d+)/i);
+        if (mobileMatch && mobileMatch[1]) return mobileMatch[1];
+
+        for (const key of ['share_item_id', 'item_id', 'video_id']) {
+            const queryId = url.searchParams.get(key);
+            if (queryId && /^\d+$/.test(queryId)) return queryId;
+        }
 
         return null;
     } catch {
@@ -249,22 +264,55 @@ function resolveStoryVideo(rawUrl = '') {
     }
 }
 
-function getPlayableStoryVideoUrl(rawUrl = '') {
-    const resolved = resolveStoryVideo(rawUrl);
-    return resolved.valid ? resolved.storedUrl : null;
+function getEmptyStoryVideoPresentation() {
+    return {
+        storyVideoPlayable: null,
+        storyVideoProvider: null,
+        storyVideoEmbedUrl: null,
+        storyVideoIsEmbeddable: false,
+        storyVideoIsYouTube: false,
+        storyYouTubeEmbedUrl: null
+    };
 }
 
-function prepareStoryVideo(rawUrl = '', { youtubeMuted = 0 } = {}) {
-    const resolved = resolveStoryVideo(rawUrl);
-    if (!resolved.valid) {
-        return {
-            storyVideoPlayable: null,
-            storyVideoProvider: null,
-            storyVideoEmbedUrl: null,
-            storyVideoIsEmbeddable: false,
-            storyVideoIsYouTube: false,
-            storyYouTubeEmbedUrl: null
-        };
+function needsTikTokExpansion(urlString = '') {
+    if (!isTikTokUrl(urlString)) return false;
+    return !extractTikTokVideoId(urlString);
+}
+
+async function expandTikTokShortUrl(urlString = '') {
+    const trimmed = String(urlString || '').trim();
+    if (!trimmed || !needsTikTokExpansion(trimmed)) {
+        return trimmed;
+    }
+
+    if (tiktokExpandCache.has(trimmed)) {
+        return tiktokExpandCache.get(trimmed);
+    }
+
+    try {
+        const response = await fetch(trimmed, {
+            method: 'GET',
+            redirect: 'follow',
+            signal: AbortSignal.timeout(TIKTOK_EXPAND_TIMEOUT_MS),
+            headers: TIKTOK_FETCH_HEADERS
+        });
+
+        const finalUrl = (response.url || trimmed).trim();
+        if (finalUrl && extractTikTokVideoId(finalUrl)) {
+            tiktokExpandCache.set(trimmed, finalUrl);
+            return finalUrl;
+        }
+    } catch (err) {
+        console.warn('[storyVideo] TikTok short-link expand failed:', err.message);
+    }
+
+    return null;
+}
+
+function buildStoryVideoPresentation(resolved, { youtubeMuted = 0 } = {}) {
+    if (!resolved || !resolved.valid) {
+        return getEmptyStoryVideoPresentation();
     }
 
     let embedUrl = resolved.embedUrl;
@@ -285,10 +333,50 @@ function prepareStoryVideo(rawUrl = '', { youtubeMuted = 0 } = {}) {
     };
 }
 
+async function resolveStoryVideoAsync(rawUrl = '') {
+    const syncResolved = resolveStoryVideo(rawUrl);
+    if (syncResolved.valid || !needsTikTokExpansion(rawUrl)) {
+        return syncResolved;
+    }
+
+    const trimmed = String(rawUrl).trim();
+    const expanded = await expandTikTokShortUrl(trimmed);
+    if (!expanded) return syncResolved;
+
+    const expandedResolved = resolveStoryVideo(expanded);
+    if (!expandedResolved.valid) return syncResolved;
+
+    return {
+        ...expandedResolved,
+        storedUrl: expanded
+    };
+}
+
+function getPlayableStoryVideoUrl(rawUrl = '') {
+    const resolved = resolveStoryVideo(rawUrl);
+    return resolved.valid ? resolved.storedUrl : null;
+}
+
+async function getPlayableStoryVideoUrlAsync(rawUrl = '') {
+    const resolved = await resolveStoryVideoAsync(rawUrl);
+    return resolved.valid ? resolved.storedUrl : null;
+}
+
+function prepareStoryVideo(rawUrl = '', { youtubeMuted = 0 } = {}) {
+    return buildStoryVideoPresentation(resolveStoryVideo(rawUrl), { youtubeMuted });
+}
+
+async function prepareStoryVideoAsync(rawUrl = '', { youtubeMuted = 0 } = {}) {
+    return buildStoryVideoPresentation(await resolveStoryVideoAsync(rawUrl), { youtubeMuted });
+}
+
 module.exports = {
     getPlayableStoryVideoUrl,
+    getPlayableStoryVideoUrlAsync,
     resolveStoryVideo,
+    resolveStoryVideoAsync,
     prepareStoryVideo,
+    prepareStoryVideoAsync,
     isYouTubeUrl,
     isTikTokUrl,
     isInstagramUrl,

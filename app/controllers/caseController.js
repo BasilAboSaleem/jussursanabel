@@ -5,7 +5,7 @@ const ChatRequest = require('../models/ChatRequest');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
 const { logActivity } = require('../utils/logger');
-const { getPlayableStoryVideoUrl, resolveStoryVideo, cloudinaryEnabled, prepareStoryVideo } = require('../utils/storyVideo');
+const { resolveStoryVideoAsync, cloudinaryEnabled, prepareStoryVideoAsync } = require('../utils/storyVideo');
 const { caseCardImageUrl } = require('../utils/imageUrl');
 const {
     PUBLIC_CASE_STATUSES,
@@ -50,13 +50,11 @@ function buildCasesListFilter({ selectedType, verifiedOnly }) {
     return filter;
 }
 
-function formatCaseForList(item) {
-    const hasStory = Boolean(
-        item.storyVideo &&
-        item.storyVideo.trim() &&
-        item.isStoryHidden !== true &&
-        prepareStoryVideo(item.storyVideo).storyVideoPlayable
-    );
+async function formatCaseForList(item) {
+    const videoMeta = item.storyVideo && item.storyVideo.trim() && item.isStoryHidden !== true
+        ? await prepareStoryVideoAsync(item.storyVideo)
+        : { storyVideoPlayable: null };
+    const hasStory = Boolean(videoMeta.storyVideoPlayable);
 
     return {
         _id: item._id,
@@ -246,7 +244,7 @@ exports.createCase = async (req, res) => {
         }
 
         const rawStoryVideo = storyVideo ? storyVideo.trim() : '';
-        const storyResolved = rawStoryVideo ? resolveStoryVideo(rawStoryVideo) : null;
+        const storyResolved = rawStoryVideo ? await resolveStoryVideoAsync(rawStoryVideo) : null;
         const normalizedStoryVideo = storyResolved && storyResolved.valid ? storyResolved.storedUrl : undefined;
         if (storyVideo && !normalizedStoryVideo) {
             req.flash('error', res.__('story_video_invalid_link'));
@@ -341,7 +339,7 @@ exports.getAllCases = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const rawCases = await fetchCasesList({ filter, sort, skip, limit });
-        const cases = rawCases.map(formatCaseForList);
+        const cases = await Promise.all(rawCases.map(formatCaseForList));
 
         res.render('pages/cases/all-cases', {
             title: res.__('cases_list'),
@@ -376,7 +374,7 @@ exports.getCasesFeed = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const rawCases = await fetchCasesList({ filter, sort, skip, limit });
-        const cases = rawCases.map(formatCaseForList);
+        const cases = await Promise.all(rawCases.map(formatCaseForList));
 
         res.json({
             cases,
