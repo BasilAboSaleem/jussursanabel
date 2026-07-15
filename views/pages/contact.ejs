@@ -1,6 +1,6 @@
 <%- include('../partials/header-top') %>
 
-<main style="overflow: hidden; background: #fff;">
+<main class="nm-contact-page">
     <section class="nm-page-hero" aria-label="<%= __('navbar_contact') %>">
         <div class="nm-page-hero__glow" aria-hidden="true"></div>
         <div class="nm-page-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
@@ -10,347 +10,154 @@
             <p class="nm-page-hero__desc"><%= __('contact_hero_desc') %></p>
         </div>
         <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#ffffff"/>
+            <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#f8fafc"/>
         </svg>
     </section>
 
-    <!-- 2. Contact Content Section (Floating Style) -->
-    <section class="section-luxury container" style="margin-top: -28px; position: relative; z-index: 100;">
-        <div class="grid-2" style="gap: 50px; align-items: start;">
-            <!-- Contact Info Ribbon -->
-            <div class="reveal-on-scroll">
-                <span class="section-badge" style="background: rgba(0, 165, 68, 0.1); color: #00A544; border: 1px solid rgba(0, 165, 68, 0.2); box-shadow: none;"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
-                <h2 class="section-title-luxury" style="margin-bottom: 30px; font-weight: 950; font-size: 2.8rem; margin-top: 15px;">
-                    <%= __('contact_channels_title').split(' ')[0] %> <%= __('contact_channels_title').split(' ')[1] %> 
-                    <br><span style="color: #00A544;"><%= __('contact_channels_title').split(' ').slice(2).join(' ') %></span>
-                </h2>
-                <p style="color: var(--text-muted); line-height: 1.9; margin-bottom: 40px; font-size: 1.15rem; font-weight: 500;">
-                    <%= __('contact_channels_desc') %>
-                </p>
-                
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <!-- WhatsApp Card (Azure/Emerald Theme) -->
-                    <a href="https://wa.me/970599000000" target="_blank" class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.1s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(0, 165, 68, 0.08); color: #00A544;">
-                            <i class="fab fa-whatsapp"></i>
-                        </div>
-                        <div class="contact-text-wrapper">
-                            <h4 class="font-cairo" style="font-weight: 950;"><%= __('contact_whatsapp_title') %></h4>
-                            <p><%= __('contact_whatsapp_desc') %></p>
-                        </div>
-                        <i class="fas fa-chevron-left arrow-indicator"></i>
-                    </a>
+    <!-- Channels + form -->
+    <section class="nm-contact-main" id="contact-form">
+        <div class="container">
+            <div class="nm-contact-layout">
+                <div class="nm-contact-channels reveal-on-scroll">
+                    <header class="nm-contact-head">
+                        <span class="nm-contact-head__badge"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
+                        <h2 class="nm-contact-head__title"><%= __('contact_channels_title') %></h2>
+                        <p class="nm-contact-head__desc"><%= __('contact_channels_desc') %></p>
+                    </header>
 
-                    <!-- Email Card (Azure Theme) -->
-                    <div class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.2s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(0, 38, 97, 0.08); color: #002661;">
-                            <i class="fas fa-envelope-open-text"></i>
+                    <div class="nm-contact-channels__list">
+                        <a href="https://wa.me/970599000000" target="_blank" rel="noopener" class="nm-contact-card">
+                            <div class="nm-contact-card__icon nm-contact-card__icon--green"><i class="fab fa-whatsapp"></i></div>
+                            <div class="nm-contact-card__text">
+                                <h3><%= __('contact_whatsapp_title') %></h3>
+                                <p><%= __('contact_whatsapp_desc') %></p>
+                            </div>
+                            <i class="fas fa-chevron-left nm-contact-card__arrow"></i>
+                        </a>
+
+                        <div class="nm-contact-card">
+                            <div class="nm-contact-card__icon nm-contact-card__icon--navy"><i class="fas fa-envelope-open-text"></i></div>
+                            <div class="nm-contact-card__text">
+                                <h3><%= __('contact_email_title') %></h3>
+                                <p>pal-gaza@senabilcharity.org</p>
+                            </div>
                         </div>
-                        <div class="contact-text-wrapper">
-                            <h4 class="font-cairo" style="font-weight: 950;"><%= __('contact_email_title') %></h4>
-                            <p>pal-gaza@senabilcharity.org</p>
+
+                        <div class="nm-contact-card">
+                            <div class="nm-contact-card__icon nm-contact-card__icon--navy"><i class="fas fa-location-dot"></i></div>
+                            <div class="nm-contact-card__text">
+                                <h3><%= __('contact_office_title') %></h3>
+                                <p><%= __('contact_office_desc') %></p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Location Card (Deep Emerald/Navy) -->
-                    <div class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.3s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(0, 38, 97, 0.05); color: var(--primary);">
-                            <i class="fas fa-location-dot"></i>
-                        </div>
-                        <div class="contact-text-wrapper">
-                            <h4 class="font-cairo" style="font-weight: 950;"><%= __('contact_office_title') %></h4>
-                            <p><%= __('contact_office_desc') %></p>
-                        </div>
+                    <div class="nm-contact-social">
+                        <a href="https://www.facebook.com/senabilcharity" class="nm-contact-social__btn" aria-label="Facebook" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/senabilcharity" class="nm-contact-social__btn" aria-label="Instagram" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                        <a href="https://x.com/senabilcharity" class="nm-contact-social__btn" aria-label="X" target="_blank" rel="noopener"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.youtube.com/@senabilcharity" class="nm-contact-social__btn" aria-label="YouTube" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
 
-                <!-- Social Media Links (Unified Circular Style) -->
-                <div style="margin-top: 50px; display: flex; gap: 15px;">
-                    <a href="https://www.facebook.com/senabilcharity?mibextid=wwXIfr&rdid=JHsWhvYJXH3ZokBr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1AraaUdVRC%2F%3Fmibextid%3DwwXIfr#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.instagram.com/senabilcharity?utm_source=ig_web_button_share_sheet&igsh=MWhrZmxzNnNtdjY3cQ%3D%3D" class="social-btn"><i class="fab fa-instagram"></i></a>
-                    <a href="https://x.com/senabilcharity?t=LzwyuxUTObXuD2N1EgKrSg&s=08" class="social-btn"><i class="fab fa-twitter"></i></a>
-                    <a href="https://www.youtube.com/@senabilcharity?themeRefresh=1" class="social-btn"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
+                <div class="nm-contact-form-wrap reveal-on-scroll" style="transition-delay: 0.12s">
+                    <div class="nm-contact-form-card">
+                        <h3 class="nm-contact-form-card__title"><%= __('contact_form_title') %></h3>
+                        <p class="nm-contact-form-card__desc"><%= __('contact_form_desc') %></p>
 
-            <!-- 3. Enhanced Contact Form (Glass Panel) -->
-            <div class="reveal-on-scroll" style="transition-delay: 0.4s;">
-                <div class="luxury-card glass-panel-form" style="padding: 50px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 45px; box-shadow: 0 40px 100px rgba(0,38,97,0.08);">
-                    <h3 class="font-cairo" style="font-weight: 950; margin-bottom: 10px; color: var(--primary); font-size: 1.8rem;"><%= __('contact_form_title') %></h3>
-                    <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 35px; font-weight: 500;"><%= __('contact_form_desc') %></p>
-                    
-                    <form action="/contact" method="POST" class="premium-form">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <div class="form-group-lux">
-                            <label class="form-label-lux"><%= __('contact_form_name') %></label>
-                            <div class="input-wrapper-lux">
-                                <i class="fas fa-user input-icon"></i>
-                                <input type="text" name="name" class="form-input-lux" placeholder="<%= __('contact_form_name_placeholder') %>" required>
+                        <form action="/contact" method="POST" class="nm-contact-form">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                            <div class="nm-contact-field">
+                                <label for="contact-name"><%= __('contact_form_name') %></label>
+                                <div class="nm-contact-field__input">
+                                    <i class="fas fa-user"></i>
+                                    <input id="contact-name" type="text" name="name" placeholder="<%= __('contact_form_name_placeholder') %>" required>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group-lux">
-                            <label class="form-label-lux"><%= __('contact_email_title') %></label>
-                            <div class="input-wrapper-lux">
-                                <i class="fas fa-at input-icon"></i>
-                                <input type="email" name="email" class="form-input-lux" placeholder="example@mail.com" required>
+                            <div class="nm-contact-field">
+                                <label for="contact-email"><%= __('contact_email_title') %></label>
+                                <div class="nm-contact-field__input">
+                                    <i class="fas fa-at"></i>
+                                    <input id="contact-email" type="email" name="email" placeholder="example@mail.com" required>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group-lux">
-                            <label class="form-label-lux"><%= __('contact_form_subject') %></label>
-                            <div class="input-wrapper-lux">
-                                <i class="fas fa-tag input-icon"></i>
-                                <select name="subject" class="form-input-lux" style="appearance: none;">
-                                    <option value="<%= __('contact_form_subject_donation') %>"><%= __('contact_form_subject_donation') %></option>
-                                    <option value="<%= __('contact_form_subject_orphan') %>"><%= __('contact_form_subject_orphan') %></option>
-                                    <option value="<%= __('contact_form_subject_complaint') %>"><%= __('contact_form_subject_complaint') %></option>
-                                    <option value="<%= __('contact_form_subject_other') %>"><%= __('contact_form_subject_other') %></option>
-                                </select>
+                            <div class="nm-contact-field">
+                                <label for="contact-subject"><%= __('contact_form_subject') %></label>
+                                <div class="nm-contact-field__input">
+                                    <i class="fas fa-tag"></i>
+                                    <select id="contact-subject" name="subject">
+                                        <option value="<%= __('contact_form_subject_donation') %>"><%= __('contact_form_subject_donation') %></option>
+                                        <option value="<%= __('contact_form_subject_orphan') %>"><%= __('contact_form_subject_orphan') %></option>
+                                        <option value="<%= __('contact_form_subject_complaint') %>"><%= __('contact_form_subject_complaint') %></option>
+                                        <option value="<%= __('contact_form_subject_other') %>"><%= __('contact_form_subject_other') %></option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group-lux">
-                            <label class="form-label-lux"><%= __('contact_form_message') %></label>
-                            <textarea name="message" class="form-input-lux" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
-                        </div>
+                            <div class="nm-contact-field">
+                                <label for="contact-message"><%= __('contact_form_message') %></label>
+                                <textarea id="contact-message" name="message" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
+                            </div>
 
-                        <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px; height: 65px; font-size: 1.2rem; background: var(--grad-green); color: #fff; border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 165, 68, 0.3); font-weight: 800;">
-                            <i class="fas fa-paper-plane" style="margin-inline-end: 12px;"></i> <%= __('contact_form_submit') %> 
-                        </button>
-                    </form>
+                            <button type="submit" class="nm-contact-submit">
+                                <i class="fas fa-paper-plane"></i> <%= __('contact_form_submit') %>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 4. Majestic Support Map Section -->
-    <section class="section-luxury container reveal-on-scroll" style="padding-bottom: 150px;">
-        <div class="luxury-card" style="border-radius: 50px; background: #f8fafc; position: relative; overflow: hidden; border: 1px solid #f1f5f9; box-shadow: 0 30px 80px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
-            
-            <!-- Information Overlay Area -->
-            <div style="padding: 60px 40px 40px; text-align: center; position: relative; z-index: 2; background: white;">
-                <div style="width: 80px; height: 80px; background: rgba(0, 165, 68, 0.1); border-radius: 25px; display: flex; align-items: center; justify-content: center; color: #00A544; font-size: 2.2rem; margin: 0 auto 25px;">
-                    <i class="fas fa-map-location-dot"></i>
-                </div>
-                <h3 class="font-cairo" style="font-weight: 950; color: var(--primary); font-size: 2.2rem; margin-bottom: 15px;"><%= __('contact_map_title') %></h3>
-                <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto; font-size: 1.15rem; line-height: 1.8; font-weight: 500;"><%= __('contact_map_desc') %></p>
-                <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
-                    <span style="background: #f1f5f9; padding: 10px 20px; border-radius: 12px; font-weight: 700; color: var(--primary); font-size: 0.95rem;">
-                        <i class="fas fa-location-arrow" style="color: #00A544; margin-inline-start: 8px;"></i> دير البلح، قطاع غزة، فلسطين
+    <!-- Map -->
+    <section class="nm-contact-map">
+        <div class="container">
+            <div class="nm-contact-map__panel reveal-on-scroll">
+                <div class="nm-contact-map__intro">
+                    <div class="nm-contact-map__icon"><i class="fas fa-map-location-dot"></i></div>
+                    <h2 class="nm-contact-map__title"><%= __('contact_map_title') %></h2>
+                    <p class="nm-contact-map__desc"><%= __('contact_map_desc') %></p>
+                    <span class="nm-contact-map__pin">
+                        <i class="fas fa-location-arrow"></i>
+                        دير البلح، قطاع غزة، فلسطين
                     </span>
                 </div>
-            </div>
 
-            <!-- Live Google Map Iframe -->
-            <div style="height: 450px; width: 100%; border-top: 1px solid #f1f5f9;">
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1152.483!2d34.348582!3d31.419307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI1JzA5LjUiTiAzNMKwMjAnNTQuOSJF!5e0!3m2!1sar!2sps!4v1712396600000!5m2!1sar!2sps" 
-                    width="100%" 
-                    height="100%" 
-                    style="border:0; filter: contrast(1.05) brightness(0.98);" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            </div>
-            
-            <div style="padding: 25px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: center;">
-                <a href="https://maps.google.com/?q=31.419307,34.348582" target="_blank" class="btn-lux btn-lux-navy btn-sm" style="padding: 12px 30px; border-radius: 15px;">
-                    <i class="fas fa-external-link-alt" style="margin-inline-end: 8px;"></i> المقر الرئيسي (فتح في خرائط جوجل)
-                </a>
+                <div class="nm-contact-map__frame">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1152.483!2d34.348582!3d31.419307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI1JzA5LjUiTiAzNMKwMjAnNTQuOSJF!5e0!3m2!1sar!2sps!4v1712396600000!5m2!1sar!2sps"
+                        width="100%"
+                        height="100%"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="<%= __('contact_map_title') %>">
+                    </iframe>
+                </div>
+
+                <div class="nm-contact-map__footer">
+                    <a href="https://maps.google.com/?q=31.419307,34.348582" target="_blank" rel="noopener" class="nm-contact-map__link">
+                        <i class="fas fa-external-link-alt"></i>
+                        المقر الرئيسي (فتح في خرائط جوجل)
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 </main>
 
-<style>
-    /* Contact Info Card Styling */
-    .contact-info-card {
-        padding: 30px 25px;
-        display: flex;
-        gap: 20px;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.4s var(--ease-smooth);
-        border: 1px solid rgba(241, 245, 249, 0.8) !important;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(15px);
-        border-radius: 35px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .contact-info-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(0, 165, 68, 0.05) 0%, transparent 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .contact-info-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 30px 60px rgba(0, 38, 97, 0.1);
-        border-color: #00A544 !important;
-        background: white;
-    }
-
-    .contact-info-card:hover::before {
-        opacity: 1;
-    }
-
-    .contact-icon-wrapper {
-        width: 65px;
-        height: 65px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        flex-shrink: 0;
-        transition: all 0.4s var(--ease-smooth);
-        position: relative;
-        z-index: 2;
-    }
-
-    .contact-info-card:hover .contact-icon-wrapper {
-        transform: scale(1.15) rotate(10deg);
-        box-shadow: 0 10px 20px rgba(0, 165, 68, 0.15);
-    }
-
-    .contact-text-wrapper {
-        position: relative;
-        z-index: 2;
-    }
-
-    .contact-text-wrapper h4 {
-        margin-bottom: 5px;
-        font-weight: 950;
-        color: var(--primary);
-        font-size: 1.2rem;
-    }
-
-    .contact-text-wrapper p {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-        margin: 0;
-        font-weight: 500;
-    }
-
-    .arrow-indicator {
-        margin-inline-start: auto;
-        opacity: 0.3;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        position: relative;
-        z-index: 2;
-    }
-
-    .contact-info-card:hover .arrow-indicator {
-        opacity: 1;
-        transform: translateX(-5px);
-        color: #00A544;
-    }
-
-    /* Social Buttons */
-    .social-btn {
-        width: 55px;
-        height: 55px;
-        border-radius: 18px;
-        background: #f8fafc;
-        border: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary);
-        font-size: 1.3rem;
-        transition: all 0.4s var(--ease-smooth);
-    }
-
-    .social-btn:hover {
-        background: var(--primary);
-        color: white;
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0, 38, 97, 0.2);
-    }
-
-    /* Premium Form Styling */
-    .form-group-lux {
-        margin-bottom: 30px;
-    }
-
-    .form-label-lux {
-        display: block;
-        margin-bottom: 12px;
-        font-weight: 800;
-        font-size: 0.95rem;
-        color: var(--primary);
-        letter-spacing: 0.3px;
-    }
-
-    .input-wrapper-lux {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-icon {
-        position: absolute;
-        inset-inline-start: 22px;
-        color: var(--text-muted);
-        pointer-events: none;
-        transition: all 0.3s ease;
-        font-size: 1.1rem;
-        z-index: 10;
-    }
-
-    .form-input-lux {
-        width: 100%;
-        padding: 18px 20px;
-        padding-inline-start: 55px;
-        background: rgba(248, 250, 252, 0.8);
-        border: 2px solid transparent;
-        border-radius: 20px;
-        font-family: inherit;
-        font-size: 1rem;
-        transition: all 0.4s var(--ease-smooth);
-        outline: none;
-        color: var(--primary);
-        font-weight: 500;
-    }
-
-    .form-input-lux:focus {
-        background: white;
-        border-color: rgba(0, 165, 68, 0.4);
-        box-shadow: 0 15px 40px rgba(0, 165, 68, 0.1);
-    }
-
-    .form-input-lux:focus + .input-icon {
-        color: #00A544;
-        transform: scale(1.1);
-    }
-
-    textarea.form-input-lux {
-        padding: 20px;
-        min-height: 160px;
-    }
-</style>
-
 <script>
-    // Reveal on scroll logic
-    const observerOptions = { threshold: 0.1 };
     const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add('active');
         });
-    }, observerOptions);
+    }, { threshold: 0.12 });
 
-    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+    document.querySelectorAll('.reveal-on-scroll').forEach((el) => revealObserver.observe(el));
 </script>
 
 <%- include('../partials/footer-bottom') %>
