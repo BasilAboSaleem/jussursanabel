@@ -1,24 +1,70 @@
 <%- include('../partials/header-top') %>
 
 <main style="background: #ffffff; min-height: 100vh;">
-    <!-- 1. Nameer Hero — Senabil-aligned full-bleed -->
-    <section class="nameer-hero" aria-label="<%= __('hero_title') %>">
-        <div class="nameer-hero__bg" role="img" aria-hidden="true"></div>
-        <div class="container nameer-hero__content">
-            <p class="nameer-hero__affiliate"><%= __('hero_affiliation') %></p>
-            <h1 class="nameer-hero__brand"><%= __('hero_title') %></h1>
-            <p class="nameer-hero__tagline"><%= __('hero_tagline') %></p>
-            <p class="nameer-hero__desc"><%= __('hero_desc') %></p>
-            <div class="nameer-hero__actions">
-                <a href="/cases" class="btn-lux btn-lux-primary btn-lg">
-                    <%= __('btn_start_sponsorship') %>
-                    <i class="fas fa-seedling" style="margin-inline-start: 8px;"></i>
-                </a>
-                <a href="/about" class="btn-lux btn-lux-outline">
-                    <%= __('about_us') %>
-                </a>
+    <!-- Signature Nameer Hero (shared visual language with About) -->
+    <section class="nm-about-hero" aria-label="<%= __('hero_title') %>">
+        <div class="nm-about-hero__atmosphere" aria-hidden="true">
+            <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
+            <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
+            <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
+            <span class="nm-about-hero__grain" style="--x:12%; --d:0s;"></span>
+            <span class="nm-about-hero__grain" style="--x:28%; --d:1.2s;"></span>
+            <span class="nm-about-hero__grain" style="--x:46%; --d:0.4s;"></span>
+            <span class="nm-about-hero__grain" style="--x:63%; --d:2s;"></span>
+            <span class="nm-about-hero__grain" style="--x:78%; --d:0.8s;"></span>
+            <span class="nm-about-hero__grain" style="--x:91%; --d:1.6s;"></span>
+        </div>
+
+        <div class="nm-about-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+
+        <div class="container nm-about-hero__layout">
+            <div class="nm-about-hero__copy">
+                <p class="nm-about-hero__affiliate"><%= __('hero_affiliation') %></p>
+                <h1 class="nm-about-hero__title">
+                    <span class="nm-about-hero__title-ar"><%= __('hero_title') %></span>
+                    <span class="nm-about-hero__title-en">Nameer</span>
+                </h1>
+                <p class="nm-about-hero__tagline"><%= __('hero_tagline') %></p>
+                <p class="nm-about-hero__text"><%= __('hero_desc') %></p>
+                <div class="nm-about-hero__cta">
+                    <a href="/cases" class="nm-about-hero__btn nm-about-hero__btn--primary"><%= __('btn_start_sponsorship') %></a>
+                    <a href="/about" class="nm-about-hero__btn nm-about-hero__btn--line"><%= __('about_us') %></a>
+                </div>
+            </div>
+
+            <div class="nm-about-hero__emblem" aria-hidden="true">
+                <svg class="nm-about-hero__sheaf" viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="nmHomeSheafGold" x1="160" y1="20" x2="160" y2="400" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#B8F5C8"/>
+                            <stop offset="0.45" stop-color="#00C758"/>
+                            <stop offset="1" stop-color="#016630"/>
+                        </linearGradient>
+                        <linearGradient id="nmHomeSheafGlow" x1="160" y1="40" x2="160" y2="280" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <ellipse cx="160" cy="210" rx="110" ry="150" fill="url(#nmHomeSheafGlow)"/>
+                    <path d="M160 390 C158 300 160 220 160 90" stroke="url(#nmHomeSheafGold)" stroke-width="3.5" stroke-linecap="round"/>
+                    <path class="nm-stalk nm-stalk--a" d="M160 120 C120 90 95 70 78 48 C108 62 138 88 160 120Z" fill="url(#nmHomeSheafGold)" opacity="0.95"/>
+                    <path class="nm-stalk nm-stalk--b" d="M160 145 C110 120 78 98 55 72 C95 92 130 118 160 145Z" fill="url(#nmHomeSheafGold)" opacity="0.85"/>
+                    <path class="nm-stalk nm-stalk--c" d="M160 170 C105 150 70 130 42 102 C88 122 128 148 160 170Z" fill="url(#nmHomeSheafGold)" opacity="0.75"/>
+                    <path class="nm-stalk nm-stalk--d" d="M160 120 C200 90 225 70 242 48 C212 62 182 88 160 120Z" fill="url(#nmHomeSheafGold)" opacity="0.95"/>
+                    <path class="nm-stalk nm-stalk--e" d="M160 145 C210 120 242 98 265 72 C225 92 190 118 160 145Z" fill="url(#nmHomeSheafGold)" opacity="0.85"/>
+                    <path class="nm-stalk nm-stalk--f" d="M160 170 C215 150 250 130 278 102 C232 122 192 148 160 170Z" fill="url(#nmHomeSheafGold)" opacity="0.75"/>
+                    <path class="nm-stalk nm-stalk--g" d="M160 95 C145 68 140 42 138 22 C152 42 158 70 160 95Z" fill="#E8FFE8" opacity="0.9"/>
+                    <circle cx="160" cy="88" r="7" fill="#69FF97"/>
+                    <circle cx="160" cy="88" r="18" stroke="#69FF97" stroke-opacity="0.35" stroke-width="1.5"/>
+                    <circle class="nm-pulse" cx="160" cy="88" r="28" stroke="#69FF97" stroke-opacity="0.2" stroke-width="1"/>
+                </svg>
+                <p class="nm-about-hero__emblem-caption"><%= __('brand_affiliation_short') %></p>
             </div>
         </div>
+
+        <svg class="nm-about-hero__horizon" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,80 C240,20 480,110 720,60 C960,10 1200,90 1440,40 L1440,120 L0,120 Z" fill="#f8fafc"/>
+        </svg>
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
