@@ -109,6 +109,52 @@
                         </div>
                     </div>
 
+                    <div style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                            <div style="width: 50px; height: 50px; border-radius: 15px; background: rgba(0, 166, 48, 0.1); display: flex; align-items: center; justify-content: center; color: var(--secondary); font-size: 1.5rem;">
+                                <i class="fas fa-file-signature"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 800;"><%= __('admin_settings_registration_title') %></h4>
+                                <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);"><%= __('admin_settings_registration_desc') %></p>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_guide_ar') %></label>
+                            <textarea name="registration_guide_ar" class="form-input" rows="8" style="font-size: 0.95rem; line-height: 1.7;"><%= settings.registration_guide_ar %></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_guide_en') %></label>
+                            <textarea name="registration_guide_en" class="form-input" rows="8" style="font-size: 0.95rem; line-height: 1.7;"><%= settings.registration_guide_en %></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_template_orphan') %></label>
+                            <textarea name="case_template_orphan_ar" class="form-input" rows="8" style="font-size: 0.95rem; line-height: 1.7;"><%= settings.case_template_orphan_ar %></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_template_family') %></label>
+                            <textarea name="case_template_family_ar" class="form-input" rows="8" style="font-size: 0.95rem; line-height: 1.7;"><%= settings.case_template_family_ar %></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_template_desc') %></label>
+                            <textarea name="case_template_desc_ar" class="form-input" rows="4" style="font-size: 0.95rem; line-height: 1.7;"><%= settings.case_template_desc_ar %></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-luxury"><%= __('admin_settings_registration_forbidden_words') %></label>
+                            <textarea name="forbidden_words" class="form-input" rows="5" style="font-size: 0.95rem; line-height: 1.7;" placeholder="<%= __('admin_settings_registration_forbidden_words_placeholder') %>"><%= settings.forbidden_words %></textarea>
+                            <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 10px; border: 1px dashed #fca5a5; display: flex; gap: 10px; align-items: center;">
+                                <i class="fas fa-shield-alt" style="color: #b91c1c;"></i>
+                                <span style="font-size: 0.8rem; color: #7f1d1d;"><%= __('admin_settings_registration_forbidden_words_info') %></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="display: flex; justify-content: flex-end; gap: 15px;">
                         <button type="submit" class="btn-lux btn-lux-primary" style="padding: 15px 40px; border-radius: 15px; font-weight: 800;">
                             <i class="fas fa-save"></i> <%= __('common_save_settings') %>

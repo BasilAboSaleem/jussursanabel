@@ -1,6 +1,7 @@
 const Setting = require('../models/Setting');
 const Notification = require('../models/Notification');
 const { DAY_NAMES_AR } = require('../utils/chatUtils');
+const { loadCaseRegistrationSettings } = require('../utils/caseRegistrationSettings');
 
 exports.getSettings = async (req, res) => {
     try {
@@ -40,13 +41,21 @@ exports.getSettings = async (req, res) => {
             });
         }
 
+        const registrationSettings = await loadCaseRegistrationSettings();
+
         res.render('pages/admin/settings', {
             title: res.__('admin_settings_title'),
             settings: {
                 institution_fee_percentage: institutionPercentage.value,
                 gateway_fee_percentage: gatewayPercentage.value,
                 case_needs: caseNeedsConfig.value,
-                chat_day: chatDayConfig.value
+                chat_day: chatDayConfig.value,
+                registration_guide_ar: registrationSettings.registrationGuideAr,
+                registration_guide_en: registrationSettings.registrationGuideEn,
+                case_template_orphan_ar: registrationSettings.caseTemplateOrphanAr,
+                case_template_family_ar: registrationSettings.caseTemplateFamilyAr,
+                case_template_desc_ar: registrationSettings.caseTemplateDescAr,
+                forbidden_words: registrationSettings.forbiddenWordsRaw
             }
         });
     } catch (err) {
@@ -57,7 +66,18 @@ exports.getSettings = async (req, res) => {
 
 exports.updateSettings = async (req, res) => {
     try {
-        const { institution_fee_percentage, gateway_fee_percentage, case_needs, chat_day } = req.body;
+        const {
+            institution_fee_percentage,
+            gateway_fee_percentage,
+            case_needs,
+            chat_day,
+            registration_guide_ar,
+            registration_guide_en,
+            case_template_orphan_ar,
+            case_template_family_ar,
+            case_template_desc_ar,
+            forbidden_words
+        } = req.body;
         
         // 1. Get old settings for comparison and logging
         const oldChatDayConfig = await Setting.findOne({ key: 'chat_day' });
@@ -122,6 +142,25 @@ exports.updateSettings = async (req, res) => {
                         link: globalNotif.link
                     });
                 }
+            }
+        }
+
+        const registrationFields = [
+            ['registration_guide_ar', registration_guide_ar],
+            ['registration_guide_en', registration_guide_en],
+            ['case_template_orphan_ar', case_template_orphan_ar],
+            ['case_template_family_ar', case_template_family_ar],
+            ['case_template_desc_ar', case_template_desc_ar],
+            ['forbidden_words', forbidden_words]
+        ];
+
+        for (const [key, value] of registrationFields) {
+            if (value !== undefined) {
+                await Setting.findOneAndUpdate(
+                    { key },
+                    { value: String(value), updatedAt: new Date() },
+                    { upsert: true }
+                );
             }
         }
 
