@@ -50,7 +50,7 @@ exports.getHomepage = async (req, res) => {
         ] : [
             {
                 _id: '1',
-                title: 'كفالة أيتام عائلة الشهيد محمد',
+                title: 'كفالة تعليمية لأيتام أسرة محتاجة',
                 type: 'orphan',
                 description: 'أربعة أطفال فقدوا معيلهم الوحيد وبحاجة ماسة لمصاريف التعليم والمعيشة الأساسية.',
                 image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop',
