@@ -20,6 +20,7 @@ const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrlAsync } = require('../utils/storyVideo');
 const { normalizePalestinianId } = require('../utils/palestinianIdValidator');
 const { applyGoalReachedState, hasReachedFundingGoal, normalizeLegacyCompletedStatus } = require('../utils/caseSatisfaction');
+const { validateCaseContentForRequest } = require('../utils/caseRegistrationSettings');
 
 const PASSWORD_RECOVERY_ROLES = ['donor', 'beneficiary', 'family', 'guardian'];
 
@@ -568,6 +569,28 @@ exports.updateCase = async (req, res) => {
             }
         }
 
+        const finalTitle = updateData.title !== undefined ? updateData.title : existingCase.title;
+        const finalDescription = updateData.description !== undefined ? updateData.description : existingCase.description;
+        const finalStoryAr = updateData.details?.storyAr !== undefined
+            ? updateData.details.storyAr
+            : priorDetails.storyAr;
+
+        if (
+            updateData.title !== undefined
+            || updateData.description !== undefined
+            || updateData.details?.storyAr !== undefined
+        ) {
+            const redirectTo = actorRole === 'media'
+                ? `/admin/cases/${req.params.id}/media-review`
+                : '/admin/cases-manager';
+            const contentOk = await validateCaseContentForRequest(req, res, {
+                title: finalTitle,
+                description: finalDescription,
+                storyAr: finalStoryAr
+            }, redirectTo);
+            if (!contentOk) return;
+        }
+
         await Case.findByIdAndUpdate(req.params.id, updateData);
 
         // ─── Enforce single-active-case rule ────────────────────────────────────
@@ -725,6 +748,25 @@ exports.saveCaseMediaContent = async (req, res) => {
 
         const imgFile = req.files && req.files.image && req.files.image[0];
         if (imgFile) updateData.image = `/uploads/${imgFile.filename}`;
+
+        const finalTitle = updateData.title !== undefined ? updateData.title : existingCase.title;
+        const finalDescription = updateData.description !== undefined ? updateData.description : existingCase.description;
+        const finalStoryAr = updateData.details?.storyAr !== undefined
+            ? updateData.details.storyAr
+            : priorDetails.storyAr;
+
+        if (
+            updateData.title !== undefined
+            || updateData.description !== undefined
+            || updateData.details?.storyAr !== undefined
+        ) {
+            const contentOk = await validateCaseContentForRequest(req, res, {
+                title: finalTitle,
+                description: finalDescription,
+                storyAr: finalStoryAr
+            }, `/admin/cases/${req.params.id}/media-review`);
+            if (!contentOk) return;
+        }
 
         await Case.findByIdAndUpdate(req.params.id, updateData);
 
