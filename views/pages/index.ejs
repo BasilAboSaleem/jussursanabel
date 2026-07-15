@@ -1,81 +1,22 @@
 <%- include('../partials/header-top') %>
 
 <main style="background: #ffffff; min-height: 100vh;">
-    <!-- 1. Elegant Hero Section (Majestic Aurora Immersive) -->
-    <section class="section-zen hero-section-fit" style="padding: 40px 0 80px; overflow: hidden; background: var(--grad-navy); position: relative;">
-        <!-- Vibrant Glowing Ambient Orbs -->
-        <div style="position: absolute; top: -15%; left: -5%; width: 70vw; height: 75vh; background: radial-gradient(circle, rgba(16, 185, 129, 0.55) 0%, transparent 60%); filter: blur(90px); pointer-events: none;"></div>
-        <div style="position: absolute; top: 10%; right: -10%; width: 60vw; height: 60vh; background: radial-gradient(circle, rgba(14, 165, 233, 0.45) 0%, transparent 65%); filter: blur(90px); pointer-events: none;"></div>
-        <div class="bg-mesh" style="opacity: 0.65; pointer-events: none;"></div>
-        
-        <!-- Massive Deep Fade into White Background -->
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 55%; background: linear-gradient(to top, #ffffff 15%, rgba(255,255,255,0.7) 45%, transparent 100%); z-index: 10; pointer-events: none;"></div>
-        
-        <div class="container" style="position: relative; z-index: 20;">
-            <div class="grid-2 align-items-center hero-grid-fit" style="gap: 36px;">
-                <div class="reveal-on-scroll" style="position: relative;">
-                    <!-- Majestic Decor Elements -->
-                    <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
-                    <div style="position: absolute; bottom: -40px; left: -20px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(10,37,64,0.08) 0%, transparent 70%); border-radius: 50%; z-index: 0;"></div>
-                    
-                    <div class="luxury-card hero-text-bloom" style="padding: 34px 32px; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(25px); border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 24px 60px rgba(10, 37, 64, 0.10); position: relative; z-index: 1; overflow: hidden;">
-                        
-                        <!-- Subtle internal gradient -->
-                        <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--secondary), #34D399);"></div>
-
-                        <div style="margin-bottom: 30px;">
-                            <span class="section-badge" style="background: rgba(16, 185, 129, 0.1); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.95rem; padding: 10px 22px; border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; font-weight: 800; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.05);">
-                                <i class="fas fa-sparkles"></i> <%= __('hero_badge') %>
-                            </span>
-                        </div>
-
-                        <h1 class="hero-title-luxury" style="color: var(--primary); font-size: clamp(1.75rem, 4.3vw, 3.2rem); line-height: 1.15; margin-bottom: 8px; font-weight: 950; text-rendering: optimizeLegibility; letter-spacing: -1px;">
-                            <%= __('hero_title') %>
-                        </h1>
-
-                        <div style="background: linear-gradient(135deg, var(--secondary), #059669); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(1.35rem, 3.2vw, 1.9rem); font-weight: 900; margin-bottom: 14px; letter-spacing: -0.2px; display: inline-block; text-shadow: 0 12px 24px rgba(16, 185, 129, 0.1);">
-                            <%= __('hero_tagline') %>
-                        </div>
-
-                        <div style="width: 56px; height: 3px; background: var(--secondary); border-radius: 10px; margin-bottom: 16px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);"></div>
-
-                        <p class="section-subtitle-luxury hero-desc-clamp" style="margin-bottom: 14px; font-size: 0.94rem; color: #475569; max-width: 540px; line-height: 1.7; font-weight: 600;">
-                            <%= __('hero_desc') %>
-                        </p>
-
-                        <div class="hero-btn-container" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <a href="/cases" class="btn-lux btn-lux-primary btn-lg" style="padding: 12px 24px; border-radius: 50px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.25); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
-                                <%= __('btn_start_sponsorship') %> <i class="fas fa-seedling" style="font-size: 1.15rem;"></i>
-                            </a>
-                            <a href="https://www.senabil-pal.org/ar/about" class="btn-lux btn-lux-outline" style="border: 2px solid rgba(10, 37, 64, 0.1); color: var(--primary); padding: 12px 22px; border-radius: 50px; font-weight: 800; font-size: 0.92rem; background: transparent; transition: all 0.4s ease; text-align: center;">
-                                <%= __('about_us') %>
-                            </a>
-                        </div>
-                        <div class="hero-trust-row">
-                            <span><i class="fas fa-badge-check"></i> <%= __('hero_trust_verified') %></span>
-                            <span><i class="fas fa-shield-heart"></i> <%= __('hero_trust_privacy') %></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Artistic Video Frame (YouTube API Implementation) -->
-                <div class="reveal-on-scroll" style="position: relative; z-index: 20;">
-                    <div class="hero-video-halo"></div>
-                    <div class="hero-video-corner"></div>
-                    <div class="hero-video-corner hero-video-corner-bottom"></div>
-                    <div class="royal-white-frame hero-video-frame" style="transform: rotate(0deg); width: 100%; max-width: 355px; margin: 0 auto;">
-                        <div style="border-radius: 30px; overflow: hidden; aspect-ratio: 9/16; background: #000; position: relative;">
-                            <iframe 
-                                style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: none; pointer-events: none;"
-                                src="https://www.youtube.com/embed/3iwiN0-irD4?autoplay=1&mute=1&loop=1&playlist=3iwiN0-irD4&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=1&playsinline=1&origin=http://localhost:3000"
-                                allow="autoplay; encrypted-media"
-                                referrerpolicy="strict-origin-when-cross-origin"
-                                allowfullscreen>
-                            </iframe>
-                            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,37,64,0.1), transparent); pointer-events: none;"></div>
-                        </div>
-                    </div>
-                </div>
+    <!-- 1. Nameer Hero — Senabil-aligned full-bleed -->
+    <section class="nameer-hero" aria-label="<%= __('hero_title') %>">
+        <div class="nameer-hero__bg" role="img" aria-hidden="true"></div>
+        <div class="container nameer-hero__content">
+            <p class="nameer-hero__affiliate"><%= __('hero_affiliation') %></p>
+            <h1 class="nameer-hero__brand"><%= __('hero_title') %></h1>
+            <p class="nameer-hero__tagline"><%= __('hero_tagline') %></p>
+            <p class="nameer-hero__desc"><%= __('hero_desc') %></p>
+            <div class="nameer-hero__actions">
+                <a href="/cases" class="btn-lux btn-lux-primary btn-lg">
+                    <%= __('btn_start_sponsorship') %>
+                    <i class="fas fa-seedling" style="margin-inline-start: 8px;"></i>
+                </a>
+                <a href="https://www.senabil-pal.org/ar/about" class="btn-lux btn-lux-outline" target="_blank" rel="noopener">
+                    <%= __('about_us') %>
+                </a>
             </div>
         </div>
     </section>

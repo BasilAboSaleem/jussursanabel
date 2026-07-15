@@ -1,11 +1,11 @@
 {
-  "name": "Jusoor",
-  "short_name": "Jusoor",
-  "description": "Jusoor — a charitable platform connecting donors with families in need",
+  "name": "نَمير | Nameer",
+  "short_name": "Nameer",
+  "description": "Nameer — a Senabil Foundation platform connecting donors with families in need",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#032E15",
+  "theme_color": "#00A544",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

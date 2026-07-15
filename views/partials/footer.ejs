@@ -1,10 +1,13 @@
-<footer class="premium-footer" style="background: #051423; color: rgba(255,255,255,0.7); padding: 100px 5% 40px; border-top: 1px solid rgba(255,255,255,0.05);">
+<footer class="premium-footer" style="background: #032E15; color: rgba(255,255,255,0.7); padding: 100px 5% 40px; border-top: 1px solid rgba(255,255,255,0.05);">
     <div class="container">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 60px; margin-bottom: 80px;">
             <div>
-                <a href="/" class="logo-luxury" style="color: white; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
-                    <img src="/logoSanabel.png" alt="جسور" style="height: 60px; width: auto; border-radius: 8px;">
-                    <span class="font-cairo" style="font-weight: 900; font-size: 1.5rem;"><%= __('hero_title') %></span>
+                <a href="/" style="color: white; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                    <img src="/logoSanabel.png" alt="<%= __('hero_title') %>" style="height: 56px; width: auto;">
+                    <span style="display: flex; flex-direction: column; gap: 2px;">
+                        <strong style="font-weight: 900; font-size: 1.45rem; color: #fff;"><%= __('hero_title') %></strong>
+                        <small style="font-size: 0.72rem; font-weight: 700; color: #69FF97;"><%= __('brand_affiliation_short') %></small>
+                    </span>
                 </a>
                 <p style="line-height: 1.85; font-size: 1rem; color: rgba(255,255,255,0.55); margin-bottom: 35px;">
                     <%= __('footer_desc') %>
@@ -28,7 +31,7 @@
                     <li><a href="/cases" class="footer-link-lux"><%= __('footer_all_cases') %></a></li>
                     <li><a href="/cases?type=orphan" class="footer-link-lux"><%= __('footer_orphan_sponsorship') %></a></li>
                     <li><a href="/cases?type=family" class="footer-link-lux"><%= __('footer_family_support') %></a></li>
-                    <li><a href="/about" class="footer-link-lux"><%= __('about_us') %></a></li>
+                    <li><a href="https://www.senabil-pal.org/ar/about" class="footer-link-lux" target="_blank" rel="noopener"><%= __('about_us') %></a></li>
                     <li><a href="/transparency" class="footer-link-lux"><%= __('navbar_transparency') %></a></li>
                 </ul>
             </div>

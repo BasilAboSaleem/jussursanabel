@@ -1,49 +1,49 @@
 /* ================================================================
-   جسور السنابل — Design System v3.0 "Celestial Midnight"
-   Modern, Interactive, Premium Humanitarian Platform
+   نَمير (Nameer) — Design System aligned with Senabil brand
+   https://www.senabil-pal.org
 ================================================================ */
 
 /* ── 1. Design Tokens ─────────────────────────────────────────── */
 :root {
-    /* Senabil Brand Identity - Ultra Premium */
-    --primary: #0A2540; /* Deep Senabil Blue */
-    --primary-light: #1A365D;
-    --primary-mid: #2C5282;
-    --secondary: #10B981; /* Emerald Green */
-    --secondary-light: #34D399;
-    --accent: #059669; /* Darker Green */
-    --accent-light: #6EE7B7;
+    /* Senabil / Nameer Brand Identity */
+    --primary: #002661;
+    --primary-light: #155799;
+    --primary-mid: #1c398e;
+    --secondary: #00A544;
+    --secondary-light: #00C758;
+    --accent: #016630;
+    --accent-light: #69FF97;
     --gray-light: #F1F5F9;
     --gray-mid: #94A3B8;
     --gray-dark: #475569;
     --danger: #ef4444;
-    --success: #10B981;
-    --grad-gold: linear-gradient(135deg, #34D399 0%, #10B981 100%);
-    --grad-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    --success: #00A544;
+    --grad-gold: linear-gradient(135deg, #00C758 0%, #00A544 100%);
+    --grad-green: linear-gradient(135deg, #00A544 0%, #016630 100%);
 
     /* Backgrounds */
     --bg-main: #ffffff;
-    --bg-subtle: #f8fafc;
+    --bg-subtle: #f0fdf4;
     --bg-card: rgba(255, 255, 255, 0.9);
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-dark-bg: rgba(10, 37, 64, 0.85);
+    --glass-dark-bg: rgba(0, 38, 97, 0.85);
 
     /* Text */
-    --text-main: #0A2540;
+    --text-main: #032E15;
     --text-muted: #475569;
     --text-light: #94A3B8;
     --text-on-dark: #f8fafc;
 
-    /* Gradients (Strict Brand Identity - Elegant Restore) */
-    --grad-navy: linear-gradient(135deg, #0A2540 0%, #1A365D 100%);
-    --grad-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    --grad-hero: linear-gradient(rgba(10, 37, 64, 0.75), rgba(10, 37, 64, 0.4));
+    /* Gradients */
+    --grad-navy: linear-gradient(135deg, #002661 0%, #016630 100%);
+    --grad-green: linear-gradient(135deg, #00A544 0%, #016630 100%);
+    --grad-hero: linear-gradient(105deg, rgba(3, 46, 21, 0.88) 0%, rgba(0, 38, 97, 0.72) 55%, rgba(0, 165, 68, 0.45) 100%);
 
     /* Geometry & Motion */
-    --radius-sm: 12px;
-    --radius-md: 24px;
-    --radius-lg: 40px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 28px;
     --radius-pill: 9999px;
     --transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition-fast: all 0.25s ease;
@@ -78,7 +78,7 @@ body {
     direction: inherit;
     font-size: 16px;
     /* Reserve space for fixed navbar */
-    padding-top: 72px;
+    padding-top: 76px;
 }
 
 /* Don't add extra body padding in dashboard or full-screen layouts */
@@ -131,96 +131,84 @@ button {
     left: 0;
     right: 0;
     z-index: 1000;
-    height: 72px;
+    height: 76px;
     display: flex;
-    align-items: stretch;
-    padding: 0;
-    padding-inline-end: 5%;
-    gap: 0;
-    transition: var(--transition);
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    /* NO overflow:hidden — it breaks backdrop-filter on iOS/Android */
+    align-items: center;
+    padding: 0 4%;
+    gap: 12px;
+    transition: background 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid rgba(0, 166, 68, 0.12);
 }
 
 .premium-nav.scrolled {
-    height: 62px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(25px) saturate(200%);
-    -webkit-backdrop-filter: blur(25px) saturate(200%);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    height: 66px;
+    background: #ffffff;
+    box-shadow: 0 8px 28px rgba(0, 38, 97, 0.08);
 }
 
-/* Logo block — Artistic Floating Shield (Subul Signature) */
+/* Logo — clean Senabil-aligned wordmark */
 .logo-luxury {
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-family: 'Cairo', sans-serif;
-    font-weight: 900;
-    font-size: 1.5rem;
-    color: #ffffff;
+    gap: 12px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: var(--primary);
     white-space: nowrap;
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background: linear-gradient(135deg, #051423 0%, #0A2540 100%);
-    padding: 0 35px;
-    align-self: center; /* Floating state */
-    margin-inline-start: 15px;
-    height: 52px; /* Fixed height for consistent shield shape */
-    border-radius: 14px 14px 14px 65px; /* Organic leaf/shield shape — flipped to left */
-    box-shadow: 0 12px 30px rgba(10,37,64,0.2), 
-                0 0 15px rgba(16, 185, 129, 0.12);
+    transition: opacity 0.25s ease;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    height: auto;
+    border-radius: 0;
+    box-shadow: none;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     flex-shrink: 0;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: none;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .logo-luxury:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(10,37,64,0.3), 
-                0 0 25px rgba(16, 185, 129, 0.2);
-    border-color: rgba(255,255,255,0.25);
+    opacity: 0.85;
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
 }
 
-.logo-luxury::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top right, rgba(52, 211, 153, 0.15) 0%, transparent 75%);
-    pointer-events: none;
-}
-
-/* Subul Signature Shine */
+.logo-luxury::before,
 .logo-luxury::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transform: skewX(-25deg);
-    animation: logo-glow 10s infinite ease-in-out;
-}
-
-@keyframes logo-glow {
-    0% { left: -150%; }
-    20%, 100% { left: 150%; }
-}
-
-.logo-luxury:hover {
-    opacity: 0.9;
+    display: none;
 }
 
 .logo-luxury img {
-    height: 44px;
+    height: 48px;
     width: auto;
     object-fit: contain;
     flex-shrink: 0;
+}
+
+.logo-luxury .logo-text-stack {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    gap: 2px;
+}
+
+.logo-luxury .logo-text-stack strong {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.logo-luxury .logo-text-stack small {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--secondary);
+    letter-spacing: 0.02em;
 }
 
 .logo-luxury i {
@@ -231,43 +219,46 @@ button {
 .nav-links-luxury {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     margin-inline-end: auto;
-    padding-inline-start: 20px;
+    padding-inline-start: 18px;
     flex: 1;
 }
 
 .nav-link-luxury {
     position: relative;
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 8px 13px;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 10px 14px;
+    border-radius: 0;
+    transition: color 0.2s ease;
     white-space: nowrap;
+    background: transparent !important;
 }
 
 .nav-link-luxury:hover {
-    color: var(--primary);
-    background: var(--bg-subtle);
+    color: var(--secondary);
+    background: transparent !important;
 }
 
 .nav-link-luxury.active {
-    color: var(--primary);
-    background: var(--bg-subtle);
+    color: var(--secondary);
+    background: transparent !important;
 }
 
-.nav-link-luxury.active::before {
+.nav-link-luxury.active::before,
+.nav-link-luxury:hover::before {
     content: '';
     position: absolute;
     bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 3px;
+    left: 14px;
+    right: 14px;
+    width: auto;
+    transform: none;
+    height: 2px;
     background: var(--secondary);
-    border-radius: var(--radius-pill);
+    border-radius: 0;
 }
 
 /* Mobile toggle */
@@ -310,19 +301,16 @@ button {
     /* Drop-down mobile menu panel */
     .nav-links-luxury {
         position: fixed;
-        top: 72px;
+        top: 76px;
         left: 0;
         right: 0;
         flex-direction: column;
         align-items: stretch;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: 20px 5% 28px;
-        gap: 4px;
-        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        /* Use visibility + opacity + transform: avoids shadow bleed on mobile */
+        background: #ffffff;
+        padding: 16px 5% 24px;
+        gap: 2px;
+        border-bottom: 1px solid rgba(0, 166, 68, 0.12);
+        box-shadow: 0 16px 32px rgba(0, 38, 97, 0.1);
         transform: translateY(-8px);
         opacity: 0;
         visibility: hidden;
@@ -343,8 +331,13 @@ button {
     }
 
     .nav-link-luxury {
-        font-size: 1.05rem;
-        padding: 11px 14px;
+        font-size: 1.02rem;
+        padding: 12px 10px;
+    }
+
+    .nav-link-luxury.active::before,
+    .nav-link-luxury:hover::before {
+        display: none;
     }
 
     .mobile-only-actions {
@@ -367,22 +360,20 @@ button {
 /* ── Small phone ≤ 480px ── */
 @media (max-width: 480px) {
     .premium-nav {
-        height: 62px;
-    }
-
-    .logo-luxury {
-        font-size: 1.1rem;
-        padding: 0 14px;
-        border-bottom-inline-end-radius: 24px;
+        height: 64px;
+        padding: 0 12px;
     }
 
     .logo-luxury img {
-        height: 34px;
+        height: 40px;
     }
 
-    .logo-luxury span {
-        /* keep title visible but smaller */
-        font-size: 1rem !important;
+    .logo-luxury .logo-text-stack strong {
+        font-size: 1.05rem;
+    }
+
+    .logo-luxury .logo-text-stack small {
+        font-size: 0.6rem;
     }
 
     .mobile-menu-toggle {
@@ -397,7 +388,7 @@ button {
     }
 
     .nav-links-luxury {
-        top: 62px;
+        top: 64px;
     }
 }
 
@@ -693,11 +684,11 @@ button {
 .btn-lux-primary {
     background: var(--grad-green);
     color: #fff;
-    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 165, 68, 0.3);
 }
 
 .btn-lux-primary:hover {
-    box-shadow: 0 20px 50px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 20px 50px rgba(0, 165, 68, 0.45);
 }
 
 .btn-lux-dark {
@@ -2110,5 +2101,162 @@ html[dir="ltr"] .sidebar-close-btn {
     .grid-2, .grid-3, .grid-4 { 
         grid-template-columns: 1fr !important; 
         gap: 15px !important; 
+    }
+}
+
+/* ── Nameer Hero (Senabil-aligned full-bleed) ─────────────────── */
+.nameer-hero {
+    position: relative;
+    min-height: calc(100vh - 76px);
+    min-height: calc(100svh - 76px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: #032E15;
+    color: #fff;
+}
+
+.nameer-hero__bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(120deg, rgba(3, 46, 21, 0.92) 0%, rgba(0, 38, 97, 0.78) 48%, rgba(0, 165, 68, 0.55) 100%),
+        url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.02);
+    animation: nameer-hero-pan 28s ease-in-out infinite alternate;
+}
+
+@keyframes nameer-hero-pan {
+    from { transform: scale(1.02) translate3d(0, 0, 0); }
+    to { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+}
+
+.nameer-hero__content {
+    position: relative;
+    z-index: 2;
+    padding: 72px 0 88px;
+    max-width: 720px;
+}
+
+.nameer-hero__affiliate {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.01em;
+}
+
+.nameer-hero__affiliate::before {
+    content: '';
+    width: 28px;
+    height: 2px;
+    background: var(--secondary-light);
+    flex-shrink: 0;
+}
+
+.nameer-hero__brand {
+    font-family: 'Tajawal', sans-serif;
+    font-size: clamp(3.2rem, 9vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin: 0 0 14px;
+    color: #fff;
+    letter-spacing: -0.02em;
+    text-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    animation: nameer-hero-fade-up 0.8s ease both;
+}
+
+.nameer-hero__tagline {
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 800;
+    color: #69FF97;
+    margin: 0 0 18px;
+    line-height: 1.35;
+    animation: nameer-hero-fade-up 0.8s ease 0.1s both;
+}
+
+.nameer-hero__desc {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    font-weight: 500;
+    line-height: 1.85;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0 0 32px;
+    max-width: 560px;
+    animation: nameer-hero-fade-up 0.8s ease 0.18s both;
+}
+
+.nameer-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    animation: nameer-hero-fade-up 0.8s ease 0.26s both;
+}
+
+.nameer-hero__actions .btn-lux-primary {
+    background: var(--grad-green);
+    border: none;
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: 800;
+    box-shadow: 0 12px 28px rgba(0, 165, 68, 0.35);
+}
+
+.nameer-hero__actions .btn-lux-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(0, 165, 68, 0.4);
+}
+
+.nameer-hero__actions .btn-lux-outline {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    color: #fff;
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-weight: 800;
+}
+
+.nameer-hero__actions .btn-lux-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #fff;
+    color: #fff;
+}
+
+@keyframes nameer-hero-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .nameer-hero {
+        min-height: calc(100svh - 64px);
+        align-items: flex-end;
+    }
+
+    .nameer-hero__content {
+        padding: 48px 0 56px;
+    }
+
+    .nameer-hero__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nameer-hero__actions .btn-lux {
+        justify-content: center;
+        text-align: center;
+        width: 100%;
     }
 }

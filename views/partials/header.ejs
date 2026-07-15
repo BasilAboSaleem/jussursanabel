@@ -1,7 +1,10 @@
 <header class="premium-nav">
     <a href="/" class="logo-luxury">
-        <img src="/logoSanabel.png" alt="جسور">
-        <span class="font-cairo"><%= __('hero_title') %></span>
+        <img src="/logoSanabel.png" alt="<%= __('hero_title') %>">
+        <span class="logo-text-stack">
+            <strong><%= __('hero_title') %></strong>
+            <small><%= __('brand_affiliation_short') %></small>
+        </span>
     </a>
 
     <!-- Mobile Menu Toggle & Lang Switcher -->
@@ -31,7 +34,7 @@
     <nav class="nav-links-luxury" id="navLinks">
         <a href="/" class="nav-link-luxury"><%= __('home') %></a>
         <a href="/cases" class="nav-link-luxury"><%= __('cases') %></a>
-        <a href="https://www.senabil-pal.org/ar/about" class="nav-link-luxury"><%= __('about_us') %></a>
+        <a href="https://www.senabil-pal.org/ar/about" class="nav-link-luxury" target="_blank" rel="noopener"><%= __('about_us') %></a>
         <a href="/transparency" class="nav-link-luxury"><%= __('navbar_transparency') %></a>
         <a href="/contact" class="nav-link-luxury"><%= __('navbar_contact') %></a>
         
@@ -49,16 +52,16 @@
 
     <div class="nav-actions-luxury" style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
         <% if (user) { %>
-            <div style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 6px 16px; border-radius: 50px; border: 1px solid rgba(16, 185, 129, 0.15);">
+            <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 165, 68, 0.06); padding: 6px 16px; border-radius: 8px; border: 1px solid rgba(0, 165, 68, 0.18);">
                 <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis;"><%= user.name %></span>
-                <a href="/dashboard" class="btn-lux btn-lux-primary btn-sm" style="padding: 8px 18px; font-size: 0.8rem; background: var(--grad-green);">
+                <a href="/dashboard" class="btn-lux btn-lux-primary btn-sm" style="padding: 8px 18px; font-size: 0.8rem; background: var(--grad-green); border-radius: 8px;">
                     <i class="fas fa-user-circle"></i> <%= __('dashboard') %>
                 </a>
             </div>
             <a href="/auth/logout" style="color: var(--text-muted); font-size: 1.2rem;" title="<%= __('navbar_logout') %>"><i class="fas fa-sign-out-alt"></i></a>
         <% } else { %>
             <a href="/auth/login" style="color: var(--primary); text-decoration: none; font-weight: 800; font-size: 0.95rem;"><%= __('navbar_login') %></a>
-            <a href="/auth/register" class="btn-lux btn-lux-primary btn-sm" style="background: var(--grad-green); padding: 12px 28px;">
+            <a href="/auth/register" class="btn-lux btn-lux-primary btn-sm" style="background: var(--grad-green); padding: 11px 22px; border-radius: 8px;">
                 <%= __('navbar_register') %> <i class="fas fa-arrow-<%= locals.langDir === 'ltr' ? 'right' : 'left' %>" style="font-size: 0.8rem; margin: 0 8px;"></i>
             </a>
         <% } %>
