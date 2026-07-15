@@ -7,6 +7,7 @@ const fs = require('fs');
 const { logActivity } = require('../utils/logger');
 const { resolveStoryVideoAsync, cloudinaryEnabled, prepareStoryVideoAsync } = require('../utils/storyVideo');
 const { caseCardImageUrl } = require('../utils/imageUrl');
+const { loadCaseRegistrationSettings, validateCaseContentForRequest } = require('../utils/caseRegistrationSettings');
 const {
     PUBLIC_CASE_STATUSES,
     fundingPercent,
@@ -142,7 +143,20 @@ exports.getRegisterCase = async (req, res) => {
             res.__('needs_other')
         ];
 
-        res.render('pages/cases/register-case', { title: res.__('admin_nav_cases_manager'), caseNeeds: needsArray });
+        const registrationSettings = await loadCaseRegistrationSettings();
+        const registrationGuide = req.getLocale() === 'en'
+            ? registrationSettings.registrationGuideEn
+            : registrationSettings.registrationGuideAr;
+
+        res.render('pages/cases/register-case', {
+            title: res.__('admin_nav_cases_manager'),
+            caseNeeds: needsArray,
+            registrationGuide,
+            caseTemplateOrphanAr: registrationSettings.caseTemplateOrphanAr,
+            caseTemplateFamilyAr: registrationSettings.caseTemplateFamilyAr,
+            caseTemplateDescAr: registrationSettings.caseTemplateDescAr,
+            forbiddenWords: registrationSettings.forbiddenWords
+        });
     } catch (err) {
         console.error(err);
         res.redirect('/dashboard');
@@ -175,6 +189,13 @@ exports.createCase = async (req, res) => {
 
         const { title, type, description, location, storyAr, memberCount, orphanCount, familyCount, isFatherDeceased, father, mother, guardian, orphans, storyVideo } = req.body;
         const needs = req.body.needs || [];
+
+        const contentOk = await validateCaseContentForRequest(req, res, {
+            title,
+            description,
+            storyAr
+        }, 'back');
+        if (!contentOk) return;
         
         // Logical syncing for member counts
         const finalOrphanCount = type === 'orphan' ? (memberCount || orphanCount) : null;
