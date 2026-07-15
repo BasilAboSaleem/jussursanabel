@@ -78,7 +78,7 @@ exports.getHomepage = async (req, res) => {
 
         const defaultTestimonials = isEn ? [
             {
-                content: 'What I love most about Jusoor is the absolute transparency — I felt as if I were in Gaza placing charity directly in the hands of those in need.',
+                content: 'What I love most about Nameer is the absolute transparency — I felt as if I were in Gaza placing charity directly in the hands of those in need.',
                 user: { name: 'Khaled Abdullah' },
                 locationAr: 'Donor from Jordan',
                 rating: 5
@@ -97,7 +97,7 @@ exports.getHomepage = async (req, res) => {
             }
         ] : [
             {
-                content: 'أجمل ما في جسور هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
+                content: 'أجمل ما في نَمير هو الشفافية المطلقة.. شعرت كأنني في غزة أضع الصدقة في يد المحتاج بنفسي.',
                 user: { name: 'خالد عبد الله' },
                 locationAr: 'متبرع من الأردن',
                 rating: 5

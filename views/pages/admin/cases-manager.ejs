@@ -71,7 +71,7 @@
                             item.status === 'field_verification' ? 'badge-teal' : 
                             item.status === 'media_review' ? 'badge-purple' :
                             item.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                        %>" style="<%= item.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((item.status === 'completed' || item.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
+                        %>" style="<%= item.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((item.status === 'completed' || item.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #016630, #00A544); color: #fff;' : '') %>">
                             <%= 
                                 (item.status === 'completed' || item.status === 'fully_sponsored') ? (__('status_completed') || 'مكتملة') :
                                 item.status === 'approved' ? __('common_approved_desc') : 
@@ -126,7 +126,7 @@
                                         
                                         <form action="/admin/cases/<%= item._id %>/toggle-visibility" method="POST" style="margin: 0; padding: 0;">
                                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #10b981;">
+                                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; background: none; border: none; cursor: pointer; color: #00A544;">
                                                 <i class="fas <%= item.isHidden ? 'fa-eye' : 'fa-eye-slash' %>"></i> <%= item.isHidden ? 'إظهار الحالة للعامة' : 'إخفاء الحالة عن العامة' %>
                                             </button>
                                         </form>
@@ -236,9 +236,9 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 25px; display: flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.05); padding: 10px; border-radius: 8px;">
+                <div class="form-group" style="margin-bottom: 25px; display: flex; align-items: center; gap: 10px; background: rgba(0, 165, 68, 0.05); padding: 10px; border-radius: 8px;">
                     <input type="checkbox" name="isFieldVerified" id="isVerifiedInput" style="width: 20px; height: 20px; cursor: pointer;">
-                    <label for="isVerifiedInput" style="margin: 0; font-weight: 700; color: #10b981; cursor: pointer;"><%= __('admin_cases_manager_label_is_verified') %></label>
+                    <label for="isVerifiedInput" style="margin: 0; font-weight: 700; color: #00A544; cursor: pointer;"><%= __('admin_cases_manager_label_is_verified') %></label>
                 </div>
 
                 <!-- Impact Metrics Editor (Phase 2) -->

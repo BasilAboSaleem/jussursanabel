@@ -61,8 +61,8 @@
 </div>
 
 <% if (typeof canPublish !== 'undefined' && canPublish) { %>
-<div class="luxury-card" style="padding: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid #10b981;">
-    <h4 class="font-cairo" style="margin: 0 0 18px; font-weight: 700; color: #059669;"><i class="fas fa-circle-check"></i> <%= __('admin_media_case_review_section_publish') %></h4>
+<div class="luxury-card" style="padding: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid #00A544;">
+    <h4 class="font-cairo" style="margin: 0 0 18px; font-weight: 700; color: #016630;"><i class="fas fa-circle-check"></i> <%= __('admin_media_case_review_section_publish') %></h4>
     <form action="/admin/cases/<%= caseRecord._id %>/status" method="POST" enctype="multipart/form-data" style="margin-bottom: 22px;">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="status" value="approved">
@@ -70,7 +70,7 @@
             <label class="form-label-luxury"><%= __('admin_cases_manager_label_verification_notes') %></label>
             <textarea name="verificationNotes" class="form-input" rows="3" placeholder="<%= __('admin_cases_manager_placeholder_verification_notes') %>"><%= caseRecord.verificationNotes || '' %></textarea>
         </div>
-        <button type="submit" class="btn-lux btn-lux-primary" style="background: linear-gradient(135deg, #059669, #10b981); border: none;"><i class="fas fa-bullhorn"></i> <%= __('admin_media_case_btn_publish') %></button>
+        <button type="submit" class="btn-lux btn-lux-primary" style="background: linear-gradient(135deg, #016630, #00A544); border: none;"><i class="fas fa-bullhorn"></i> <%= __('admin_media_case_btn_publish') %></button>
     </form>
 
     <h4 class="font-cairo" style="margin: 24px 0 14px; font-weight: 700; color: #b91c1c;"><i class="fas fa-ban"></i> <%= __('admin_media_case_review_section_reject') %></h4>

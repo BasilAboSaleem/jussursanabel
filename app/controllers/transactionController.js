@@ -76,7 +76,7 @@ const applyVerifiedDonationEffects = async ({ transaction, foundCase }) => {
         if (donor && donor.email) {
             const emailResult = await sendEmail({
                 email: donor.email,
-                subject: 'إيصال تبرع — منصة جسور',
+                subject: 'إيصال تبرع — منصة نَمير',
                 html: donationReceipt(donor.name || 'Donor', transaction.amount, foundCase.title),
                 type: 'donation_receipt',
                 immediate: true

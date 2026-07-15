@@ -4,11 +4,11 @@
     <!-- 1. Majestic Hero Section -->
     <section class="hero-luxury" style="min-height: 55vh; padding: 90px 0 100px; display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
         <!-- Brand Gradient Overlay -->
-        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25) 0%, transparent 70%);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(0, 165, 68, 0.25) 0%, transparent 70%);"></div>
         <div class="bg-mesh" style="opacity: 0.6;"></div>
         
         <div class="container" style="position: relative; z-index: 20;">
-            <span class="hero-badge-luxury reveal-on-scroll" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--secondary-light); padding: 8px 25px; font-size: 0.9rem; letter-spacing: 1px;">
+            <span class="hero-badge-luxury reveal-on-scroll" style="background: rgba(0, 165, 68, 0.15); border: 1px solid rgba(0, 165, 68, 0.3); color: var(--secondary-light); padding: 8px 25px; font-size: 0.9rem; letter-spacing: 1px;">
                 <i class="fas fa-comments"></i> <%= __('contact_hero_badge') %>
             </span>
             <h1 class="hero-title-luxury reveal-on-scroll" style="font-size: clamp(3rem, 6vw, 5.5rem); margin-top: 25px; margin-bottom: 25px; color: #fff; line-height: 1.1; font-weight: 950; text-shadow: 0 20px 40px rgba(0,0,0,0.3);">
@@ -28,10 +28,10 @@
         <div class="grid-2" style="gap: 50px; align-items: start;">
             <!-- Contact Info Ribbon -->
             <div class="reveal-on-scroll">
-                <span class="section-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: none;"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
+                <span class="section-badge" style="background: rgba(0, 165, 68, 0.1); color: #00A544; border: 1px solid rgba(0, 165, 68, 0.2); box-shadow: none;"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
                 <h2 class="section-title-luxury" style="margin-bottom: 30px; font-weight: 950; font-size: 2.8rem; margin-top: 15px;">
                     <%= __('contact_channels_title').split(' ')[0] %> <%= __('contact_channels_title').split(' ')[1] %> 
-                    <br><span style="color: #10b981;"><%= __('contact_channels_title').split(' ').slice(2).join(' ') %></span>
+                    <br><span style="color: #00A544;"><%= __('contact_channels_title').split(' ').slice(2).join(' ') %></span>
                 </h2>
                 <p style="color: var(--text-muted); line-height: 1.9; margin-bottom: 40px; font-size: 1.15rem; font-weight: 500;">
                     <%= __('contact_channels_desc') %>
@@ -40,7 +40,7 @@
                 <div style="display: flex; flex-direction: column; gap: 20px;">
                     <!-- WhatsApp Card (Azure/Emerald Theme) -->
                     <a href="https://wa.me/970599000000" target="_blank" class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.1s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(16, 185, 129, 0.08); color: #10b981;">
+                        <div class="contact-icon-wrapper" style="background: rgba(0, 165, 68, 0.08); color: #00A544;">
                             <i class="fab fa-whatsapp"></i>
                         </div>
                         <div class="contact-text-wrapper">
@@ -52,7 +52,7 @@
 
                     <!-- Email Card (Azure Theme) -->
                     <div class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.2s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(14, 165, 233, 0.08); color: #0ea5e9;">
+                        <div class="contact-icon-wrapper" style="background: rgba(0, 38, 97, 0.08); color: #002661;">
                             <i class="fas fa-envelope-open-text"></i>
                         </div>
                         <div class="contact-text-wrapper">
@@ -63,7 +63,7 @@
 
                     <!-- Location Card (Deep Emerald/Navy) -->
                     <div class="luxury-card contact-info-card reveal-on-scroll" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; transition-delay: 0.3s;">
-                        <div class="contact-icon-wrapper" style="background: rgba(10, 37, 64, 0.05); color: var(--primary);">
+                        <div class="contact-icon-wrapper" style="background: rgba(0, 38, 97, 0.05); color: var(--primary);">
                             <i class="fas fa-location-dot"></i>
                         </div>
                         <div class="contact-text-wrapper">
@@ -84,7 +84,7 @@
 
             <!-- 3. Enhanced Contact Form (Glass Panel) -->
             <div class="reveal-on-scroll" style="transition-delay: 0.4s;">
-                <div class="luxury-card glass-panel-form" style="padding: 50px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 45px; box-shadow: 0 40px 100px rgba(10,37,64,0.08);">
+                <div class="luxury-card glass-panel-form" style="padding: 50px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 45px; box-shadow: 0 40px 100px rgba(0,38,97,0.08);">
                     <h3 class="font-cairo" style="font-weight: 950; margin-bottom: 10px; color: var(--primary); font-size: 1.8rem;"><%= __('contact_form_title') %></h3>
                     <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 35px; font-weight: 500;"><%= __('contact_form_desc') %></p>
                     
@@ -124,7 +124,7 @@
                             <textarea name="message" class="form-input-lux" rows="5" placeholder="<%= __('contact_form_message_placeholder') %>" required></textarea>
                         </div>
 
-                        <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px; height: 65px; font-size: 1.2rem; background: var(--grad-green); color: #fff; border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3); font-weight: 800;">
+                        <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px; height: 65px; font-size: 1.2rem; background: var(--grad-green); color: #fff; border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 165, 68, 0.3); font-weight: 800;">
                             <i class="fas fa-paper-plane" style="margin-inline-end: 12px;"></i> <%= __('contact_form_submit') %> 
                         </button>
                     </form>
@@ -139,14 +139,14 @@
             
             <!-- Information Overlay Area -->
             <div style="padding: 60px 40px 40px; text-align: center; position: relative; z-index: 2; background: white;">
-                <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 25px; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem; margin: 0 auto 25px;">
+                <div style="width: 80px; height: 80px; background: rgba(0, 165, 68, 0.1); border-radius: 25px; display: flex; align-items: center; justify-content: center; color: #00A544; font-size: 2.2rem; margin: 0 auto 25px;">
                     <i class="fas fa-map-location-dot"></i>
                 </div>
                 <h3 class="font-cairo" style="font-weight: 950; color: var(--primary); font-size: 2.2rem; margin-bottom: 15px;"><%= __('contact_map_title') %></h3>
                 <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto; font-size: 1.15rem; line-height: 1.8; font-weight: 500;"><%= __('contact_map_desc') %></p>
                 <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
                     <span style="background: #f1f5f9; padding: 10px 20px; border-radius: 12px; font-weight: 700; color: var(--primary); font-size: 0.95rem;">
-                        <i class="fas fa-location-arrow" style="color: #10b981; margin-inline-start: 8px;"></i> دير البلح، قطاع غزة، فلسطين
+                        <i class="fas fa-location-arrow" style="color: #00A544; margin-inline-start: 8px;"></i> دير البلح، قطاع غزة، فلسطين
                     </span>
                 </div>
             </div>
@@ -195,15 +195,15 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+        background: linear-gradient(135deg, rgba(0, 165, 68, 0.05) 0%, transparent 100%);
         opacity: 0;
         transition: opacity 0.3s ease;
     }
 
     .contact-info-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 30px 60px rgba(10, 37, 64, 0.1);
-        border-color: #10b981 !important;
+        box-shadow: 0 30px 60px rgba(0, 38, 97, 0.1);
+        border-color: #00A544 !important;
         background: white;
     }
 
@@ -227,7 +227,7 @@
 
     .contact-info-card:hover .contact-icon-wrapper {
         transform: scale(1.15) rotate(10deg);
-        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
+        box-shadow: 0 10px 20px rgba(0, 165, 68, 0.15);
     }
 
     .contact-text-wrapper {
@@ -261,7 +261,7 @@
     .contact-info-card:hover .arrow-indicator {
         opacity: 1;
         transform: translateX(-5px);
-        color: #10b981;
+        color: #00A544;
     }
 
     /* Social Buttons */
@@ -283,7 +283,7 @@
         background: var(--primary);
         color: white;
         transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(10, 37, 64, 0.2);
+        box-shadow: 0 15px 30px rgba(0, 38, 97, 0.2);
     }
 
     /* Premium Form Styling */
@@ -333,12 +333,12 @@
 
     .form-input-lux:focus {
         background: white;
-        border-color: rgba(16, 185, 129, 0.4);
-        box-shadow: 0 15px 40px rgba(16, 185, 129, 0.1);
+        border-color: rgba(0, 165, 68, 0.4);
+        box-shadow: 0 15px 40px rgba(0, 165, 68, 0.1);
     }
 
     .form-input-lux:focus + .input-icon {
-        color: #10b981;
+        color: #00A544;
         transform: scale(1.1);
     }
 

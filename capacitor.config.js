@@ -18,7 +18,7 @@ if (!process.env.CAPACITOR_SERVER_URL) {
 
 module.exports = {
   appId: "com.subul.app",
-  appName: "Subul Platform",
+  appName: "Nameer",
   webDir: "capacitor/www",
   server: {
     url: serverUrl,

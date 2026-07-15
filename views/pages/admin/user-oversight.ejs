@@ -93,7 +93,7 @@
         <!-- Financials Tab -->
         <div id="financials" class="tab-content active">
             <div class="grid-2" style="margin-bottom: 30px;">
-                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); padding: 25px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <div style="background: linear-gradient(135deg, rgba(0, 165, 68, 0.1), rgba(0, 165, 68, 0.05)); padding: 25px; border-radius: 12px; border: 1px solid rgba(0, 165, 68, 0.2); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                     <div style="font-size: 1rem; font-weight: 800; color: #047857; margin-bottom: 15px;"><i class="fas fa-hand-holding-usd"></i> <%= __('admin_oversight_total_donated') %></div>
                     <div style="font-size: 2.5rem; font-weight: 800; color: #047857;">$<%= stats.totalDonatedAmount.toLocaleString() %></div>
                     <div style="font-size: 0.85rem; color: #065f46; margin-top: 10px;"><%= __('common_via') %> <%= donationsMade.length %> <%= __('admin_oversight_documented_payments') %></div>
@@ -142,7 +142,7 @@
                         <% if(donationsMade.length === 0) { %><tr><td colspan="4" style="padding: 15px; text-align: center;"><%= __('admin_oversight_no_outgoing') %></td></tr><% } %>
                         <% donationsMade.forEach(tx => { %>
                             <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 15px; font-weight: 800; color: #10b981;">$<%= tx.amount %></td>
+                                <td style="padding: 15px; font-weight: 800; color: #00A544;">$<%= tx.amount %></td>
                                 <td style="padding: 15px;"><a href="/cases/<%= tx.case._id %>"><%= tx.case.title %></a></td>
                                 <td style="padding: 15px;"><%= tx.createdAt.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %></td>
                                 <td style="padding: 15px;"><span class="badge badge-navy"><%= tx.type %></span></td>
@@ -516,7 +516,7 @@ function showDiscussion(index) {
     const navItem = document.getElementById('nav-item-' + index);
     if(navItem) {
         navItem.style.background = 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)';
-        navItem.style.borderColor = '#10b981';
+        navItem.style.borderColor = '#00A544';
     }
 }
 

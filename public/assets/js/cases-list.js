@@ -43,7 +43,7 @@
 
         const satisfiedHtml = item.isSatisfied
             ? `<div class="satisfied-overlay">
-                    <span class="badge" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; font-weight: 900; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
+                    <span class="badge" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; font-weight: 900; box-shadow: 0 4px 15px rgba(0, 165, 68, 0.4);">
                         <i class="fas fa-heart-circle-check"></i> ${escapeHtml(boot.labels.satisfiedText)}
                     </span>
                </div>`
@@ -56,7 +56,7 @@
             : '';
 
         const areaHtml = item.area
-            ? `<span style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 5px;">
+            ? `<span style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; background: rgba(0, 165, 68, 0.1); padding: 2px 8px; border-radius: 5px;">
                     <i class="fas fa-location-dot"></i> ${escapeHtml(item.area)}
                </span>`
             : '';
@@ -105,7 +105,7 @@
                             <span class="target-text">${escapeHtml(boot.labels.targetText)} ${targetText}</span>
                         </div>
                         ${storyBtnHtml}
-                        <a href="/cases/${item._id}" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                        <a href="/cases/${item._id}" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(0, 165, 68, 0.2);">
                             ${escapeHtml(boot.labels.detailsBtn)} <i class="fas fa-arrow-${arrowIcon()}"></i>
                         </a>
                     </div>

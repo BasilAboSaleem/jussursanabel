@@ -34,7 +34,7 @@
                                 <span style="font-size: 0.85rem; opacity: 0.8;"><%= ticket.user.role === 'donor' ? 'متبرع' : 'مستفيد' %></span>
                             </div>
                         <% } else { %>
-                            <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981;"></div>
+                            <div style="width: 10px; height: 10px; background: #00A544; border-radius: 50%; box-shadow: 0 0 10px #00A544;"></div>
                             <div>
                                 <h4 class="font-cairo" style="margin: 0; font-size: 1.2rem;">محادثة دعم نشطة</h4>
                                 <span style="font-size: 0.85rem; opacity: 0.8;">رقم التذكرة: <%= ticket._id.toString().slice(-6).toUpperCase() %></span>
@@ -257,7 +257,7 @@
 <style>
     #chat-input:focus {
         border-color: var(--secondary);
-        box-shadow: 0 0 0 4px rgba(226, 176, 100, 0.1);
+        box-shadow: 0 0 0 4px rgba(0, 165, 68, 0.12);
     }
 
     @media (max-width: 992px) {

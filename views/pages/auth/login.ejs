@@ -3,7 +3,7 @@
 <main style="min-height: calc(100vh - 72px); position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 24px 20px;">
     <!-- Soft Atmospheric Background -->
     <div style="position: absolute; inset: 0; background: 
-        radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 20% 20%, rgba(0, 165, 68, 0.08) 0%, transparent 40%),
         radial-gradient(circle at 80% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
     </div>
     <div class="bg-mesh" style="opacity: 0.15;"></div>
@@ -23,7 +23,7 @@
     <div class="luxury-card reveal-on-scroll active" style="width: 100%; max-width: 480px; padding: 38px; border-radius: 36px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
         
         <div style="text-align: center; margin-bottom: 40px;">
-            <div style="display: inline-block; width: 85px; height: 85px; background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(14, 165, 233, 0.25); transform: rotate(-5deg);">
+            <div style="display: inline-block; width: 85px; height: 85px; background: linear-gradient(135deg, #002661 0%, #00A544 100%); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0, 165, 68, 0.25); transform: rotate(-5deg);">
                 <i class="fas fa-lock" style="font-size: 2.22rem; color: white;"></i>
             </div>
             <h2 class="font-cairo" style="font-size: 2.4rem; color: #ffffff; margin-bottom: 10px; font-weight: 800;">تسجيل الدخول</h2>
@@ -37,7 +37,7 @@
         <% } %>
 
         <% if (success && success.length > 0) { %>
-            <div style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; padding: 18px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
+            <div style="background: rgba(0, 165, 68, 0.15); color: #6ee7b7; padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 165, 68, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
                 <i class="fas fa-circle-check" style="margin-left: 8px;"></i> <%= success %>
             </div>
         <% } %>
@@ -71,7 +71,7 @@
                 </a>
             </div>
 
-            <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; height: 60px; border-radius: 20px; font-size: 1.15rem; font-weight: 900; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);">
+            <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; height: 60px; border-radius: 20px; font-size: 1.15rem; font-weight: 900; box-shadow: 0 10px 30px rgba(0, 165, 68, 0.2);">
                 دخول للحساب <i class="fas fa-sign-in-alt" style="margin-right: 15px;"></i>
             </button>
         </form>
@@ -87,9 +87,9 @@
 
 <style>
     :root {
-        --secondary: #22d3ee;
-        --secondary-light: #67e8f9;
-        --grad-gold: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+        --secondary: #00A544;
+        --secondary-light: #69FF97;
+        --grad-gold: linear-gradient(135deg, #002661 0%, #00A544 100%);
     }
 
     .form-input-soft {
@@ -107,7 +107,7 @@
 
     .form-input-soft:focus {
         border-color: var(--secondary);
-        box-shadow: 0 10px 25px rgba(34, 211, 238, 0.16);
+        box-shadow: 0 10px 25px rgba(0, 165, 68, 0.16);
         transform: translateY(-2px);
     }
 

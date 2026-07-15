@@ -4,11 +4,11 @@
     <!-- 1. Majestic Hero Section -->
     <section class="hero-luxury cases-hero-luxury" style="display: flex; align-items: center; background: var(--grad-navy); position: relative; overflow: hidden; text-align: center;">
         <!-- Brand Gradient Overlay -->
-        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25) 0%, transparent 70%);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(0, 165, 68, 0.25) 0%, transparent 70%);"></div>
         <div class="bg-mesh" style="opacity: 0.6;"></div>
         
         <div class="container" style="position: relative; z-index: 20;">
-            <span class="hero-badge-luxury reveal-on-scroll" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--secondary-light); padding: 8px 25px; font-size: 0.9rem; letter-spacing: 1px;">
+            <span class="hero-badge-luxury reveal-on-scroll" style="background: rgba(0, 165, 68, 0.15); border: 1px solid rgba(0, 165, 68, 0.3); color: var(--secondary-light); padding: 8px 25px; font-size: 0.9rem; letter-spacing: 1px;">
                 <i class="fas fa-sparkles"></i> <%= __('index_features_badge') %>
             </span>
             <h1 class="hero-title-luxury reveal-on-scroll" style="font-size: clamp(3rem, 6vw, 5.5rem); margin-top: 25px; margin-bottom: 25px; color: #fff; line-height: 1.1; font-weight: 950; text-shadow: 0 20px 40px rgba(0,0,0,0.3);">
@@ -99,7 +99,7 @@
 
                             <% if (item.isSatisfied) { %>
                                 <div class="satisfied-overlay">
-                                    <span class="badge" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; font-weight: 900; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
+                                    <span class="badge" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; font-weight: 900; box-shadow: 0 4px 15px rgba(0, 165, 68, 0.4);">
                                         <i class="fas fa-heart-circle-check"></i> <%= __('cases_satisfied_text') %>
                                     </span>
                                 </div>
@@ -112,7 +112,7 @@
                                     <%= item.title %>
                                 </h3>
                                 <% if (item.area) { %>
-                                    <span style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 5px;">
+                                    <span style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; background: rgba(0, 165, 68, 0.1); padding: 2px 8px; border-radius: 5px;">
                                         <i class="fas fa-location-dot"></i> <%= item.area %>
                                     </span>
                                 <% } %>
@@ -135,7 +135,7 @@
                                         <i class="fas fa-circle-play"></i> <%= __('cases_btn_watch_story') %>
                                     </a>
                                 <% } %>
-                                <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                                <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(0, 165, 68, 0.2);">
                                     <%= __('cases_btn_details') %> <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
                                 </a>
                             </div>
@@ -244,7 +244,7 @@
     }
 
     .filter-btn-lux:hover {
-        background: rgba(16, 185, 129, 0.05);
+        background: rgba(0, 165, 68, 0.05);
         color: var(--secondary);
     }
 
@@ -274,7 +274,7 @@
         height: 280px;
         position: relative;
         overflow: hidden;
-        background: #0f172a;
+        background: #032E15;
         margin: 12px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -326,7 +326,7 @@
         top: 15px;
         left: 15px;
         z-index: 10;
-        background: #10b981;
+        background: #00A544;
         color: white;
         padding: 5px 12px;
         border-radius: 50px;
@@ -335,7 +335,7 @@
         display: flex;
         align-items: center;
         gap: 5px;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 165, 68, 0.3);
         border: 1px solid rgba(255,255,255,0.2);
     }
 
@@ -364,7 +364,7 @@
 
     .story-video-badge:hover {
         transform: translateY(-2px);
-        background: rgba(16, 185, 129, 0.92);
+        background: rgba(0, 165, 68, 0.92);
         color: #fff;
     }
 
@@ -385,7 +385,7 @@
     }
 
     .btn-story-link:hover {
-        background: rgba(16, 185, 129, 0.12);
+        background: rgba(0, 165, 68, 0.12);
         color: var(--secondary);
     }
 
@@ -453,7 +453,7 @@
 
     .case-card:hover {
         transform: translateY(-12px);
-        box-shadow: 0 40px 80px rgba(2, 6, 23, 0.12), 0 0 30px rgba(226, 176, 100, 0.08);
+        box-shadow: 0 40px 80px rgba(2, 6, 23, 0.12), 0 0 30px rgba(0, 165, 68, 0.08);
         border-color: var(--secondary);
     }
 
@@ -497,7 +497,7 @@
     }
 
     .per-page-chip:hover {
-        border-color: rgba(16, 185, 129, 0.4);
+        border-color: rgba(0, 165, 68, 0.4);
         color: var(--secondary);
         transform: translateY(-1px);
     }
@@ -524,7 +524,7 @@
     }
 
     .page-link-lux:hover {
-        border-color: rgba(16, 185, 129, 0.4);
+        border-color: rgba(0, 165, 68, 0.4);
         color: var(--secondary);
         transform: translateY(-1px);
     }
@@ -533,7 +533,7 @@
         background: var(--secondary);
         border-color: var(--secondary);
         color: #fff;
-        box-shadow: 0 8px 18px rgba(16, 185, 129, 0.22);
+        box-shadow: 0 8px 18px rgba(0, 165, 68, 0.22);
     }
 
     .page-link-lux.disabled {

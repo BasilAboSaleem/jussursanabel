@@ -1,5 +1,5 @@
 // ===========================
-// Subul Platform System - app.js
+// Nameer Platform System - app.js
 // ===========================
 
 const express = require("express");

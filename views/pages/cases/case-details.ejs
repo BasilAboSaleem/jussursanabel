@@ -426,7 +426,7 @@
                                             <p class="case-chat-help"><%= __('case_details_chat_pending_delay') %> <a href="/support"><%= __('case_details_chat_support') %></a>.</p>
                                         </div>
                                     <% } else if (chatRequest.status === 'approved') { %>
-                                        <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux btn-lux-primary case-side-btn" style="background: #10b981;">
+                                        <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux btn-lux-primary case-side-btn" style="background: #00A544;">
                                             <i class="fas fa-comments"></i> <%= __('case_details_chat_approved') %>
                                         </a>
                                     <% } else if (chatRequest.status === 'rejected') { %>
@@ -449,7 +449,7 @@
                         <div class="case-share">
                             <h4 class="font-cairo case-share-title"><%= __('case_details_share_title') %></h4>
                             <div class="case-share-grid">
-                                <a href="https://wa.me/?text=<%= encodeURIComponent('ساهم معنا في دعم حالة ' + foundCase.title + ' عبر منصة جسور السنابل') %>" target="_blank" class="case-share-btn case-share-whatsapp" aria-label="whatsapp">
+                                <a href="https://wa.me/?text=<%= encodeURIComponent('ساهم معنا في دعم حالة ' + foundCase.title + ' عبر منصة نَمير') %>" target="_blank" class="case-share-btn case-share-whatsapp" aria-label="whatsapp">
                                     <i class="fab fa-whatsapp"></i>
                                 </a>
                                 <a href="https://www.facebook.com/sharer/sharer.php?u=<%= typeof fullUrl !== 'undefined' ? encodeURIComponent(fullUrl) : '' %>" target="_blank" class="case-share-btn case-share-facebook" aria-label="facebook">
@@ -815,7 +815,7 @@
         height: 100%;
         background: var(--secondary);
         border-radius: 20px;
-        box-shadow: 0 0 15px rgba(226, 176, 100, 0.6);
+        box-shadow: 0 0 15px rgba(0, 165, 68, 0.6);
         position: relative;
         transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -834,21 +834,21 @@
     }
     
     .hero-donate-btn {
-        background: #10b981;
+        background: #00A544;
         color: white !important;
         border-radius: 14px;
         padding: 16px;
         font-size: 1.15rem;
         font-weight: 800;
         border: none;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35);
+        box-shadow: 0 8px 25px rgba(0, 165, 68, 0.35);
         text-decoration: none;
         transition: all 0.3s ease;
     }
     .hero-donate-btn:hover {
-        background: #059669;
+        background: #016630;
         transform: translateY(-3px);
-        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
+        box-shadow: 0 12px 30px rgba(0, 165, 68, 0.6);
     }
 
     .case-hero-cta-stack {
@@ -864,7 +864,7 @@
         gap: 14px;
         padding: 18px 20px;
         border-radius: 16px;
-        background: linear-gradient(135deg, rgba(6, 95, 70, 0.55) 0%, rgba(16, 185, 129, 0.28) 100%);
+        background: linear-gradient(135deg, rgba(6, 95, 70, 0.55) 0%, rgba(0, 165, 68, 0.28) 100%);
         border: 1px solid rgba(110, 231, 183, 0.5);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
         overflow: visible;
@@ -917,13 +917,13 @@
     }
 
     .case-satisfied-premium {
-        border: 2px solid rgba(16, 185, 129, 0.35);
+        border: 2px solid rgba(0, 165, 68, 0.35);
         text-align: center;
         background: linear-gradient(to bottom right, #ecfdf5, #ffffff);
         padding: 24px 20px;
     }
     .case-satisfied-premium .case-satisfied-icon {
-        color: #10b981;
+        color: #00A544;
         margin-bottom: 12px;
     }
     .case-satisfied-premium h4 {
@@ -1071,8 +1071,8 @@
         position: absolute;
         inset: 0;
         background:
-            radial-gradient(1200px 500px at 15% 0%, rgba(16,185,129,0.10), transparent 60%),
-            radial-gradient(900px 380px at 85% 100%, rgba(10,37,64,0.08), transparent 58%);
+            radial-gradient(1200px 500px at 15% 0%, rgba(0,165,68,0.10), transparent 60%),
+            radial-gradient(900px 380px at 85% 100%, rgba(0,38,97,0.08), transparent 58%);
         pointer-events: none;
         opacity: 0.9;
     }
@@ -1086,7 +1086,7 @@
         bottom: 28px;
         right: 22px;
         width: 3px;
-        background: linear-gradient(to bottom, rgba(16,185,129,0.55), rgba(226,176,100,0.18));
+        background: linear-gradient(to bottom, rgba(0,165,68,0.55), rgba(0,165,68,0.18));
         border-radius: 999px;
         opacity: 0.9;
         z-index: 0;
@@ -1102,7 +1102,7 @@
         height: 12px;
         border-radius: 999px;
         background: var(--secondary);
-        box-shadow: 0 0 0 6px rgba(16,185,129,0.18);
+        box-shadow: 0 0 0 6px rgba(0,165,68,0.18);
     }
 
     .case-panel-story {
@@ -1150,18 +1150,18 @@
         inset: 0;
         pointer-events: none;
         opacity: 0.55;
-        background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(255,255,255,0) 45%, rgba(226,176,100,0.04));
+        background: linear-gradient(135deg, rgba(0,165,68,0.06), rgba(255,255,255,0) 45%, rgba(0,165,68,0.04));
     }
 
-    .case-panel-family { border-color: rgba(16,185,129,0.14); }
-    .case-panel-updates { border-color: rgba(10,37,64,0.10); }
+    .case-panel-family { border-color: rgba(0,165,68,0.14); }
+    .case-panel-updates { border-color: rgba(0,38,97,0.10); }
 
     /* Family block */
     .case-family {
         padding: 26px;
         border-radius: 26px;
         background: #fffbeb;
-        border: 1px solid rgba(16, 185, 129, 0.35);
+        border: 1px solid rgba(0, 165, 68, 0.35);
     }
     .case-subblock {
         margin-bottom: 22px;
@@ -1249,8 +1249,8 @@
 
     /* Docs */
     .case-docs {
-        background: rgba(16, 185, 129, 0.03);
-        border: 1px dashed rgba(16, 185, 129, 0.55);
+        background: rgba(0, 165, 68, 0.03);
+        border: 1px dashed rgba(0, 165, 68, 0.55);
         border-radius: 26px;
         padding: 26px;
     }
@@ -1322,7 +1322,7 @@
         background: var(--secondary);
         border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+        box-shadow: 0 0 0 3px rgba(0, 165, 68, 0.18);
     }
     .timeline-date {
         font-size: 0.82rem;
@@ -1340,7 +1340,7 @@
     .timeline-item:hover .timeline-content {
         transform: translateX(-5px);
         box-shadow: 0 14px 32px rgba(2, 6, 23, 0.06);
-        border-color: rgba(16,185,129,0.35);
+        border-color: rgba(0,165,68,0.35);
     }
     .case-update-head {
         display: flex;
@@ -1353,7 +1353,7 @@
         color: var(--primary);
         margin-bottom: 10px;
     }
-    .case-update-title i { color: #10b981; }
+    .case-update-title i { color: #00A544; }
     .case-update-pill {
         font-size: 0.72rem;
         font-weight: 900;
@@ -1405,7 +1405,7 @@
         transition: all 0.25s ease;
     }
     .attachment-preview:hover {
-        border-color: rgba(16, 185, 129, 0.65);
+        border-color: rgba(0, 165, 68, 0.65);
         box-shadow: 0 12px 25px rgba(2,6,23,0.06);
         transform: translateY(-3px);
     }
@@ -1461,8 +1461,8 @@
 
     /* Sidebar */
     .case-card-side {
-        background: linear-gradient(180deg, rgba(10, 37, 64, 0.03), rgba(16, 185, 129, 0.06));
-        border: 1px solid rgba(16, 185, 129, 0.28);
+        background: linear-gradient(180deg, rgba(0, 38, 97, 0.03), rgba(0, 165, 68, 0.06));
+        border: 1px solid rgba(0, 165, 68, 0.28);
         box-shadow: 0 30px 70px rgba(2, 6, 23, 0.1);
         padding: 30px;
         position: relative;
@@ -1474,7 +1474,7 @@
         left: -140px;
         width: 300px;
         height: 300px;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 65%);
+        background: radial-gradient(circle, rgba(0, 165, 68, 0.35) 0%, transparent 65%);
         pointer-events: none;
         z-index: 0;
     }
@@ -1485,15 +1485,15 @@
         margin-bottom: 22px;
         padding: 18px;
         border-radius: 20px;
-        background: rgba(16, 185, 129, 0.06);
-        border: 1px solid rgba(16, 185, 129, 0.18);
+        background: rgba(0, 165, 68, 0.06);
+        border: 1px solid rgba(0, 165, 68, 0.18);
     }
     .case-side-icon {
         width: 68px;
         height: 68px;
         border-radius: 24px;
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        background: rgba(0, 165, 68, 0.1);
+        border: 1px solid rgba(0, 165, 68, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1536,7 +1536,7 @@
         padding: 18px;
         background: rgba(248, 250, 252, 0.92);
         border-radius: 18px;
-        border: 1px solid rgba(16, 185, 129, 0.18);
+        border: 1px solid rgba(0, 165, 68, 0.18);
     }
     .case-side-box-title {
         font-size: 0.92rem;
@@ -1563,7 +1563,7 @@
 
     .case-sponsorship {
         background: linear-gradient(to bottom right, #ecfdf5, #ffffff);
-        border: 2px dashed rgba(16, 185, 129, 0.75);
+        border: 2px dashed rgba(0, 165, 68, 0.75);
         text-align: center;
     }
     .case-sponsorship-title {
@@ -1586,17 +1586,17 @@
     .case-sponsorship-period { font-size: 1rem; font-weight: 800; color: #94a3b8; }
 
     .case-satisfied {
-        border: 2px solid rgba(16,185,129,0.35);
+        border: 2px solid rgba(0,165,68,0.35);
         text-align: center;
-        background: rgba(16,185,129,0.04);
+        background: rgba(0,165,68,0.04);
     }
     .case-satisfied i { color: var(--secondary); margin-bottom: 10px; }
     .case-satisfied h4 { margin: 0 0 6px; font-weight: 950; color: var(--primary); }
     .case-satisfied p { margin: 0; color: var(--text-muted); font-size: 0.86rem; font-weight: 700; }
 
     .case-sponsored-note {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.5);
+        background: rgba(0, 165, 68, 0.1);
+        border: 1px solid rgba(0, 165, 68, 0.5);
         padding: 12px 14px;
         border-radius: 16px;
         text-align: center;
@@ -1609,7 +1609,7 @@
         font-weight: 800;
         font-size: 0.86rem;
     }
-    .case-sponsored-note i { color: #10b981; }
+    .case-sponsored-note i { color: #00A544; }
 
     .case-side-actions { display: flex; flex-direction: column; gap: 12px; }
     .case-side-btn {
@@ -1711,7 +1711,7 @@
         border: 1px solid rgba(255,255,255,0.12);
         transition: all 0.25s ease;
         cursor: pointer;
-        background: #0f172a;
+        background: #032E15;
     }
     .case-share-btn:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(2,6,23,0.12); }
     .case-share-whatsapp { background: #25D366; }
@@ -1821,7 +1821,7 @@
         background: #fffbeb;
         padding: 10px 12px;
         border-radius: 14px;
-        border: 1px solid rgba(16, 185, 129, 0.25);
+        border: 1px solid rgba(0, 165, 68, 0.25);
         position: relative;
         margin-top: 8px;
         line-height: 1.55;
@@ -1889,7 +1889,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #059669;
+        color: #016630;
         font-size: 1.2rem;
         flex-shrink: 0;
     }

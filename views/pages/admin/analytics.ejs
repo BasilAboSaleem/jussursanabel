@@ -28,7 +28,7 @@
             <div class="kpi-icon" style="background: #fff7ed; color: #ea580c;"><i class="fas fa-repeat"></i></div>
             <div class="kpi-value" style="color: var(--primary);"><%= stats.activeSponsorships %></div>
             <div class="kpi-label text-align-inherit"><%= __('admin_analytics_active_sponsorships') %></div>
-            <div class="kpi-trend text-align-inherit" style="color: #059669;"><%= __('admin_analytics_sustainable_support') %></div>
+            <div class="kpi-trend text-align-inherit" style="color: #016630;"><%= __('admin_analytics_sustainable_support') %></div>
         </div>
         <div class="kpi-card-lux" style="background: white; border: 1px solid #e2e8f0;">
             <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;"><i class="fas fa-check-double"></i></div>
@@ -95,7 +95,7 @@
         <!-- Top Donors Table -->
         <div class="chart-container-lux">
             <div class="chart-header">
-                <h5 class="font-cairo"><i class="fas fa-trophy" style="color: #10b981;"></i> <%= __('admin_analytics_top_donors_title') %></h5>
+                <h5 class="font-cairo"><i class="fas fa-trophy" style="color: #00A544;"></i> <%= __('admin_analytics_top_donors_title') %></h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle" style="margin-top: 10px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
@@ -236,7 +236,7 @@
             labels: ['<%= __("admin_analytics_js_direct_donations") %>', '<%= __("admin_analytics_active_sponsorships") %>'],
             datasets: [{
                 data: [stats.kpis.count - stats.activeSponsorships, stats.activeSponsorships],
-                backgroundColor: ['#1e40af', '#10b981'],
+                backgroundColor: ['#1e40af', '#00A544'],
                 borderWidth: 0,
                 hoverOffset: 15
             }]
@@ -268,7 +268,7 @@
             labels: stats.userRoleDistribution.map(r => roleMap[r._id] || r._id),
             datasets: [{
                 data: stats.userRoleDistribution.map(r => r.count),
-                backgroundColor: ['rgba(30, 64, 175, 0.7)', 'rgba(234, 179, 8, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)']
+                backgroundColor: ['rgba(30, 64, 175, 0.7)', 'rgba(234, 179, 8, 0.7)', 'rgba(0, 165, 68, 0.7)', 'rgba(239, 68, 68, 0.7)']
             }]
         },
         options: { plugins: { legend: { display: false } } }
@@ -281,7 +281,7 @@
             datasets: [{
                 label: '<%= __("common_cases_count") %>',
                 data: stats.casesByStatus.map(s => s.count),
-                backgroundColor: '#10b981',
+                backgroundColor: '#00A544',
                 borderRadius: 8
             }]
         },
@@ -316,7 +316,7 @@
             labels: stats.chatReqStats.map(s => chatMap[s._id] || s._id),
             datasets: [{
                 data: stats.chatReqStats.map(s => s.count),
-                backgroundColor: ['#10b981', '#10b981', '#ef4444']
+                backgroundColor: ['#00A544', '#00A544', '#ef4444']
             }]
         },
         options: { plugins: { legend: { position: 'right' } } }

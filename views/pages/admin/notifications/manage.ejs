@@ -160,14 +160,14 @@
                 </label>
                 <label class="type-card-lux" data-value="success">
                     <input type="radio" name="type" value="success" style="display:none">
-                    <div class="type-card-inner" style="--card-color:#10b981; --card-bg:rgba(16,185,129,0.08);">
+                    <div class="type-card-inner" style="--card-color:#00A544; --card-bg:rgba(0,165,68,0.08);">
                         <i class="fas fa-check-circle"></i>
                         <span>نجاح</span>
                     </div>
                 </label>
                 <label class="type-card-lux" data-value="warning">
                     <input type="radio" name="type" value="warning" style="display:none">
-                    <div class="type-card-inner" style="--card-color:#10b981; --card-bg:rgba(16,185,129,0.08);">
+                    <div class="type-card-inner" style="--card-color:#00A544; --card-bg:rgba(0,165,68,0.08);">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>تنبيه</span>
                     </div>
@@ -213,7 +213,7 @@
                     <input type="radio" name="targetType" value="donor" style="display:none">
                     <div class="audience-card-inner">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#34d399,#10b981); display:flex; align-items:center; justify-content:center;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#00C758,#00A544); display:flex; align-items:center; justify-content:center;">
                                 <i class="fas fa-hand-holding-heart" style="color:white; font-size:0.85rem;"></i>
                             </div>
                             <span style="font-weight:700; font-size:0.85rem; color:#1f2937;">المتبرعون</span>
@@ -224,7 +224,7 @@
                     <input type="radio" name="targetType" value="family" style="display:none">
                     <div class="audience-card-inner">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0f766e,#14b8a6); display:flex; align-items:center; justify-content:center;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#016630,#00A544); display:flex; align-items:center; justify-content:center;">
                                 <i class="fas fa-home" style="color:white; font-size:0.85rem;"></i>
                             </div>
                             <span style="font-weight:700; font-size:0.85rem; color:#1f2937;">المستفيدون</span>
@@ -298,7 +298,7 @@
 <style>
     /* ===== Page Utilities ===== */
     .bg-soft-primary { background-color: rgba(2,6,23,0.08); }
-    .bg-soft-success { background-color: rgba(16,185,129,0.1); }
+    .bg-soft-success { background-color: rgba(0,165,68,0.1); }
     .bg-soft-warning { background-color: rgba(245,158,11,0.1); }
     .bg-soft-danger  { background-color: rgba(239,68,68,0.1); }
     .bg-soft-secondary { background-color: rgba(108,117,125,0.1); }
@@ -395,8 +395,8 @@
             card.addEventListener('click', () => {
                 const val = card.dataset.value;
                 const icons = { info:'fa-info-circle', success:'fa-check-circle', warning:'fa-exclamation-triangle', danger:'fa-exclamation-circle' };
-                const colors = { info:'#3b82f6', success:'#10b981', warning:'#10b981', danger:'#ef4444' };
-                const bgs   = { info:'rgba(59,130,246,0.1)', success:'rgba(16,185,129,0.1)', warning:'rgba(245,158,11,0.1)', danger:'rgba(239,68,68,0.1)' };
+                const colors = { info:'#3b82f6', success:'#00A544', warning:'#00A544', danger:'#ef4444' };
+                const bgs   = { info:'rgba(59,130,246,0.1)', success:'rgba(0,165,68,0.1)', warning:'rgba(245,158,11,0.1)', danger:'rgba(239,68,68,0.1)' };
                 const icon  = document.querySelector('#previewIcon');
                 const iEl   = icon.querySelector('i');
                 Object.values(icons).forEach(i => iEl.classList.remove('fa-'+i.split('-').slice(1).join('-'), i));

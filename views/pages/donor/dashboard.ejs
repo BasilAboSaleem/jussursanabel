@@ -53,11 +53,11 @@
         </div>
 
         <!-- Stat 3: Total Transactions -->
-        <div class="luxury-card glass-panel donor-stat-card" style="padding: 28px; text-align: center; border-bottom: 4px solid #10b981; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -20px; left: -20px; font-size: 6rem; opacity: 0.04; color: #10b981;">
+        <div class="luxury-card glass-panel donor-stat-card" style="padding: 28px; text-align: center; border-bottom: 4px solid #00A544; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 6rem; opacity: 0.04; color: #00A544;">
                 <i class="fas fa-receipt"></i>
             </div>
-            <div class="donor-stat-icon" style="font-size: 2.2rem; color: #10b981; margin-bottom: 12px; position: relative;">
+            <div class="donor-stat-icon" style="font-size: 2.2rem; color: #00A544; margin-bottom: 12px; position: relative;">
                 <i class="fas fa-receipt"></i>
             </div>
             <div class="donor-stat-label" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;">إجمالي العمليات المسجّلة</div>
@@ -226,8 +226,8 @@
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">شهرية مستمرة نشطة</div>
                             </div>
                         </div>
-                        <div class="donor-impact-item" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(16,185,129,0.05); border-radius: 12px; border-right: 3px solid #10b981;">
-                            <i class="fas fa-star" style="color: #10b981; font-size: 1.3rem; width: 20px; text-align: center;"></i>
+                        <div class="donor-impact-item" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,165,68,0.05); border-radius: 12px; border-right: 3px solid #00A544;">
+                            <i class="fas fa-star" style="color: #00A544; font-size: 1.3rem; width: 20px; text-align: center;"></i>
                             <div>
                                 <div style="font-weight: 800; color: var(--primary); font-size: 0.95rem;">متبرع متميز</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">شريك في رسالة الخير</div>
@@ -278,7 +278,7 @@
                 <p style="font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-bottom: 20px; line-height: 1.6;">
                     قم بتوليد بطاقة تقديرية تلخص خيرك وعطاؤك لمشاركتها مع من تحب.
                 </p>
-                <button onclick="generateImpactCard()" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                <button onclick="generateImpactCard()" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; box-shadow: 0 10px 20px rgba(0, 165, 68, 0.2);">
                     <i class="fa-solid fa-id-card"></i> استخراج البطاقة
                 </button>
             </div>
@@ -403,7 +403,7 @@
     <!-- Section: Testimonial submission -->
     <div id="section-testimonial" class="dashboard-section">
         <div class="section-header-luxury" style="margin-bottom: 25px;">
-            <h3 class="font-cairo"><i class="fas fa-quote-right"></i> ماذا تقول عن جسور السنابل؟</h3>
+            <h3 class="font-cairo"><i class="fas fa-quote-right"></i> ماذا تقول عن نَمير؟</h3>
             <p style="font-size: 0.9rem; color: var(--text-muted);">كلماتك تشجع الآخرين على العطاء وتنقل صورة حقيقية عن أثر المنصة.</p>
         </div>
 
@@ -515,13 +515,13 @@
                 datasets: [{
                     label: 'قيمة التبرعات ($)',
                     data: values,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: '#00A544',
+                    backgroundColor: 'rgba(0, 165, 68, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4,
                     pointBackgroundColor: '#fff',
-                    pointBorderColor: '#10b981',
+                    pointBorderColor: '#00A544',
                     pointHoverRadius: 6
                 }]
             },
@@ -557,7 +557,7 @@
         if (!timerEl) return;
 
         if (diff <= 0 && daysUntil === 0) {
-            timerEl.innerHTML = '<span style="color: #10b981;"><i class="fa-solid fa-circle-dot animate-pulse"></i> الباب مفتوح الآن للتواصل</span>';
+            timerEl.innerHTML = '<span style="color: #00A544;"><i class="fa-solid fa-circle-dot animate-pulse"></i> الباب مفتوح الآن للتواصل</span>';
         } else {
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -576,7 +576,7 @@
             inputOptions: { 'ar': 'اللغة العربية', 'en': 'English' },
             inputValue: 'ar',
             confirmButtonText: 'متابعة / Continue',
-            confirmButtonColor: '#10b981'
+            confirmButtonColor: '#00A544'
         });
 
         if (!lang) return;
@@ -592,12 +592,12 @@
         
         if (lang === 'ar') {
             certHtml = `
-                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border-radius: 20px; text-align: right; color: white; font-family: 'Cairo', sans-serif; direction: rtl;">
-                    <div style="border: 2px solid rgba(226, 176, 100, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #032E15 100%); border-radius: 20px; text-align: right; color: white; font-family: 'Cairo', sans-serif; direction: rtl;">
+                    <div style="border: 2px solid rgba(0, 165, 68, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
                         <div style="text-align: center; margin-bottom: 30px;">
                             <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: var(--secondary); margin-bottom: 15px;"></i>
                             <h3 style="font-weight: 900; margin: 0; color: var(--secondary); font-size: 1.8rem;">شهادة أثر وعطاء</h3>
-                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">جسور السنابل - بذرة خير تثمر أملاً</div>
+                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">نَمير - بذرة خير تثمر أملاً</div>
                         </div>
                         <div style="margin-bottom: 35px; text-align: center;">
                             <div style="font-size: 1.1rem; color: #cbd5e1;">نُشهد بأن المتبرع الكريم</div>
@@ -605,15 +605,15 @@
                             <div style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">قد ساهم في صناعة الأثر وإغاثة الملهوف، فكان عطاؤه بلسماً ويداُ بيضاء تمتد للمحتاجين.</div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center; margin-bottom: 30px;">
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">$${total}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">إجمالي العطاء</div>
                             </div>
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">${casesCount}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">حالات مدعومة</div>
                             </div>
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">${sponsors}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">كفالات نشطة</div>
                             </div>
@@ -625,12 +625,12 @@
                 </div>`;
         } else {
             certHtml = `
-                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border-radius: 20px; text-align: left; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr;">
-                    <div style="border: 2px solid rgba(226, 176, 100, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #032E15 100%); border-radius: 20px; text-align: left; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr;">
+                    <div style="border: 2px solid rgba(0, 165, 68, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
                         <div style="text-align: center; margin-bottom: 30px;">
                             <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: var(--secondary); margin-bottom: 15px;"></i>
                             <h3 style="font-weight: 900; margin: 0; color: var(--secondary); font-size: 1.8rem; text-transform: uppercase;">Impact Certificate</h3>
-                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">Jussur Sanabel - Sowing Seeds of Hope</div>
+                            <div style="font-size: 1rem; color: #94a3b8; margin-top: 10px;">Nameer - Sowing Seeds of Hope</div>
                         </div>
                         <div style="margin-bottom: 35px; text-align: center;">
                             <div style="font-size: 1.1rem; color: #cbd5e1;">We proudly recognize the contributions of</div>
@@ -638,15 +638,15 @@
                             <div style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">Your generosity has created a lasting impact, providing hope and support to those who need it most.</div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center; margin-bottom: 30px;">
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">$${total}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Total Impact</div>
                             </div>
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">${casesCount}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Cases Supported</div>
                             </div>
-                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <div style="background: rgba(255,255,255,0.07); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 165, 68, 0.1);">
                                 <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">${sponsors}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Active Sponsors</div>
                             </div>
@@ -664,7 +664,7 @@
             showCancelButton: true,
             cancelButtonText: lang === 'ar' ? 'إغلاق' : 'Close',
             confirmButtonText: lang === 'ar' ? '<i class="fa-solid fa-print"></i> طباعة / حفظ' : '<i class="fa-solid fa-print"></i> Print / Save',
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: '#00A544',
             customClass: { popup: 'impact-modal-lux' }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -691,7 +691,7 @@
     }
     .tab-btn.active {
         color: var(--primary); border-bottom-color: var(--secondary);
-        background: rgba(226, 176, 100, 0.05);
+        background: rgba(0, 165, 68, 0.05);
     }
     .tab-btn:hover:not(.active) { color: var(--primary); background: rgba(0,0,0,0.02); }
     
@@ -839,7 +839,7 @@
             border-radius: 18px;
             padding: 12px;
             margin-bottom: 12px;
-            box-shadow: 0 8px 20px rgba(10,37,64,0.05);
+            box-shadow: 0 8px 20px rgba(0,38,97,0.05);
         }
 
         .donor-premium-table td {

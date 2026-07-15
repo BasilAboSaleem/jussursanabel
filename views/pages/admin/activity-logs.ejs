@@ -110,17 +110,17 @@
                             if (log.action === 'login') { icon = 'fa-sign-in-alt'; color = '#6366f1'; actionLabel = __('admin_log_action_login'); }
                             if (log.action === 'logout') { icon = 'fa-sign-out-alt'; color = '#94a3b8'; actionLabel = __('admin_log_action_logout'); }
                             if (log.action === 'profile_update') { icon = 'fa-user-edit'; color = '#ec4899'; actionLabel = __('admin_log_action_profile_update'); }
-                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#10b981'; actionLabel = __('admin_log_action_case_create'); }
+                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#00A544'; actionLabel = __('admin_log_action_case_create'); }
                             if (log.action === 'case_update') { icon = 'fa-edit'; color = '#3b82f6'; actionLabel = __('admin_log_action_case_update'); }
                             if (log.action === 'case_delete') { icon = 'fa-trash'; color = '#ef4444'; actionLabel = __('admin_log_action_case_delete'); }
-                            if (log.action === 'transaction_create') { icon = 'fa-hand-holding-heart'; color = '#10b981'; actionLabel = __('admin_log_action_transaction_create'); }
-                            if (log.action === 'transaction_verify') { icon = 'fa-check-double'; color = '#059669'; actionLabel = __('admin_log_action_transaction_verify'); }
+                            if (log.action === 'transaction_create') { icon = 'fa-hand-holding-heart'; color = '#00A544'; actionLabel = __('admin_log_action_transaction_create'); }
+                            if (log.action === 'transaction_verify') { icon = 'fa-check-double'; color = '#016630'; actionLabel = __('admin_log_action_transaction_verify'); }
                             if (log.action === 'user_moderate') { icon = 'fa-user-shield'; color = '#dc2626'; actionLabel = __('admin_log_action_user_moderate'); }
-                            if (log.action === 'user_activate') { icon = 'fa-user-check'; color = '#0ea5e9'; actionLabel = __('admin_log_action_user_activate'); }
+                            if (log.action === 'user_activate') { icon = 'fa-user-check'; color = '#002661'; actionLabel = __('admin_log_action_user_activate'); }
                             if (log.action === 'chat_request_create') { icon = 'fa-comments'; color = '#8b5cf6'; actionLabel = __('admin_log_action_chat_open'); }
                             if (log.action === 'chat_request_handle') { icon = 'fa-comment-dots'; color = '#6d28d9'; actionLabel = __('admin_log_action_chat_reply'); }
-                            if (log.action === 'case_update_submit') { icon = 'fa-file-invoice'; color = '#0ea5e9'; actionLabel = __('admin_log_action_impact_submit'); }
-                            if (log.action === 'impact_proof_approve') { icon = 'fa-file-shield'; color = '#10b981'; actionLabel = __('admin_log_action_impact_verify'); }
+                            if (log.action === 'case_update_submit') { icon = 'fa-file-invoice'; color = '#002661'; actionLabel = __('admin_log_action_impact_submit'); }
+                            if (log.action === 'impact_proof_approve') { icon = 'fa-file-shield'; color = '#00A544'; actionLabel = __('admin_log_action_impact_verify'); }
                             if (log.action === 'impact_proof_reject') { icon = 'fa-file-circle-xmark'; color = '#ef4444'; actionLabel = __('admin_log_action_impact_reject'); }
                         %>
                         <div style="display: flex; align-items: center; gap: 8px; color: <%= color %>; font-weight: 700; font-size: 0.8rem; background: rgba(0,0,0,0.05); border: 1px solid <%= color %>40; padding: 6px 12px; border-radius: 8px; width: fit-content;">
@@ -150,7 +150,7 @@
 </div>
 
 <style>
-    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 165, 68, 0.1); }
 
     @media (max-width: 992px) {
         .logs-head-row {

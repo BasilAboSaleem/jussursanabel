@@ -9,7 +9,7 @@
         <div style="position: absolute; top: 0; right: 0; width: 100%; height: 5px; background: var(--grad-green);"></div>
         
         <div class="header-info-group">
-            <span class="section-badge" style="background: rgba(16, 185, 129, 0.1); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2);"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين الرقمية</span>
+            <span class="section-badge" style="background: rgba(0, 165, 68, 0.1); color: var(--secondary); border: 1px solid rgba(0, 165, 68, 0.2);"><i class="fas fa-hand-holding-hand"></i> بوابة المستفيدين الرقمية</span>
             <h2 class="font-cairo" style="margin-top: 10px;">أهلاً بك، <%= user ? user.name : 'ضيفنا العزيز' %></h2>
             <p class="text-muted" style="margin: 0;">نحن هنا لخدمتكم وتقديم الدعم اللازم بكل احترافية وخصوصية.</p>
         </div>
@@ -39,8 +39,8 @@
             <div class="stat-label">الحالات الموثقة النشطة</div>
             <div class="stat-value"><%= myCases.filter(c => c.status === 'approved').length %></div>
         </div>
-        <div class="luxury-card glass-panel stat-card-lux" style="border-top: 3px solid #10b981;">
-            <div class="stat-icon" style="color: #10b981;"><i class="fas fa-check-double"></i></div>
+        <div class="luxury-card glass-panel stat-card-lux" style="border-top: 3px solid #00A544;">
+            <div class="stat-icon" style="color: #00A544;"><i class="fas fa-check-double"></i></div>
             <div class="stat-label">حالات مكتملة</div>
             <div class="stat-value"><%= myCases.filter(c => c.status === 'completed' || c.status === 'fully_sponsored').length %></div>
         </div>
@@ -107,7 +107,7 @@
                                                     c.status === 'field_verification' ? 'badge-gold' : 
                                                     c.status === 'media_review' ? 'badge-navy' : 
                                                     c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                                %>" style="<%= c.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
+                                                %>" style="<%= c.status === 'media_review' ? 'background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? 'background: linear-gradient(135deg, #016630, #00A544); color: #fff;' : '') %>">
                                                     <i class="fas <%= 
                                                         (c.status === 'completed' || c.status === 'fully_sponsored') ? 'fa-heart-circle-check' :
                                                         c.status === 'approved' ? 'fa-check-circle' : 
@@ -270,7 +270,7 @@
                                     <% if (update.status === 'rejected' && update.rejectionReason) { %>
                                         <span class="rejection-reason-text" style="display: block; max-width: 250px;"><%= update.rejectionReason %></span>
                                     <% } else if (update.status === 'approved') { %>
-                                        <span style="font-size: 0.75rem; color: #10b981;">نُشر في الخط الزمني العام <i class="fas fa-eye"></i></span>
+                                        <span style="font-size: 0.75rem; color: #00A544;">نُشر في الخط الزمني العام <i class="fas fa-eye"></i></span>
                                     <% } else { %>
                                         <span style="font-size: 0.75rem; color: var(--text-muted);">بانتظار رد الإدارة</span>
                                     <% } %>
@@ -363,8 +363,8 @@
     .accent-active { border-bottom: 4px solid var(--accent); }
     .accent-active .stat-icon { color: var(--accent); }
     
-    .success-active { border-bottom: 4px solid #10b981; }
-    .success-active .stat-icon { color: #10b981; }
+    .success-active { border-bottom: 4px solid #00A544; }
+    .success-active .stat-icon { color: #00A544; }
 
     /* Communication Countdown (Premium Add-on) */
     .comm-countdown-card-lux {
@@ -389,10 +389,10 @@
         width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; z-index: 1;
     }
     .act-icon.donation { background: #fee2e2; color: #ef4444; }
-    .act-icon.message { background: #e0f2fe; color: #0ea5e9; }
+    .act-icon.message { background: #e8eef8; color: #002661; }
     
-    .btn-action-lux.navy { background: #e0f2fe; color: #0ea5e9; }
-    .btn-action-lux.navy:hover { background: #0ea5e9; color: white; }
+    .btn-action-lux.navy { background: #e8eef8; color: #002661; }
+    .btn-action-lux.navy:hover { background: #002661; color: white; }
     .act-body { flex: 1; }
     .act-title { font-size: 0.85rem; color: var(--primary); font-weight: 600; line-height: 1.4; }
     .act-meta { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
@@ -526,7 +526,7 @@
         color: white;
         transform: translateY(-2px);
     }
-    .btn-action-lux.success:hover { background: #10b981; }
+    .btn-action-lux.success:hover { background: #00A544; }
     .btn-action-lux.warning:hover { background: var(--secondary); }
     .btn-action-lux.active { background: var(--secondary); color: white; }
 
@@ -551,21 +551,21 @@
         gap: 8px;
     }
     .btn-satisfaction-lux.needs-support {
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(0, 165, 68, 0.1);
         color: var(--secondary);
-        border: 2px solid rgba(16, 185, 129, 0.2);
+        border: 2px solid rgba(0, 165, 68, 0.2);
     }
     .btn-satisfaction-lux.needs-support:hover {
         background: var(--secondary);
         color: white;
     }
     .btn-satisfaction-lux.satisfied {
-        background: #10b981;
+        background: #00A544;
         color: white;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 165, 68, 0.2);
     }
     .btn-satisfaction-lux.satisfied:hover {
-        background: #059669;
+        background: #016630;
         transform: scale(1.02);
     }
 
@@ -589,22 +589,22 @@
         background: var(--primary);
         color: white;
     }
-    .btn-refined-sm.success:hover { background: #10b981; }
-    .btn-refined-sm.navy { background: #e0f2fe; color: #0ea5e9; }
-    .btn-refined-sm.navy:hover { background: #0ea5e9; color: white; }
+    .btn-refined-sm.success:hover { background: #00A544; }
+    .btn-refined-sm.navy { background: #e8eef8; color: #002661; }
+    .btn-refined-sm.navy:hover { background: #002661; color: white; }
 
     .satisfied-label-mini {
         font-size: 0.65rem;
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(0, 165, 68, 0.1);
         color: var(--secondary);
         padding: 2px 8px;
         border-radius: 20px;
         font-weight: 800;
         margin-right: 5px;
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        border: 1px solid rgba(0, 165, 68, 0.2);
     }
 
-    .row-satisfied { background: rgba(16, 185, 129, 0.02); }
+    .row-satisfied { background: rgba(0, 165, 68, 0.02); }
     .row-satisfied .case-title-lux { opacity: 0.8; }
 
     /* Modal Styles */
@@ -662,7 +662,7 @@
     }
 
     .help-item.teal-border { background: rgba(20, 184, 166, 0.04); border-right: 4px solid var(--accent); }
-    .help-item.gold-border { background: rgba(16, 185, 129, 0.04); border-right: 4px solid var(--secondary); }
+    .help-item.gold-border { background: rgba(0, 165, 68, 0.04); border-right: 4px solid var(--secondary); }
 
     .help-item h5 { margin-bottom: 5px; color: var(--primary); font-weight: 800; }
     .help-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
@@ -923,7 +923,7 @@
             border-radius: 18px;
             padding: 12px;
             margin-bottom: 12px;
-            box-shadow: 0 8px 20px rgba(10,37,64,0.05);
+            box-shadow: 0 8px 20px rgba(0,38,97,0.05);
         }
 
         .premium-table-lux td {
@@ -1310,7 +1310,7 @@
                             </div>
                             <div style="text-align:left;">
                                 <div style="font-weight:900; color:var(--secondary); font-size:1.1rem;">$${t.amount}</div>
-                                <div style="font-size:0.7rem; color:#10b981; font-weight:700;">${t.type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر'}</div>
+                                <div style="font-size:0.7rem; color:#00A544; font-weight:700;">${t.type === 'monthly' ? 'كفالة شهرية' : 'تبرع مباشر'}</div>
                             </div>
                         </div>
                     `).join('');

@@ -122,7 +122,7 @@
                     <% } else { %>
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-muted);">
-                                <i class="fas fa-check-double fa-3x" style="opacity: 0.12; margin-bottom: 20px; display: block; color: #10b981;"></i>
+                                <i class="fas fa-check-double fa-3x" style="opacity: 0.12; margin-bottom: 20px; display: block; color: #00A544;"></i>
                                 <div style="font-size: 1.05rem; font-weight: 600;"><%= __('admin_escalations_no_requests') %></div>
                             </td>
                         </tr>
@@ -383,7 +383,7 @@
 
         // --- Header color based on status ---
         const header = document.getElementById('escPanelHeader');
-        if      (status === 'approved') header.style.background = 'linear-gradient(135deg, #065f46, #059669)';
+        if      (status === 'approved') header.style.background = 'linear-gradient(135deg, #065f46, #016630)';
         else if (status === 'rejected') header.style.background = 'linear-gradient(135deg, #7f1d1d, #dc2626)';
         else                            header.style.background = 'linear-gradient(135deg, #1e3a8a, #1d4ed8)';
 

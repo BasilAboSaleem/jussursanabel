@@ -26,8 +26,8 @@
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">قيد المراجعة / التحقق</div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= myCases.filter(c => ['pending', 'field_verification', 'media_review'].includes(c.status)).length %></div>
         </div>
-        <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid #10b981;">
-            <div style="font-size: 2.2rem; color: #10b981; margin-bottom: 12px;"><i class="fas fa-grin-hearts"></i></div>
+        <div class="luxury-card glass-panel" style="padding: 25px; text-align: center; border-bottom: 4px solid #00A544;">
+            <div style="font-size: 2.2rem; color: #00A544; margin-bottom: 12px;"><i class="fas fa-grin-hearts"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">إجمالي المساعدات المحصلة</div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">$<%= myCases.reduce((acc, c) => acc + c.raisedAmount, 0) %></div>
         </div>
@@ -75,7 +75,7 @@
                                                 c.status === 'field_verification' ? 'badge-gold' : 
                                                 c.status === 'media_review' ? 'badge-navy' : 
                                                 c.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                                            %>" style="font-size: 0.7rem;<%= c.status === 'media_review' ? ' background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? ' background: linear-gradient(135deg, #059669, #10b981); color: #fff;' : '') %>">
+                                            %>" style="font-size: 0.7rem;<%= c.status === 'media_review' ? ' background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff;' : ((c.status === 'completed' || c.status === 'fully_sponsored') ? ' background: linear-gradient(135deg, #016630, #00A544); color: #fff;' : '') %>">
                                                 <i class="fas <%= 
                                                     (c.status === 'completed' || c.status === 'fully_sponsored') ? 'fa-heart-circle-check' :
                                                     c.status === 'approved' ? 'fa-check-circle' : 
@@ -122,7 +122,7 @@
                     <h5 style="color: var(--accent); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-clipboard-check"></i> فهم مراحل الطلب</h5>
                     <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">بعد التقديم، يمر الطلب بمراجعة إدارية ثم مسح ميداني للتوثيق من صحة البيانات لضمان كفالة سريعة.</p>
                 </div>
-                <div style="padding: 18px; background: rgba(16, 185, 129, 0.04); border-radius: 15px; border-right: 4px solid var(--secondary); margin-bottom: 20px;">
+                <div style="padding: 18px; background: rgba(0, 165, 68, 0.04); border-radius: 15px; border-right: 4px solid var(--secondary); margin-bottom: 20px;">
                     <h5 style="color: var(--secondary); margin-bottom: 8px; font-weight: 800;"><i class="fas fa-message"></i> التواصل مع الكفلاء</h5>
                     <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted);">نظام الرسائل يتيح لكم شكر الكفلاء والتواصل معهم بخصوص احتياجات الحالة الموثقة.</p>
                 </div>

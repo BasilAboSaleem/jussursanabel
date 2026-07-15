@@ -39,7 +39,7 @@ function buildMailTransporter() {
 function getMailFrom() {
   const fromAddress =
     process.env.EMAIL_FROM || process.env.EMAIL_USERNAME || "noreply@sanabel.ps";
-  return `منصة جسور <${fromAddress}>`;
+  return `منصة نَمير <${fromAddress}>`;
 }
 
 async function verifySmtpConnection() {

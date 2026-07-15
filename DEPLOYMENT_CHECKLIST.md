@@ -1,4 +1,4 @@
-# Jussur Sanabel - Deployment + Security Go-Live Checklist
+# Nameer (Senabil) - Deployment + Security Go-Live Checklist
 
 هذه النسخة محدثة لتطابق الهاردننغ الحالي في المشروع قبل الإطلاق العام.
 
