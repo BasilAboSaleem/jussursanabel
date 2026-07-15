@@ -117,8 +117,6 @@
     function buildFeedUrl(page) {
         const params = new URLSearchParams();
         if (boot.type && boot.type !== 'all') params.set('type', boot.type);
-        if (boot.verified) params.set('verified', '1');
-        if (boot.sort && boot.sort !== 'newest') params.set('sort', boot.sort);
         if (boot.limit) params.set('limit', String(boot.limit));
         params.set('page', String(page));
         return `/cases/feed?${params.toString()}`;

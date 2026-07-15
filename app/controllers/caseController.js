@@ -27,24 +27,18 @@ function isMobileClient(req) {
 
 function parseCasesListQuery(req) {
     const selectedType = ['orphan', 'family'].includes(req.query.type) ? req.query.type : 'all';
-    const verifiedOnly = req.query.verified === '1' || req.query.verified === 'true';
-    const sort = ['newest', 'urgent', 'verified'].includes(req.query.sort) ? req.query.sort : 'newest';
     const defaultLimit = isMobileClient(req) ? 12 : 24;
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || defaultLimit, 1), 48);
     const requestedPage = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
-    return { selectedType, verifiedOnly, sort, limit, requestedPage, defaultLimit };
+    return { selectedType, limit, requestedPage, defaultLimit };
 }
 
-function buildCasesListFilter({ selectedType, verifiedOnly }) {
+function buildCasesListFilter({ selectedType }) {
     const filter = { status: { $in: PUBLIC_CASE_STATUSES }, isHidden: { $ne: true } };
 
     if (selectedType !== 'all') {
         filter.type = selectedType;
-    }
-
-    if (verifiedOnly) {
-        filter.isFieldVerified = true;
     }
 
     return filter;
@@ -74,57 +68,10 @@ async function formatCaseForList(item) {
     };
 }
 
-async function fetchCasesList({ filter, sort, skip, limit }) {
-    if (sort === 'urgent') {
-        return Case.aggregate([
-            { $match: filter },
-            {
-                $addFields: {
-                    fundingRatio: {
-                        $cond: [
-                            {
-                                $and: [
-                                    { $gt: ['$targetAmount', 0] },
-                                    { $ne: ['$targetAmount', null] }
-                                ]
-                            },
-                            { $divide: ['$raisedAmount', '$targetAmount'] },
-                            1
-                        ]
-                    }
-                }
-            },
-            { $sort: { fundingRatio: 1, createdAt: -1 } },
-            { $skip: skip },
-            { $limit: limit },
-            {
-                $project: {
-                    title: 1,
-                    type: 1,
-                    description: 1,
-                    image: 1,
-                    location: 1,
-                    area: 1,
-                    raisedAmount: 1,
-                    targetAmount: 1,
-                    createdAt: 1,
-                    status: 1,
-                    isFieldVerified: 1,
-                    isSatisfied: 1,
-                    storyVideo: 1,
-                    isStoryHidden: 1
-                }
-            }
-        ]);
-    }
-
-    const sortObj = sort === 'verified'
-        ? { isFieldVerified: -1, createdAt: -1 }
-        : { createdAt: -1 };
-
+async function fetchCasesList({ filter, skip, limit }) {
     return Case.find(filter)
         .select(CASES_LIST_SELECT)
-        .sort(sortObj)
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
@@ -134,16 +81,12 @@ function buildCasesListUrl(state, overrides = {}) {
     const merged = {
         type: state.selectedType,
         limit: state.limit,
-        verified: state.verifiedOnly ? '1' : '',
-        sort: state.sort !== 'newest' ? state.sort : '',
         page: '',
         ...overrides
     };
 
     const params = new URLSearchParams();
     if (merged.type && merged.type !== 'all') params.set('type', merged.type);
-    if (merged.verified) params.set('verified', merged.verified);
-    if (merged.sort) params.set('sort', merged.sort);
     if (merged.limit) params.set('limit', String(merged.limit));
     if (merged.page && Number(merged.page) > 1) params.set('page', String(merged.page));
 
@@ -330,23 +273,21 @@ exports.createCase = async (req, res) => {
 exports.getAllCases = async (req, res) => {
     try {
         const listQuery = parseCasesListQuery(req);
-        const { selectedType, verifiedOnly, sort, limit, requestedPage } = listQuery;
-        const filter = buildCasesListFilter({ selectedType, verifiedOnly });
+        const { selectedType, limit, requestedPage } = listQuery;
+        const filter = buildCasesListFilter({ selectedType });
 
         const totalCases = await Case.countDocuments(filter);
         const totalPages = Math.max(Math.ceil(totalCases / limit), 1);
         const page = Math.min(requestedPage, totalPages);
         const skip = (page - 1) * limit;
 
-        const rawCases = await fetchCasesList({ filter, sort, skip, limit });
+        const rawCases = await fetchCasesList({ filter, skip, limit });
         const cases = await Promise.all(rawCases.map(formatCaseForList));
 
         res.render('pages/cases/all-cases', {
             title: res.__('cases_list'),
             cases,
             selectedType,
-            verifiedOnly,
-            selectedSort: sort,
             defaultLimit: listQuery.defaultLimit,
             buildCasesUrl: (overrides) => buildCasesListUrl(listQuery, overrides),
             pagination: {
@@ -365,15 +306,15 @@ exports.getAllCases = async (req, res) => {
 exports.getCasesFeed = async (req, res) => {
     try {
         const listQuery = parseCasesListQuery(req);
-        const { selectedType, verifiedOnly, sort, limit, requestedPage } = listQuery;
-        const filter = buildCasesListFilter({ selectedType, verifiedOnly });
+        const { selectedType, limit, requestedPage } = listQuery;
+        const filter = buildCasesListFilter({ selectedType });
 
         const totalCases = await Case.countDocuments(filter);
         const totalPages = Math.max(Math.ceil(totalCases / limit), 1);
         const page = Math.min(requestedPage, totalPages);
         const skip = (page - 1) * limit;
 
-        const rawCases = await fetchCasesList({ filter, sort, skip, limit });
+        const rawCases = await fetchCasesList({ filter, skip, limit });
         const cases = await Promise.all(rawCases.map(formatCaseForList));
 
         res.json({

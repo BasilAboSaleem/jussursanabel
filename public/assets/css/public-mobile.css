@@ -65,23 +65,9 @@
     }
 
     /* Cases listing */
-    .cases-hero-luxury {
-        min-height: 30vh !important;
-        padding: 72px 5% 48px !important;
-    }
-
-    .cases-filter-bridge {
-        margin-top: -28px !important;
-    }
-
     .cases-toolbar {
         flex-direction: column !important;
         align-items: stretch !important;
-    }
-
-    .cases-sort-row {
-        width: 100%;
-        justify-content: space-between !important;
     }
 
     .cases-pagination-desktop {
@@ -92,23 +78,22 @@
         display: flex !important;
     }
 
-    .filter-bar-capsule {
+    .cases-type-filters {
         width: 100% !important;
-        display: flex !important;
-        flex-wrap: nowrap !important;
+        border-radius: 24px !important;
         overflow-x: auto !important;
+        flex-wrap: nowrap !important;
         justify-content: flex-start !important;
-        border-radius: 22px !important;
-        padding: 10px !important;
-        gap: 8px !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
 
-    .filter-bar-capsule::-webkit-scrollbar {
-        height: 0;
+    .cases-type-filters::-webkit-scrollbar {
+        display: none;
     }
 
     .filter-btn-lux {
-        flex: 0 0 auto;
+        flex: 0 0 auto !important;
         padding: 10px 16px !important;
         font-size: 0.88rem !important;
         gap: 8px !important;
