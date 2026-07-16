@@ -1,79 +1,61 @@
 <%- include('../../partials/header-top') %>
 
-<main style="min-height: 100vh; position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 120px 20px;">
-    <!-- Soft Atmospheric Background -->
-    <div style="position: absolute; inset: 0; background: 
-        radial-gradient(circle at 80% 20%, rgba(0, 165, 68, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 20% 80%, rgba(30, 58, 95, 0.3) 0%, transparent 60%);">
+<main class="nm-auth-screen nm-auth-screen--single nm-auth-screen--status" aria-label="<%= __('pending_verification_title') %>">
+    <div class="nm-auth-screen__atmosphere nm-about-hero__atmosphere" aria-hidden="true">
+        <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
+        <span class="nm-about-hero__grain" style="--x:22%; --d:0s;"></span>
+        <span class="nm-about-hero__grain" style="--x:58%; --d:1.3s;"></span>
     </div>
 
-    <!-- Floating Security Icon -->
-    <div class="float-element" style="position: absolute; top: 15%; right: 10%; font-size: 4rem; color: var(--secondary); opacity: 0.1;">
-        <i class="fas fa-shield-check"></i>
-    </div>
+    <div class="nm-auth-screen__watermark" aria-hidden="true"><%= __('hero_title') %></div>
 
-    <div class="luxury-card glass-panel" style="width: 100%; max-width: 600px; padding: 60px 40px; text-align: center; border-radius: 40px; border: 1px solid rgba(255,255,255,0.08); position: relative; z-index: 10;">
-        
-        <!-- Status Animation Area -->
-        <div style="width: 120px; height: 120px; background: rgba(0, 165, 68, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; border: 2px solid rgba(0, 165, 68, 0.2); position: relative;">
-            <i class="fas fa-user-clock" style="font-size: 3.5rem; color: var(--secondary); animation: pulse 2s infinite;"></i>
-            <div style="position: absolute; inset: -10px; border: 2px dashed rgba(0, 165, 68, 0.3); border-radius: 50%; opacity: 0.5; animation: spin 20s linear infinite;"></div>
-        </div>
+    <div class="nm-auth-screen__inner nm-auth-screen__inner--single">
+        <section class="nm-auth-screen__panel">
+            <div class="nm-auth-card nm-auth-status-card">
+                <div class="nm-auth-status-card__icon" aria-hidden="true">
+                    <i class="fas fa-user-clock"></i>
+                </div>
 
-        <h1 class="font-cairo" style="color: #fff; font-size: 2.2rem; margin-bottom: 20px; font-weight: 900;">طلبك قيد المراجعة الإدارية</h1>
-        
-        <p style="color: rgba(255,255,255,0.7); font-size: 1.1rem; line-height: 1.8; margin-bottom: 40px;">
-            أهلاً بك في مجتمع <strong>نَمير</strong>.
-            <br>
-            لقد تم استلام بيانات هويتك وعنوانك بنجاح. يقوم فريقنا الآن بمراجعة التفاصيل لضمان أعلى معايير الشفافية والأمان في المنصة.
-        </p>
+                <h1 class="nm-auth-status-card__title"><%= __('pending_verification_title') %></h1>
+                <p class="nm-auth-status-card__desc"><%= __('pending_verification_desc') %></p>
 
-        <!-- Process Steps -->
-        <div style="background: rgba(255,255,255,0.03); border-radius: 20px; padding: 25px; margin-bottom: 45px; text-align: right;">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--secondary); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem;">1</div>
-                <div style="color: #fff; font-weight: 700;">استلام المستندات الرقمية <i class="fas fa-check" style="color: var(--secondary); margin-right: 8px;"></i></div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; opacity: 0.5;">
-                <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem;">2</div>
-                <div style="color: #fff; font-weight: 700;">مطابقة البيانات والتحقق الإداري</div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px; opacity: 0.5;">
-                <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.1); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem;">3</div>
-                <div style="color: #fff; font-weight: 700;">تفعيل الحساب وبدء استقبال الدعم</div>
-            </div>
-        </div>
+                <ol class="nm-auth-status-steps">
+                    <li class="nm-auth-status-steps__item is-done">
+                        <span class="nm-auth-status-steps__num">1</span>
+                        <span class="nm-auth-status-steps__text"><%= __('pending_verification_step1') %></span>
+                        <i class="fas fa-check"></i>
+                    </li>
+                    <li class="nm-auth-status-steps__item is-active">
+                        <span class="nm-auth-status-steps__num">2</span>
+                        <span class="nm-auth-status-steps__text"><%= __('pending_verification_step2') %></span>
+                    </li>
+                    <li class="nm-auth-status-steps__item">
+                        <span class="nm-auth-status-steps__num">3</span>
+                        <span class="nm-auth-status-steps__text"><%= __('pending_verification_step3') %></span>
+                    </li>
+                </ol>
 
-        <!-- Help Section -->
-        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 35px;">
-            <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 25px;">
-                هل تعتقد أن هناك تأخيراً غير طبيعي؟ نحن هنا للمساعدة.
-            </p>
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                <a href="/support/chat" class="btn-lux btn-lux-primary" style="padding: 12px 25px; border-radius: 12px;">
-                    <i class="fas fa-headset"></i> التحدث مع الدعم الفني
-                </a>
-                <a href="/" class="btn-lux btn-lux-outline" style="padding: 12px 25px; border-radius: 12px;">
-                    العودة للرئيسية
-                </a>
+                <div class="nm-auth-status-card__help">
+                    <p><%= __('pending_verification_help') %></p>
+                    <div class="nm-auth-status-card__actions">
+                        <a href="/support/chat" class="btn-lux btn-lux-primary">
+                            <i class="fas fa-headset"></i> <%= __('pending_verification_support') %>
+                        </a>
+                        <a href="/" class="btn-lux btn-lux-outline">
+                            <%= __('pending_verification_home') %>
+                        </a>
+                    </div>
+                    <p class="nm-auth-status-card__hint">
+                        <i class="fas fa-arrow-down"></i> <%= __('pending_verification_chat_hint') %>
+                    </p>
+                </div>
             </div>
-            <p style="margin-top: 25px; color: var(--secondary); font-size: 0.85rem; font-weight: 700;">
-                <i class="fas fa-arrow-down" style="margin-left: 5px;"></i> كما يمكنك استخدام أيقونة المحادثة أسفل الشاشة
-            </p>
-        </div>
+        </section>
     </div>
 </main>
 
-<style>
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.8; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-</style>
-
-<%- include('../../partials/footer-bottom') %>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

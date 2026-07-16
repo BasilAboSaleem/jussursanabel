@@ -32,35 +32,9 @@
                 </div>
             </div>
 
-            <div class="nm-about-hero__emblem" aria-hidden="true">
-                <svg class="nm-about-hero__sheaf" viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="nmSheafGold" x1="160" y1="20" x2="160" y2="400" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#B8F5C8"/>
-                            <stop offset="0.45" stop-color="#00C758"/>
-                            <stop offset="1" stop-color="#016630"/>
-                        </linearGradient>
-                        <linearGradient id="nmSheafGlow" x1="160" y1="40" x2="160" y2="280" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#69FF97" stop-opacity="0.55"/>
-                            <stop offset="1" stop-color="#69FF97" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>
-                    <ellipse cx="160" cy="210" rx="110" ry="150" fill="url(#nmSheafGlow)"/>
-                    <!-- central stalk -->
-                    <path d="M160 390 C158 300 160 220 160 90" stroke="url(#nmSheafGold)" stroke-width="3.5" stroke-linecap="round"/>
-                    <!-- wheat heads -->
-                    <path class="nm-stalk nm-stalk--a" d="M160 120 C120 90 95 70 78 48 C108 62 138 88 160 120Z" fill="url(#nmSheafGold)" opacity="0.95"/>
-                    <path class="nm-stalk nm-stalk--b" d="M160 145 C110 120 78 98 55 72 C95 92 130 118 160 145Z" fill="url(#nmSheafGold)" opacity="0.85"/>
-                    <path class="nm-stalk nm-stalk--c" d="M160 170 C105 150 70 130 42 102 C88 122 128 148 160 170Z" fill="url(#nmSheafGold)" opacity="0.75"/>
-                    <path class="nm-stalk nm-stalk--d" d="M160 120 C200 90 225 70 242 48 C212 62 182 88 160 120Z" fill="url(#nmSheafGold)" opacity="0.95"/>
-                    <path class="nm-stalk nm-stalk--e" d="M160 145 C210 120 242 98 265 72 C225 92 190 118 160 145Z" fill="url(#nmSheafGold)" opacity="0.85"/>
-                    <path class="nm-stalk nm-stalk--f" d="M160 170 C215 150 250 130 278 102 C232 122 192 148 160 170Z" fill="url(#nmSheafGold)" opacity="0.75"/>
-                    <path class="nm-stalk nm-stalk--g" d="M160 95 C145 68 140 42 138 22 C152 42 158 70 160 95Z" fill="#E8FFE8" opacity="0.9"/>
-                    <circle cx="160" cy="88" r="7" fill="#69FF97"/>
-                    <circle cx="160" cy="88" r="18" stroke="#69FF97" stroke-opacity="0.35" stroke-width="1.5"/>
-                    <circle class="nm-pulse" cx="160" cy="88" r="28" stroke="#69FF97" stroke-opacity="0.2" stroke-width="1"/>
-                </svg>
-                <p class="nm-about-hero__emblem-caption"><%= __('brand_affiliation_short') %></p>
+            <div class="nm-about-hero__emblem nm-about-hero__emblem--nameer" aria-hidden="true">
+                <%- include('../partials/nm-impact-emblem', { emblemPrefix: 'nmAboutImpact', showEmblemLabels: true, showEmblemParticles: true }) %>
+                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer"><%= __('hero_tagline') %></p>
             </div>
         </div>
 

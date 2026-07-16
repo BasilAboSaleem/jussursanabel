@@ -1,0 +1,17 @@
+<aside class="nm-auth-screen__brand" aria-hidden="true">
+    <p class="nm-auth-screen__affiliate"><%= __('hero_affiliation') %></p>
+    <h1 class="nm-auth-screen__title">
+        <span class="nm-auth-screen__title-ar"><%= __('hero_title') %></span>
+        <span class="nm-auth-screen__title-en">Nameer</span>
+    </h1>
+    <p class="nm-auth-screen__tagline"><%= __('hero_tagline') %></p>
+
+    <div class="nm-auth-screen__emblem">
+        <%- include('./nm-impact-emblem', { emblemPrefix: typeof emblemPrefix !== 'undefined' ? emblemPrefix : 'nmAuthBrand', showEmblemLabels: false, showEmblemParticles: false }) %>
+    </div>
+
+    <ul class="nm-auth-screen__trust">
+        <li><i class="fas fa-shield-halved"></i> <%= __('hero_trust_verified') %></li>
+        <li><i class="fas fa-user-shield"></i> <%= __('hero_trust_privacy') %></li>
+    </ul>
+</aside>
