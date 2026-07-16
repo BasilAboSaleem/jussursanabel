@@ -14,7 +14,21 @@ async function getChatDay() {
 /**
  * Day names for Arabic display.
  */
-const DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const DAY_NAMES_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+/**
+ * Human-readable server timezone for UI labels.
+ */
+function getServerTimezoneLabel() {
+    const tz = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    try {
+        const parts = new Intl.DateTimeFormat('ar', { timeZone: tz, timeZoneName: 'short' }).formatToParts(new Date());
+        const tzPart = parts.find((p) => p.type === 'timeZoneName');
+        return tzPart ? `${tz} (${tzPart.value})` : tz;
+    } catch {
+        return tz;
+    }
+}
 
 /**
  * Checks whether NOW falls within the allowed chat window.
@@ -56,4 +70,4 @@ function isChatAllowed(chatDay, donor) {
     return { allowed: true, dayName };
 }
 
-module.exports = { getChatDay, isChatAllowed, DAY_NAMES_AR };
+module.exports = { getChatDay, isChatAllowed, DAY_NAMES_AR, getServerTimezoneLabel };

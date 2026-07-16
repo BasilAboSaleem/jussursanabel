@@ -4,7 +4,6 @@
     <!-- Hero -->
     <section class="hero-luxury case-hero" style="min-height: 55vh;">
         <div class="case-hero-bg" style="background-image: url('<%= foundCase.image %>');"></div>
-        <div class="bg-mesh"></div>
         <div class="case-hero-overlay"></div>
 
         <div class="container case-hero-content">
@@ -423,7 +422,7 @@
                                             <i class="fas fa-hourglass-half"></i>
                                             <p class="case-chat-title"><%= __('case_details_chat_pending_title') %></p>
                                             <p class="case-chat-desc"><%= __('case_details_chat_pending_desc') %></p>
-                                            <p class="case-chat-help"><%= __('case_details_chat_pending_delay') %> <a href="/support"><%= __('case_details_chat_support') %></a>.</p>
+                                            <p class="case-chat-help"><%= __('case_details_chat_pending_delay') %> <a href="/support/chat"><%= __('case_details_chat_support') %></a>.</p>
                                         </div>
                                     <% } else if (chatRequest.status === 'approved') { %>
                                         <a href="/messages/<%= foundCase.guardian._id %>" class="btn-lux btn-lux-primary case-side-btn" style="background: #00A544;">

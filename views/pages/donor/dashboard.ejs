@@ -247,7 +247,7 @@
                 <div class="luxury-card glass-panel" style="padding: 20px; border-right: 4px solid #6366f1;">
                     <div id="commCountdown" style="margin-bottom: 15px;">
                         <div style="background: #f1f5f9; padding: 15px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 5px;">يوم التواصل القادم: <%= chatDay === 'Monday' ? 'الإثنين' : 'الأحد' %> (في منطقتك)</div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 5px;" id="commCountdownSub">يوم التواصل: <%= chatDayName %></div>
                             <div id="commTimer" class="font-cairo fw-bold" style="font-size: 1.2rem; color: var(--primary);">جارٍ حساب الوقت...</div>
                         </div>
                     </div>
@@ -270,7 +270,7 @@
             </div>
 
             <!-- SHAREABLE IMPACT CARD (DIGITAL CERTIFICATE) -->
-            <div class="luxury-card-dark" style="padding: 25px; border-radius: 20px; background: linear-gradient(135deg, #020617 0%, #1e1b4b 100%); position: relative; overflow: hidden;">
+            <div class="luxury-card-dark" style="padding: 25px; border-radius: 20px; background: linear-gradient(135deg, #021a0f 0%, #032E15 100%); position: relative; overflow: hidden;">
                 <div style="position: absolute; bottom: -20px; right: -20px; font-size: 8rem; opacity: 0.1; color: white;">
                     <i class="fa-solid fa-award"></i>
                 </div>
@@ -439,6 +439,7 @@
     </div>
 </div>
 
+<script src="/assets/js/chat-countdown.js"></script>
 <script>
     function switchTab(tabName) {
         // Hide all sections
@@ -537,36 +538,18 @@
         });
     }
 
-    // 2. Communication Countdown Logic
-    function updateCommCountdown() {
-        const chatDayArr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const targetDayIdx = chatDayArr.indexOf('<%= chatDay %>');
-        const now = new Date();
-        const currentDayIdx = now.getDay();
-        
-        let daysUntil = (targetDayIdx - currentDayIdx + 7) % 7;
-        if (daysUntil === 0 && now.getHours() >= 20) daysUntil = 7; // Assuming it ends by 8pm
-
-        const targetDate = new Date();
-        targetDate.setDate(now.getDate() + daysUntil);
-        targetDate.setHours(9, 0, 0, 0); // Open at 9am
-
-        const diff = targetDate - now;
-        const timerEl = document.getElementById('commTimer');
-        
-        if (!timerEl) return;
-
-        if (diff <= 0 && daysUntil === 0) {
-            timerEl.innerHTML = '<span style="color: #00A544;"><i class="fa-solid fa-circle-dot animate-pulse"></i> الباب مفتوح الآن للتواصل</span>';
-        } else {
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            timerEl.innerText = `متبقي: ${d} يوم، ${h} ساعة، ${m} دقيقة`;
-        }
+    // 2. Communication Countdown (synced with server chat day + donor window)
+    if (window.NmChatCountdown) {
+        NmChatCountdown.init({
+            chatDay: '<%= chatDay %>',
+            displayId: 'commTimer',
+            subLabelSelector: '#commCountdownSub',
+            windowFrom: '<%= user.chatWindow && user.chatWindow.from ? user.chatWindow.from : "09:00" %>',
+            windowTo: '<%= user.chatWindow && user.chatWindow.to ? user.chatWindow.to : "17:00" %>',
+            serverTzLabel: '<%= typeof serverTimezone !== "undefined" ? serverTimezone : "" %>',
+            dayLabelPrefix: 'يوم التواصل'
+        });
     }
-    setInterval(updateCommCountdown, 60000);
-    updateCommCountdown();
 
     // 3. Impact Card Generator (Multilingual)
     async function generateImpactCard() {
@@ -592,7 +575,7 @@
         
         if (lang === 'ar') {
             certHtml = `
-                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #032E15 100%); border-radius: 20px; text-align: right; color: white; font-family: 'Cairo', sans-serif; direction: rtl;">
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #021a0f 0%, #032E15 100%); border-radius: 20px; text-align: right; color: white; font-family: 'Cairo', sans-serif; direction: rtl;">
                     <div style="border: 2px solid rgba(0, 165, 68, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
                         <div style="text-align: center; margin-bottom: 30px;">
                             <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: var(--secondary); margin-bottom: 15px;"></i>
@@ -625,7 +608,7 @@
                 </div>`;
         } else {
             certHtml = `
-                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #020617 0%, #032E15 100%); border-radius: 20px; text-align: left; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr;">
+                <div id="impactCertificate" style="padding: 2px; background: linear-gradient(135deg, #021a0f 0%, #032E15 100%); border-radius: 20px; text-align: left; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr;">
                     <div style="border: 2px solid rgba(0, 165, 68, 0.2); border-radius: 18px; padding: 40px; position: relative; overflow: hidden;">
                         <div style="text-align: center; margin-bottom: 30px;">
                             <i class="fa-solid fa-heart-pulse" style="font-size: 3rem; color: var(--secondary); margin-bottom: 15px;"></i>

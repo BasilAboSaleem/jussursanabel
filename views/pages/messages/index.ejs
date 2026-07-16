@@ -127,7 +127,7 @@
                         <h4 class="font-cairo">التواصل غير متاح حالياً</h4>
                         <p id="restrictionReasonDisplay"></p>
                         <div class="restricted-note">
-                            <span>يمكنك العودة لمراسلة هذا الطرف خلال الساعات المحددة فقط.</span>
+                            <span><%= __('chat_restriction_note') %><% if (typeof serverTimezone !== 'undefined' && serverTimezone) { %> · <%= __('chat_server_timezone_note', { tz: serverTimezone }) %><% } %></span>
                         </div>
                     </div>
                 </div>
@@ -785,13 +785,8 @@
         const restrictionReasonDisplay = document.getElementById('restrictionReasonDisplay');
         if (data.isChatRestricted) {
             restrictedArea.style.display = 'flex';
-            let reason = `التواصل في هذه المحادثة متاح فقط يوم ${data.chatDayName || 'المحدد من الإدارة'}`;
-            if (data.donorWindow && data.donorWindow.from && data.donorWindow.to) {
-                reason += ` من الساعة ${data.donorWindow.from} حتى الساعة ${data.donorWindow.to}.`;
-            } else {
-                reason += `. (لم يقم المتبرع بتحديد ساعاته بعد).`;
-            }
-            restrictionReasonDisplay.innerText = reason;
+            restrictionReasonDisplay.innerText = data.restrictionReason
+                || `التواصل في هذه المحادثة متاح فقط يوم ${data.chatDayName || 'المحدد من الإدارة'}${data.donorWindow && data.donorWindow.from && data.donorWindow.to ? ` من الساعة ${data.donorWindow.from} حتى الساعة ${data.donorWindow.to}` : ''}.`;
         } else {
             restrictedArea.style.display = 'none';
         }

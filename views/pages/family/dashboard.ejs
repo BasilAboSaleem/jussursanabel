@@ -18,7 +18,7 @@
         <div class="comm-countdown-card-lux" id="commCountdown">
             <div class="countdown-label-lux"><i class="fa-solid fa-comments"></i> نافذة التواصل القادمة</div>
             <div class="countdown-timer-lux font-cairo" id="countdownDisplay">-- : -- : --</div>
-            <div class="countdown-sub-lux">يوم التواصل: <%= chatDay === 'Monday' ? 'الإثنين' : (chatDay === 'Friday' ? 'الجمعة' : chatDay) %></div>
+            <div class="countdown-sub-lux" id="commCountdownSub">يوم التواصل: <%= chatDayName %></div>
         </div>
 
         <div class="header-actions-group">
@@ -1284,6 +1284,7 @@
     </div>
 </div>
 
+<script src="/assets/js/chat-countdown.js"></script>
 <script>
     async function viewDonations(id, title) {
         const modal = document.getElementById('donationsModal');
@@ -1346,53 +1347,18 @@
         document.getElementById('uploadProofModal').style.display = 'none';
     }
 
-    // --- Premium Real-time Countdown Logic ---
-    function updateCommCountdown() {
-        let chatDay = '<%= chatDay %>'; // e.g., '1' or 'Monday'
-        const now = new Date();
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const daysAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-        
-        let targetDayIndex;
-        if (!isNaN(chatDay)) {
-            targetDayIndex = parseInt(chatDay);
-        } else {
-            targetDayIndex = days.indexOf(chatDay);
-        }
-        
-        if (targetDayIndex === -1) targetDayIndex = 1; // Default to Monday if invalid
-        
-        let nextChat = new Date();
-        nextChat.setDate(now.getDate() + (targetDayIndex + 7 - now.getDay()) % 7);
-        nextChat.setHours(9, 0, 0, 0); // Open at 9 AM
-
-        if (nextChat < now) nextChat.setDate(nextChat.getDate() + 7);
-
-        const diff = nextChat - now;
-        
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diff / (1000 * 60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
-        
-        const display = document.getElementById('countdownDisplay');
-        const timeStr = `${h < 10 ? '0'+h : h} : ${m < 10 ? '0'+m : m} : ${s < 10 ? '0'+s : s}`;
-
-        if (d > 0) {
-            display.innerHTML = `<span style="font-size: 1.2rem;">${d} أيام و </span>${timeStr}`;
-        } else {
-            display.innerHTML = timeStr;
-        }
-
-        // Ensure the sub-label shows the correct day name in Arabic
-        const subLabel = document.querySelector('.countdown-sub-lux');
-        if (subLabel) {
-            subLabel.innerHTML = `يوم التواصل القادم: <strong>${daysAr[targetDayIndex]}</strong>`;
-        }
+    // --- Premium Real-time Countdown (shared with donor dashboard) ---
+    if (window.NmChatCountdown) {
+        NmChatCountdown.init({
+            chatDay: '<%= chatDay %>',
+            displayId: 'countdownDisplay',
+            subLabelSelector: '#commCountdownSub',
+            windowFrom: '09:00',
+            windowTo: '17:00',
+            serverTzLabel: '<%= typeof serverTimezone !== "undefined" ? serverTimezone : "" %>',
+            dayLabelPrefix: 'يوم التواصل'
+        });
     }
-
-    setInterval(updateCommCountdown, 1000);
-    updateCommCountdown();
 </script>
 
 <%- include('../../partials/family-layout-bottom') %>

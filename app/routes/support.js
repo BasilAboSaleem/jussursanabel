@@ -4,6 +4,7 @@ const supportController = require('../controllers/supportController');
 const { protect, restrictTo } = require('../middlewares/auth');
 
 // User Routes
+router.get('/', protect, (req, res) => res.redirect('/support/chat'));
 router.get('/chat', protect, supportController.getSupportPage);
 router.post('/ticket/open', protect, supportController.openTicket);
 router.post('/message/send', protect, supportController.sendMessage);

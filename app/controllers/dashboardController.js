@@ -49,11 +49,11 @@ exports.getDashboard = async (req, res) => {
                 { $sort: { "_id.year": 1, "_id.month": 1 } }
             ]);
 
-            // 4. Next Communication Window Logic
-            const Setting = require('../models/Setting');
-            const chatDaySett = await Setting.findOne({ key: 'chat_day' });
-            const chatDay = chatDaySett ? chatDaySett.value : 'Monday';
-            
+            const { getChatDay, DAY_NAMES_AR, getServerTimezoneLabel } = require('../utils/chatUtils');
+            const chatDay = await getChatDay();
+            const chatDayName = DAY_NAMES_AR[chatDay];
+            const serverTimezone = getServerTimezoneLabel();
+
             // --- PREMIUM ADDITIONS END ---
 
             return res.render('pages/donor/dashboard', { 
@@ -68,6 +68,8 @@ exports.getDashboard = async (req, res) => {
                 // New Premium Data
                 donationTrends: trends,
                 chatDay,
+                chatDayName,
+                serverTimezone,
                 csrfToken: req.csrfToken()
             });
         }
@@ -84,10 +86,10 @@ exports.getDashboard = async (req, res) => {
                 status: 'approved' 
             }).populate('case donor');
             
-            // 1. Next Communication Window Logic (Shared with Donor)
-            const Setting = require('../models/Setting');
-            const chatDaySett = await Setting.findOne({ key: 'chat_day' });
-            const chatDay = chatDaySett ? chatDaySett.value : 'Monday';
+            const { getChatDay, DAY_NAMES_AR, getServerTimezoneLabel } = require('../utils/chatUtils');
+            const chatDay = await getChatDay();
+            const chatDayName = DAY_NAMES_AR[chatDay];
+            const serverTimezone = getServerTimezoneLabel();
 
             // 2. Aggregate Recent Activity
             // - Recent Verified Transactions
@@ -118,6 +120,8 @@ exports.getDashboard = async (req, res) => {
                 recentDonations,
                 recentChats,
                 chatDay,
+                chatDayName,
+                serverTimezone,
                 csrfToken: req.csrfToken()
             });
         }

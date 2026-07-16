@@ -1,110 +1,85 @@
 <%- include('../../partials/header-top') %>
 
-<main style="min-height: 100vh; background: #fafaf9; padding-top: 100px;">
-    <div class="container" style="max-width: 1000px;">
-        
-        <div class="section-header-luxury" style="margin-bottom: 40px; text-align: right;">
-            <h2 class="font-cairo section-title-luxury">الدعم الفني المباشر</h2>
-            <p class="section-subtitle-luxury" style="margin: 0;">نحن هنا لمساعدتكم في أي وقت. محادثتكم تصل لجميع فريق الإدارة لضمان سرعة الرد.</p>
-        </div>
+<main class="nm-support-page">
+    <div class="container nm-support-page__inner">
+        <header class="nm-support-page__header">
+            <h1 class="font-cairo nm-support-page__title"><%= __('support_page_title') %></h1>
+            <p class="nm-support-page__desc"><%= __('support_page_desc') %></p>
+        </header>
 
         <% if (!ticket) { %>
-            <!-- No Active Ticket: Show Open Ticket UI -->
-            <div class="luxury-card" style="text-align: center; padding: 60px 40px;">
-                <div style="font-size: 4rem; color: var(--secondary); margin-bottom: 30px; opacity: 0.8;">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <h3 class="font-cairo" style="font-size: 1.8rem; margin-bottom: 20px;">كيف يمكننا مساعدتكم اليوم؟</h3>
-                <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 1.1rem;">اضغط على الزر أدناه لبدء محادثة جديدة مع فريق الدعم الفني.</p>
-                
-                <button onclick="openNewTicket()" class="btn-lux btn-lux-primary btn-lg">
-                    فتح تذكرة دعم جديدة <i class="fas fa-plus-circle" style="margin-right: 12px;"></i>
+            <div class="nm-support-empty luxury-card">
+                <div class="nm-support-empty__icon"><i class="fas fa-headset"></i></div>
+                <h2 class="font-cairo"><%= __('support_page_empty_title') %></h2>
+                <p><%= __('support_page_empty_desc') %></p>
+                <button type="button" onclick="openNewTicket()" class="btn-lux btn-lux-primary btn-lg">
+                    <%= __('support_page_open_ticket') %> <i class="fas fa-plus-circle"></i>
                 </button>
             </div>
         <% } else { %>
-            <!-- Active Ticket: Show Chat Interface -->
-            <div class="luxury-card" style="padding: 0; display: flex; flex-direction: column; height: 650px; border-radius: 30px; overflow: hidden;">
-                <!-- Chat Header -->
-                <div style="background: <%= isAdmin ? 'var(--grad-navy)' : 'var(--grad-teal)' %>; color: white; padding: 20px 30px; display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="nm-support-chat luxury-card">
+                <div class="nm-support-chat__header <%= isAdmin ? 'nm-support-chat__header--admin' : '' %>">
+                    <div class="nm-support-chat__header-info">
                         <% if (isAdmin) { %>
-                            <img src="<%= ticket.user.avatar %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);">
+                            <img src="<%= ticket.user.avatar %>" alt="" class="nm-support-chat__avatar">
                             <div>
-                                <h4 class="font-cairo" style="margin: 0; font-size: 1.2rem;"><%= ticket.user.name %></h4>
-                                <span style="font-size: 0.85rem; opacity: 0.8;"><%= ticket.user.role === 'donor' ? 'متبرع' : 'مستفيد' %></span>
+                                <h2 class="font-cairo"><%= ticket.user.name %></h2>
+                                <span><%= ticket.user.role === 'donor' ? __('support_page_role_donor') : __('support_page_role_family') %></span>
                             </div>
                         <% } else { %>
-                            <div style="width: 10px; height: 10px; background: #00A544; border-radius: 50%; box-shadow: 0 0 10px #00A544;"></div>
+                            <div class="nm-support-chat__status-dot"></div>
                             <div>
-                                <h4 class="font-cairo" style="margin: 0; font-size: 1.2rem;">محادثة دعم نشطة</h4>
-                                <span style="font-size: 0.85rem; opacity: 0.8;">رقم التذكرة: <%= ticket._id.toString().slice(-6).toUpperCase() %></span>
+                                <h2 class="font-cairo"><%= __('support_page_active_title') %></h2>
+                                <span><%= __('support_page_ticket_id') %>: <%= ticket._id.toString().slice(-6).toUpperCase() %></span>
                             </div>
                         <% } %>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div class="badge <%= ticket.status === 'resolved' ? 'badge-success' : 'badge-gold' %>">
-                            <%= ticket.status === 'resolved' ? 'تم الحل' : (ticket.status === 'open' ? 'تذكرة جديدة' : 'قيد المتابعة') %>
-                        </div>
+                    <div class="nm-support-chat__header-actions">
+                        <span class="badge <%= ticket.status === 'resolved' ? 'badge-success' : 'badge-gold' %>">
+                            <%= ticket.status === 'resolved' ? __('support_page_status_resolved') : (ticket.status === 'open' ? __('support_page_status_open') : __('support_page_status_in_progress')) %>
+                        </span>
                         <% if (isAdmin && ticket.status !== 'resolved') { %>
-                            <button onclick="resolveTicket()" class="btn-lux btn-lux-outline-white" style="padding: 6px 15px; font-size: 0.8rem; border-color: rgba(255,255,255,0.3); border-radius: 10px;">
-                                <i class="fas fa-check-circle"></i> تحديد كمحلولة
+                            <button type="button" onclick="resolveTicket()" class="btn-lux btn-lux-outline-white nm-support-chat__resolve-btn">
+                                <i class="fas fa-check-circle"></i> <%= __('support_page_resolve_btn') %>
                             </button>
                         <% } %>
                     </div>
                 </div>
 
-                <!-- Chat Messages -->
-                <div id="chat-messages" style="flex: 1; padding: 30px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 20px;">
+                <div id="chat-messages" class="nm-support-chat__messages">
                     <% if (messages.length === 0) { %>
-                        <div style="text-align: center; margin-top: 50px; opacity: 0.5;">
-                            <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                            <p>لا توجد رسائل بعد. ابدأ المحادثة الآن.</p>
+                        <div class="nm-support-chat__empty">
+                            <i class="fas fa-comments"></i>
+                            <p><%= __('support_page_no_messages') %></p>
                         </div>
                     <% } %>
-                    
                     <% messages.forEach(msg => { %>
-                        <div style="display: flex; flex-direction: column; align-items: <%= msg.sender._id.toString() === user._id.toString() ? 'flex-end' : 'flex-start' %>;">
-                            <div style="
-                                max-width: 80%;
-                                padding: 15px 20px;
-                                border-radius: 20px;
-                                background: <%= msg.sender._id.toString() === user._id.toString() ? 'var(--grad-gold)' : '#ffffff' %>;
-                                color: <%= msg.sender._id.toString() === user._id.toString() ? 'var(--primary)' : 'var(--text-main)' %>;
-                                box-shadow: var(--shadow-sm);
-                                border-bottom-<%= msg.sender._id.toString() === user._id.toString() ? 'right' : 'left' %>-radius: 4px;
-                            ">
+                        <% const isMe = msg.sender._id.toString() === user._id.toString(); %>
+                        <div class="nm-support-msg <%= isMe ? 'nm-support-msg--sent' : 'nm-support-msg--received' %>">
+                            <div class="nm-support-msg__bubble">
                                 <% if (msg.sender.role === 'admin' || msg.sender.role === 'super_admin') { %>
-                                    <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; opacity: 0.7;">
-                                        فريق الدعم (<%= msg.sender.name %>)
-                                    </div>
+                                    <div class="nm-support-msg__sender"><%= __('support_team_label') %> (<%= msg.sender.name %>)</div>
                                 <% } %>
-                                <p style="margin: 0; line-height: 1.6;"><%= msg.content %></p>
+                                <p><%= msg.content %></p>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--text-light); margin-top: 5px;">
-                                <%= new Date(msg.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) %>
-                            </span>
+                            <time class="nm-support-msg__time">
+                                <%= new Date(msg.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                            </time>
                         </div>
                     <% }) %>
                 </div>
 
-                <!-- Chat Input -->
-                <div style="padding: 25px; background: white; border-top: 1px solid #e2e8f0;">
-                    <div style="position: relative; display: flex; gap: 15px;">
-                        <input type="text" id="chat-input" 
-                            placeholder="<%= ticket.status === 'resolved' ? 'هذه التذكرة مغلقة (تم الحل)' : 'اكتب استفسارك هنا...' %>" 
-                            <%= ticket.status === 'resolved' ? 'disabled' : '' %>
-                            style="flex: 1; padding: 18px 25px; border-radius: 15px; border: 2px solid #f1f5f9; outline: none; transition: var(--transition-fast); <%= ticket.status === 'resolved' ? 'background: #f8fafc; cursor: not-allowed;' : '' %>">
-                        
-                        <button onclick="sendMessage()" class="btn-lux btn-lux-navy" 
-                            <%= ticket.status === 'resolved' ? 'disabled' : '' %>
-                            style="padding: 0 30px; border-radius: 15px; <%= ticket.status === 'resolved' ? 'opacity: 0.5; cursor: not-allowed;' : '' %>">
-                            إرسال <i class="fas fa-paper-plane" style="margin-right: 10px;"></i>
-                        </button>
-                    </div>
+                <div class="nm-support-chat__input">
+                    <input type="text" id="chat-input"
+                        placeholder="<%= ticket.status === 'resolved' ? __('support_page_input_closed') : __('support_page_input_placeholder') %>"
+                        <%= ticket.status === 'resolved' ? 'disabled' : '' %>>
+                    <button type="button" onclick="sendMessage()" class="btn-lux btn-lux-navy"
+                        <%= ticket.status === 'resolved' ? 'disabled' : '' %>>
+                        <%= __('support_page_send') %> <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         <% } %>
-
     </div>
 </main>
 
@@ -137,34 +112,16 @@
         const messagesContainer = document.getElementById('chat-messages');
         
         // Remove empty placeholder
-        const placeholder = messagesContainer.querySelector('div[style*="opacity: 0.5"]');
+        const placeholder = messagesContainer.querySelector('.nm-support-chat__empty');
         if (placeholder) placeholder.remove();
 
-        // Check if message already rendered (prevent duplicates from local emit)
-        // Actually we don't need a formal check if we only emit to others, 
-        // but here we emit back to sender in server.js. Let's handle it by tracking rendered IDs or just relying on socket.
-        
         const msgHtml = `
-            <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
-                <div style="
-                    max-width: 80%;
-                    padding: 15px 20px;
-                    border-radius: 20px;
-                    background: ${isMe ? 'var(--grad-gold)' : '#ffffff'};
-                    color: ${isMe ? 'var(--primary)' : 'var(--text-main)'};
-                    box-shadow: var(--shadow-sm);
-                    border-bottom-${isMe ? 'right' : 'left'}-radius: 4px;
-                ">
-                    ${data.isAdminTeam ? `
-                        <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; opacity: 0.7;">
-                            فريق الدعم (${data.senderName})
-                        </div>
-                    ` : ''}
-                    <p style="margin: 0; line-height: 1.6;">${data.content}</p>
+            <div class="nm-support-msg ${isMe ? 'nm-support-msg--sent' : 'nm-support-msg--received'}">
+                <div class="nm-support-msg__bubble">
+                    ${data.isAdminTeam ? `<div class="nm-support-msg__sender"><%= __('support_team_label') %> (${data.senderName})</div>` : ''}
+                    <p>${data.content}</p>
                 </div>
-                <span style="font-size: 0.7rem; color: var(--text-light); margin-top: 5px;">
-                    ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                <time class="nm-support-msg__time">${new Date().toLocaleTimeString('<%= lang === "ar" ? "ar-SA" : "en-US" %>', { hour: '2-digit', minute: '2-digit' })}</time>
             </div>
         `;
         
@@ -253,48 +210,5 @@
         }
     });
 </script>
-
-<style>
-    #chat-input:focus {
-        border-color: var(--secondary);
-        box-shadow: 0 0 0 4px rgba(0, 165, 68, 0.12);
-    }
-
-    @media (max-width: 992px) {
-        .section-header-luxury {
-            margin-bottom: 20px !important;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .container {
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-        }
-
-        .luxury-card[style*="height: 650px"] {
-            height: calc(100vh - 220px) !important;
-            min-height: 460px;
-            border-radius: 18px !important;
-        }
-
-        #chat-messages {
-            padding: 12px !important;
-        }
-
-        #chat-messages > div > div {
-            max-width: 92% !important;
-            padding: 10px 12px !important;
-        }
-
-        #chat-input {
-            padding: 12px !important;
-        }
-
-        button[onclick="sendMessage()"] {
-            padding: 0 16px !important;
-        }
-    }
-</style>
 
 <%- include('../../partials/footer-bottom') %>

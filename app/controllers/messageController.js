@@ -189,10 +189,6 @@ exports.getChatHistory = async (req, res) => {
             blockReason = res.__('error_user_banned_global');
         } else {
             const blockCheck = isCommunicationBlocked(req.user, otherUser);
-            
-            console.log(`[NUCLEAR-DEBUG] getChatHistory for ${req.user.name} and ${otherUser.name}:`);
-            console.log(` - Result: ${blockCheck.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-            if (blockCheck.blocked) console.log(` - Details: By ${blockCheck.by}, Reason: ${blockCheck.reason}`);
 
             if (blockCheck.blocked) {
                 isBlocked = true;
@@ -223,6 +219,9 @@ exports.getChatHistory = async (req, res) => {
             }
         }
 
+        const { getServerTimezoneLabel } = require('../utils/chatUtils');
+        const serverTimezone = getServerTimezoneLabel();
+
         res.render('pages/messages/index', { 
             title: res.__('chat_with', { name: otherUser.name }),
             contacts: Array.from(contactsMap.values()),
@@ -234,7 +233,8 @@ exports.getChatHistory = async (req, res) => {
             isChatRestricted,
             restrictionReason,
             chatDayName,
-            donorWindow
+            donorWindow,
+            serverTimezone
         });
     } catch (err) {
         console.error(err);
@@ -287,10 +287,6 @@ exports.getChatData = async (req, res) => {
             blockReason = res.__('error_user_banned_global');
         } else {
             const blockCheck = isCommunicationBlocked(req.user, otherUser);
-            
-            console.log(`[NUCLEAR-DEBUG] getChatData Check:`);
-            console.log(` - Result: ${blockCheck.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-            if (blockCheck.blocked) console.log(` - Details: By ${blockCheck.by}, Reason: ${blockCheck.reason}`);
 
             if (blockCheck.blocked) {
                 isBlocked = true;
@@ -320,6 +316,8 @@ exports.getChatData = async (req, res) => {
             }
         }
 
+        const { getServerTimezoneLabel } = require('../utils/chatUtils');
+
         res.json({
             success: true,
             chatHistory,
@@ -331,6 +329,7 @@ exports.getChatData = async (req, res) => {
             restrictionReason,
             chatDayName,
             donorWindow,
+            serverTimezone: getServerTimezoneLabel(),
             currentUser: {
                 _id: req.user._id,
                 role: req.user.role

@@ -149,6 +149,10 @@ exports.updatePassword = async (req, res) => {
 
 exports.saveChatWindow = async (req, res) => {
     try {
+        if (req.user.role !== 'donor') {
+            return res.status(403).json({ success: false, error: res.__('error_chat_window_donors_only') });
+        }
+
         const { from, to } = req.body;
         const donorId = req.user._id;
 
@@ -197,11 +201,10 @@ exports.saveChatWindow = async (req, res) => {
         // Also send realtime notifications via socket.io if io is available
         const io = req.app && req.app.get ? req.app.get('io') : null;
         if (io) {
-            const donor = await User.findById(donorId);
             for (const familyId of familyIds) {
                 io.to(familyId).emit('newNotification', {
-                    title: `المتبرع ${donor ? donor.name : ''} حدّد موعد التواصل`,
-                    message: `سيكون المتبرع ${donor ? donor.name : ''} متاحاً للتواصل غداً يوم ${dayName} من ${from} حتى ${to}.`,
+                    title: res.__('notif_chat_window_title', { name: req.user.name }),
+                    message: res.__('notif_chat_window_msg', { name: req.user.name, day: dayName, from, to }),
                     type: 'info',
                     link: `/messages/${donorId}`
                 });
@@ -210,7 +213,13 @@ exports.saveChatWindow = async (req, res) => {
 
         // Log the activity
         const { logActivity } = require('../utils/logger');
-        await logActivity(donorId, 'DONOR_WINDOW_UPDATE', `تحديث وقت التواصل: ${from} - ${to}`, req);
+        await logActivity(
+            donorId,
+            'donor_window_update',
+            'User',
+            donorId.toString(),
+            res.__('log_donor_window_update', { from, to })
+        );
 
         return res.json({ success: true, message: res.__('flash_chat_window_saved', { from, to }) });
     } catch (err) {
