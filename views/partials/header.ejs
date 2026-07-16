@@ -105,7 +105,14 @@
 
     window.addEventListener('scroll', syncNavState, { passive: true });
     window.addEventListener('resize', syncNavState);
-    syncNavState();
+
+    // Hero sections live below <header> — wait for DOM so transparent nav works on first paint
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', syncNavState);
+    } else {
+        syncNavState();
+    }
+    window.addEventListener('load', syncNavState);
 
     mobileMenuBtn?.addEventListener('click', function () {
         navLinks?.classList.toggle('active');
