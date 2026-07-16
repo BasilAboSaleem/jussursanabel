@@ -143,11 +143,51 @@ function validateCaseTextFields({ title, description, storyAr, forbiddenWords })
     };
 }
 
+/**
+ * Detect if user text is largely copied from published case examples.
+ */
+function isLikelyCopiedFromExamples(userText, examples) {
+    if (!userText || !examples || !examples.length) return false;
+
+    const normalized = normalizeText(userText);
+    if (normalized.length < 60) return false;
+
+    for (const example of examples) {
+        if (!example) continue;
+        let body = normalizeText(example);
+        body = body
+            .replace(/^ل?الحالة\s*\d+\s*/, '')
+            .replace(/العنوان\s*\([^)]+\)\s*/, '')
+            .replace(/\.{5,}/g, ' ')
+            .trim();
+
+        if (body.length < 80) continue;
+
+        // Long shared substring
+        for (let len = Math.min(80, body.length); len >= 40; len -= 10) {
+            for (let i = 0; i <= body.length - len; i += 15) {
+                const chunk = body.slice(i, i + len);
+                if (normalized.includes(chunk)) return true;
+            }
+        }
+
+        // Word overlap with distinctive terms (length > 3)
+        const exWords = [...new Set(tokenizeNormalized(body).filter((w) => w.length > 3))];
+        if (exWords.length < 12) continue;
+        const userWordSet = new Set(tokenizeNormalized(normalized));
+        const overlap = exWords.filter((w) => userWordSet.has(w)).length / exWords.length;
+        if (overlap >= 0.5) return true;
+    }
+
+    return false;
+}
+
 module.exports = {
     MANDATORY_FORBIDDEN_WORDS,
     normalizeText,
     parseForbiddenWords,
     mergeForbiddenWords,
     findForbiddenMatches,
-    validateCaseTextFields
+    validateCaseTextFields,
+    isLikelyCopiedFromExamples
 };

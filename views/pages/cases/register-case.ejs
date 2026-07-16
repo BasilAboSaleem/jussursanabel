@@ -24,6 +24,11 @@
         </div>
         <% } %>
 
+        <div class="nm-reg-example-notice" role="note">
+            <i class="fas fa-circle-info" aria-hidden="true"></i>
+            <p><%= __('register_case_example_notice') %></p>
+        </div>
+
         <form action="/cases/register?_csrf=<%= csrfToken %>" method="POST" enctype="multipart/form-data" class="premium-form" id="registerCaseForm">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
@@ -83,9 +88,11 @@
             <div class="form-group" style="margin-bottom: 25px;">
                 <div class="nm-template-row">
                     <label class="form-label-luxury" style="margin-bottom: 0;"><%= __('register_case_label_desc') %></label>
-                    <button type="button" class="btn-template-use" data-target="description">
-                        <i class="fas fa-file-alt"></i> <%= __('register_case_template_use') %>
-                    </button>
+                    <div class="nm-template-controls">
+                        <button type="button" class="btn-template-view" data-view="descTips">
+                            <i class="fas fa-lightbulb"></i> <%= __('register_case_desc_tips_btn') %>
+                        </button>
+                    </div>
                 </div>
                 <textarea name="description" id="caseDescriptionInput" class="form-input content-filter-field" data-field="description" required rows="3" placeholder="<%= __('register_case_placeholder_desc') %>" minlength="40" maxlength="350"></textarea>
                 <div class="nm-field-hint"><%= __('register_case_desc_hint') %></div>
@@ -95,9 +102,22 @@
             <div class="form-group" style="margin-bottom: 25px;">
                 <div class="nm-template-row">
                     <label class="form-label-luxury" style="margin-bottom: 0;"><%= __('register_case_label_story') %></label>
-                    <button type="button" class="btn-template-use" data-target="storyAr">
-                        <i class="fas fa-file-alt"></i> <%= __('register_case_template_use') %>
-                    </button>
+                    <div class="nm-template-controls">
+                        <% if (typeof caseStoryExamples !== 'undefined' && caseStoryExamples.length > 0) { %>
+                        <select id="storyExamplePicker" class="form-input nm-story-example-select" aria-label="<%= __('register_case_template_pick') %>">
+                            <option value=""><%= __('register_case_template_pick') %></option>
+                            <% caseStoryExamples.forEach((example, index) => { %>
+                                <% const titleMatch = example.match(/العنوان\s*\(([^)]+)\)/); %>
+                                <% const caseMatch = example.match(/^(ل?الحالة\s*\d+)/); %>
+                                <% const label = (caseMatch ? caseMatch[1] : ('الحالة ' + (index + 1))) + (titleMatch ? (' — ' + titleMatch[1].trim()) : ''); %>
+                                <option value="<%= index %>"><%= label %></option>
+                            <% }) %>
+                        </select>
+                        <% } %>
+                        <button type="button" class="btn-template-view" data-view="storyExample">
+                            <i class="fas fa-eye"></i> <%= __('register_case_example_view') %>
+                        </button>
+                    </div>
                 </div>
                 <textarea name="storyAr" id="caseStoryInput" class="form-input content-filter-field" data-field="storyAr" required rows="16" placeholder="<%= __('register_case_placeholder_story') %>"></textarea>
                 <div class="nm-field-hint"><%= __('register_case_story_hint') %></div>
@@ -287,17 +307,37 @@
     </div>
 </div>
 
+<!-- Example viewer (read-only — does not fill the form) -->
+<div id="exampleViewModal" class="nm-example-modal" hidden role="dialog" aria-modal="true" aria-labelledby="exampleViewModalTitle">
+    <div class="nm-example-modal__backdrop" data-close-example-modal></div>
+    <div class="nm-example-modal__panel">
+        <header class="nm-example-modal__head">
+            <h3 class="font-cairo" id="exampleViewModalTitle"><%= __('register_case_example_view') %></h3>
+            <button type="button" class="nm-example-modal__close" data-close-example-modal aria-label="<%= __('common_close') %>">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+        <p class="nm-example-modal__warning"><%= __('register_case_example_modal_warning') %></p>
+        <div class="nm-example-modal__body" id="exampleViewModalBody"></div>
+        <footer class="nm-example-modal__foot">
+            <button type="button" class="btn-lux btn-lux-navy" data-close-example-modal><%= __('register_case_example_modal_close') %></button>
+        </footer>
+    </div>
+</div>
+
 <script>
     window.__REGISTER_CASE__ = {
         forbiddenWords: <%- JSON.stringify(typeof forbiddenWords !== 'undefined' ? forbiddenWords : []) %>,
         templates: {
-            orphan: <%- JSON.stringify(typeof caseTemplateOrphanAr !== 'undefined' ? caseTemplateOrphanAr : '') %>,
-            family: <%- JSON.stringify(typeof caseTemplateFamilyAr !== 'undefined' ? caseTemplateFamilyAr : '') %>,
-            desc: <%- JSON.stringify(typeof caseTemplateDescAr !== 'undefined' ? caseTemplateDescAr : '') %>
+            stories: <%- JSON.stringify(typeof caseStoryExamples !== 'undefined' ? caseStoryExamples : []) %>,
+            descTips: <%- JSON.stringify(typeof caseTemplateDescAr !== 'undefined' ? caseTemplateDescAr : '') %>
         },
         i18n: {
             forbiddenAlert: <%- JSON.stringify(__('register_case_forbidden_alert')) %>,
-            templateConfirm: <%- JSON.stringify(__('register_case_template_confirm')) %>
+            templatePickRequired: <%- JSON.stringify(__('register_case_template_pick_required')) %>,
+            exampleViewTitle: <%- JSON.stringify(__('register_case_example_view')) %>,
+            descTipsTitle: <%- JSON.stringify(__('register_case_desc_tips_btn')) %>,
+            descTipsFooter: <%- JSON.stringify(__('register_case_desc_tips_footer')) %>
         }
     };
 </script>
@@ -662,27 +702,51 @@
             field.input.addEventListener('blur', handler);
         });
 
-        document.querySelectorAll('.btn-template-use').forEach((btn) => {
+        const exampleModal = document.getElementById('exampleViewModal');
+        const exampleModalBody = document.getElementById('exampleViewModalBody');
+        const exampleModalTitle = document.getElementById('exampleViewModalTitle');
+
+        function openExampleModal(title, content) {
+            if (!exampleModal || !exampleModalBody) return;
+            if (exampleModalTitle) exampleModalTitle.textContent = title;
+            exampleModalBody.textContent = content;
+            exampleModal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeExampleModal() {
+            if (!exampleModal) return;
+            exampleModal.hidden = true;
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('[data-close-example-modal]').forEach((el) => {
+            el.addEventListener('click', closeExampleModal);
+        });
+
+        document.querySelectorAll('.btn-template-view').forEach((btn) => {
             btn.addEventListener('click', () => {
-                const target = btn.getAttribute('data-target');
-                const field = fieldMap[target];
-                if (!field || !field.input) return;
-
-                const type = document.querySelector('input[name="type"]:checked')?.value || 'orphan';
-                let template = '';
-                if (target === 'description') {
-                    template = config.templates.desc || '';
-                } else if (target === 'storyAr') {
-                    template = type === 'family'
-                        ? (config.templates.family || '')
-                        : (config.templates.orphan || '');
+                const view = btn.getAttribute('data-view');
+                if (view === 'descTips') {
+                    const tips = [config.templates.descTips, config.i18n.descTipsFooter].filter(Boolean).join('\n\n');
+                    openExampleModal(config.i18n.descTipsTitle, tips);
+                    return;
                 }
-
-                if (!template) return;
-                if (field.input.value.trim() && !window.confirm(config.i18n.templateConfirm)) return;
-                field.input.value = template;
-                validateAllFields();
+                if (view === 'storyExample') {
+                    const picker = document.getElementById('storyExamplePicker');
+                    const idx = picker ? picker.value : '';
+                    if (idx === '' || !config.templates.stories || !config.templates.stories.length) {
+                        window.alert(config.i18n.templatePickRequired);
+                        return;
+                    }
+                    const example = config.templates.stories[Number(idx)] || '';
+                    openExampleModal(config.i18n.exampleViewTitle, example);
+                }
             });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && exampleModal && !exampleModal.hidden) closeExampleModal();
         });
 
         window.__registerCaseContentFilter = {
@@ -751,6 +815,20 @@
         font-size: 0.92rem;
     }
 
+    .nm-template-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .nm-story-example-select {
+        min-width: min(100%, 260px);
+        max-width: 100%;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
     .nm-template-row {
         display: flex;
         align-items: center;
@@ -776,6 +854,134 @@
 
     .btn-template-use:hover {
         background: #dcfce7;
+    }
+
+    .nm-reg-example-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        margin-bottom: 24px;
+        border-radius: 14px;
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #92400e;
+        font-size: 0.88rem;
+        line-height: 1.65;
+    }
+
+    .nm-reg-example-notice i {
+        margin-top: 2px;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+
+    .nm-reg-example-notice p {
+        margin: 0;
+    }
+
+    .btn-template-view {
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        border: 1px solid rgba(0, 166, 48, 0.35);
+        background: #f0fdf4;
+        color: var(--secondary);
+    }
+
+    .btn-template-view:hover {
+        background: #dcfce7;
+    }
+
+    .nm-example-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 10050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .nm-example-modal[hidden] {
+        display: none !important;
+    }
+
+    .nm-example-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(2, 26, 15, 0.55);
+    }
+
+    .nm-example-modal__panel {
+        position: relative;
+        width: min(720px, 100%);
+        max-height: min(85vh, 720px);
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .nm-example-modal__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .nm-example-modal__head h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--primary);
+    }
+
+    .nm-example-modal__close {
+        border: none;
+        background: #f1f5f9;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        color: var(--primary);
+    }
+
+    .nm-example-modal__warning {
+        margin: 0;
+        padding: 12px 20px;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 0.85rem;
+        font-weight: 700;
+        line-height: 1.6;
+        border-bottom: 1px solid #fecaca;
+    }
+
+    .nm-example-modal__body {
+        padding: 20px;
+        overflow-y: auto;
+        white-space: pre-line;
+        line-height: 1.85;
+        color: #334155;
+        font-size: 0.92rem;
+        flex: 1;
+    }
+
+    .nm-example-modal__foot {
+        padding: 14px 20px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
     }
 
     .forbidden-field-error {

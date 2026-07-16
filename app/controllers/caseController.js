@@ -152,8 +152,7 @@ exports.getRegisterCase = async (req, res) => {
             title: res.__('admin_nav_cases_manager'),
             caseNeeds: needsArray,
             registrationGuide,
-            caseTemplateOrphanAr: registrationSettings.caseTemplateOrphanAr,
-            caseTemplateFamilyAr: registrationSettings.caseTemplateFamilyAr,
+            caseStoryExamples: registrationSettings.storyExamples,
             caseTemplateDescAr: registrationSettings.caseTemplateDescAr,
             forbiddenWords: registrationSettings.forbiddenWords
         });
