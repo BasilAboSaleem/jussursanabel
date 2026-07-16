@@ -2800,6 +2800,162 @@ html[dir="ltr"] .sidebar-close-btn {
     100% { opacity: 0; transform: scale(1.55); }
 }
 
+/* ── Homepage impact journey emblem ── */
+.nm-home-give-emblem,
+.nm-home-nameer-emblem {
+    width: min(100%, 380px);
+    height: auto;
+    filter: drop-shadow(0 32px 56px rgba(0, 0, 0, 0.42));
+    animation: nm-impact-float 8s ease-in-out infinite;
+}
+
+.nm-about-hero__emblem--nameer {
+    perspective: 1000px;
+}
+
+.nm-about-hero__emblem-caption--nameer {
+    margin-top: 16px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: rgba(232, 255, 232, 0.92);
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.25);
+}
+
+.nm-impact-halo {
+    transform-origin: 200px 210px;
+    animation: nm-impact-halo-breathe 6s ease-in-out infinite;
+}
+
+.nm-impact-orbit {
+    transform-origin: 200px 200px;
+    stroke-dasharray: 12 20;
+    animation: nm-impact-orbit-spin 30s linear infinite;
+}
+
+.nm-impact-stream {
+    stroke-dasharray: 10 14;
+    animation: nm-impact-stream-flow 2.4s linear infinite;
+}
+
+.nm-impact-stage {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: nm-impact-stage-glow 3.8s ease-in-out infinite;
+}
+
+.nm-impact-stage--give { animation-delay: 0s; }
+.nm-impact-stage--verify { animation-delay: 0.6s; }
+.nm-impact-stage--reach { animation-delay: 1.2s; }
+
+.nm-impact-check {
+    stroke-dasharray: 28;
+    stroke-dashoffset: 28;
+    animation: nm-impact-check-draw 2.8s ease-in-out infinite alternate;
+}
+
+.nm-impact-anchor--donor,
+.nm-impact-anchor--family {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: nm-impact-anchor-breathe 4.2s ease-in-out infinite;
+}
+
+.nm-impact-anchor--family {
+    animation-delay: 0.8s;
+}
+
+.nm-impact-pulse {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: nm-impact-pulse-glow 2.6s ease-in-out infinite;
+}
+
+.nm-impact-arrival {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: nm-impact-arrival-ring 3.2s ease-out infinite;
+}
+
+.nm-impact-arrival--delay {
+    animation-delay: 1.6s;
+}
+
+.nm-impact-window {
+    animation: nm-impact-window-warm 3s ease-in-out infinite alternate;
+}
+
+.nm-impact-labels text {
+    letter-spacing: 0.06em;
+}
+
+@keyframes nm-impact-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes nm-impact-halo-breathe {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes nm-impact-orbit-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes nm-impact-stream-flow {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -48; }
+}
+
+@keyframes nm-impact-stage-glow {
+    0%, 100% { opacity: 0.82; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes nm-impact-check-draw {
+    0% { stroke-dashoffset: 28; opacity: 0.55; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes nm-impact-anchor-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+}
+
+@keyframes nm-impact-pulse-glow {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 0.75; transform: scale(1.25); }
+}
+
+@keyframes nm-impact-arrival-ring {
+    0% { opacity: 0.55; transform: scale(0.7); }
+    100% { opacity: 0; transform: scale(2.1); }
+}
+
+@keyframes nm-impact-window-warm {
+    0% { fill-opacity: 0.35; }
+    100% { fill-opacity: 0.7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nm-home-give-emblem,
+    .nm-home-nameer-emblem,
+    .nm-impact-halo,
+    .nm-impact-orbit,
+    .nm-impact-stream,
+    .nm-impact-stage,
+    .nm-impact-check,
+    .nm-impact-anchor--donor,
+    .nm-impact-anchor--family,
+    .nm-impact-pulse,
+    .nm-impact-arrival,
+    .nm-impact-window {
+        animation: none !important;
+    }
+}
+
 .nm-about-hero__emblem-caption {
     margin-top: 8px;
     font-size: 0.85rem;
@@ -2847,8 +3003,10 @@ html[dir="ltr"] .sidebar-close-btn {
         top: 4%;
     }
 
-    .nm-about-hero__sheaf {
-        width: min(70%, 260px);
+    .nm-about-hero__sheaf,
+    .nm-home-give-emblem,
+    .nm-home-nameer-emblem {
+        width: min(70%, 280px);
     }
 }
 

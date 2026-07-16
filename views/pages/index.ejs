@@ -32,33 +32,108 @@
                 </div>
             </div>
 
-            <div class="nm-about-hero__emblem" aria-hidden="true">
-                <svg class="nm-about-hero__sheaf" viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="nm-about-hero__emblem nm-about-hero__emblem--nameer" aria-hidden="true">
+                <svg class="nm-home-give-emblem" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<%= __('hero_tagline') %>">
                     <defs>
-                        <linearGradient id="nmHomeSheafGold" x1="160" y1="20" x2="160" y2="400" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#B8F5C8"/>
-                            <stop offset="0.45" stop-color="#00C758"/>
-                            <stop offset="1" stop-color="#016630"/>
+                        <linearGradient id="nmImpactStream" x1="80" y1="320" x2="320" y2="80" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.15"/>
+                            <stop offset="0.35" stop-color="#69FF97"/>
+                            <stop offset="0.7" stop-color="#00C758"/>
+                            <stop offset="1" stop-color="#E8FFE8"/>
                         </linearGradient>
-                        <linearGradient id="nmHomeSheafGlow" x1="160" y1="40" x2="160" y2="280" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#69FF97" stop-opacity="0.55"/>
+                        <linearGradient id="nmImpactRing" x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.05"/>
+                            <stop offset="0.5" stop-color="#69FF97" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0.05"/>
+                        </linearGradient>
+                        <radialGradient id="nmImpactHalo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 210) rotate(90) scale(155 140)">
+                            <stop stop-color="#69FF97" stop-opacity="0.32"/>
                             <stop offset="1" stop-color="#69FF97" stop-opacity="0"/>
-                        </linearGradient>
+                        </radialGradient>
+                        <filter id="nmImpactBlur" x="-80%" y="-80%" width="260%" height="260%">
+                            <feGaussianBlur stdDeviation="10" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="nmImpactSoft" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="4" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                    <ellipse cx="160" cy="210" rx="110" ry="150" fill="url(#nmHomeSheafGlow)"/>
-                    <path d="M160 390 C158 300 160 220 160 90" stroke="url(#nmHomeSheafGold)" stroke-width="3.5" stroke-linecap="round"/>
-                    <path class="nm-stalk nm-stalk--a" d="M160 120 C120 90 95 70 78 48 C108 62 138 88 160 120Z" fill="url(#nmHomeSheafGold)" opacity="0.95"/>
-                    <path class="nm-stalk nm-stalk--b" d="M160 145 C110 120 78 98 55 72 C95 92 130 118 160 145Z" fill="url(#nmHomeSheafGold)" opacity="0.85"/>
-                    <path class="nm-stalk nm-stalk--c" d="M160 170 C105 150 70 130 42 102 C88 122 128 148 160 170Z" fill="url(#nmHomeSheafGold)" opacity="0.75"/>
-                    <path class="nm-stalk nm-stalk--d" d="M160 120 C200 90 225 70 242 48 C212 62 182 88 160 120Z" fill="url(#nmHomeSheafGold)" opacity="0.95"/>
-                    <path class="nm-stalk nm-stalk--e" d="M160 145 C210 120 242 98 265 72 C225 92 190 118 160 145Z" fill="url(#nmHomeSheafGold)" opacity="0.85"/>
-                    <path class="nm-stalk nm-stalk--f" d="M160 170 C215 150 250 130 278 102 C232 122 192 148 160 170Z" fill="url(#nmHomeSheafGold)" opacity="0.75"/>
-                    <path class="nm-stalk nm-stalk--g" d="M160 95 C145 68 140 42 138 22 C152 42 158 70 160 95Z" fill="#E8FFE8" opacity="0.9"/>
-                    <circle cx="160" cy="88" r="7" fill="#69FF97"/>
-                    <circle cx="160" cy="88" r="18" stroke="#69FF97" stroke-opacity="0.35" stroke-width="1.5"/>
-                    <circle class="nm-pulse" cx="160" cy="88" r="28" stroke="#69FF97" stroke-opacity="0.2" stroke-width="1"/>
+
+                    <ellipse cx="200" cy="210" rx="152" ry="138" fill="url(#nmImpactHalo)" class="nm-impact-halo"/>
+
+                    <circle cx="200" cy="200" r="168" class="nm-impact-orbit" stroke="url(#nmImpactRing)" stroke-width="1.5" fill="none"/>
+
+                    <!-- مسار العطاء المباشر -->
+                    <path id="nmImpactPath" d="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96" stroke="url(#nmImpactStream)" stroke-width="14" stroke-linecap="round" opacity="0.12" filter="url(#nmImpactBlur)"/>
+                    <path class="nm-impact-stream" d="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96" stroke="url(#nmImpactStream)" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- جسيمات التبرع على المسار -->
+                    <g filter="url(#nmImpactSoft)">
+                        <circle r="5" fill="#E8FFE8">
+                            <animateMotion dur="3.6s" repeatCount="indefinite" path="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96"/>
+                        </circle>
+                        <circle r="3.5" fill="#69FF97" opacity="0.85">
+                            <animateMotion dur="3.6s" begin="1.2s" repeatCount="indefinite" path="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96"/>
+                        </circle>
+                        <circle r="2.5" fill="#B8F5C8" opacity="0.9">
+                            <animateMotion dur="3.6s" begin="2.4s" repeatCount="indefinite" path="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96"/>
+                        </circle>
+                    </g>
+
+                    <!-- محطات الرحلة: عطاء → تحقق → وصول -->
+                    <g transform="translate(142, 238)">
+                        <g class="nm-impact-stage nm-impact-stage--give">
+                            <circle r="22" fill="#016630" fill-opacity="0.35" stroke="#69FF97" stroke-opacity="0.5" stroke-width="1.2"/>
+                            <path d="M0 -7 C-6 -14 -13 -9 -13 -1 C-13 7 0 16 0 16 C0 16 13 7 13 -1 C13 -9 6 -14 0 -7Z" stroke="#E8FFE8" stroke-width="1.6" fill="none"/>
+                        </g>
+                    </g>
+                    <g transform="translate(200, 182)">
+                        <g class="nm-impact-stage nm-impact-stage--verify">
+                            <circle r="26" fill="#016630" fill-opacity="0.4" stroke="#69FF97" stroke-opacity="0.65" stroke-width="1.4"/>
+                            <path d="M0 -14 L18 -6 V8 C18 18 0 26 0 26 C0 26 -18 18 -18 8 V-6 Z" stroke="#E8FFE8" stroke-width="1.6" fill="none"/>
+                            <path class="nm-impact-check" d="M-7 4 L-1 11 L9 -3" stroke="#69FF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g transform="translate(258, 128)">
+                        <g class="nm-impact-stage nm-impact-stage--reach">
+                            <circle r="20" fill="#016630" fill-opacity="0.32" stroke="#69FF97" stroke-opacity="0.45" stroke-width="1.2"/>
+                            <path d="M-12 6 L0 -14 L12 6 V18 H-12 Z" stroke="#E8FFE8" stroke-width="1.5" fill="none"/>
+                            <rect x="-5" y="2" width="10" height="8" rx="1" fill="#69FF97" fill-opacity="0.35"/>
+                        </g>
+                    </g>
+
+                    <!-- المتبرع -->
+                    <g transform="translate(96, 302)">
+                        <g class="nm-impact-anchor nm-impact-anchor--donor">
+                            <circle r="40" fill="none" stroke="#69FF97" stroke-opacity="0.25" stroke-width="1"/>
+                            <circle r="34" fill="#012a16" fill-opacity="0.55" stroke="url(#nmImpactStream)" stroke-width="2"/>
+                            <circle cy="-4" r="9" fill="none" stroke="#E8FFE8" stroke-width="1.8"/>
+                            <path d="M-16 14 C-10 2 10 2 16 14" stroke="#E8FFE8" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M-8 22 V14 M8 22 V14" stroke="#69FF97" stroke-width="1.6" stroke-linecap="round"/>
+                            <circle class="nm-impact-pulse" r="8" cy="18" fill="#69FF97" fill-opacity="0.35"/>
+                        </g>
+                    </g>
+
+                    <!-- الأسرة المستفيدة -->
+                    <g transform="translate(304, 96)">
+                        <g class="nm-impact-anchor nm-impact-anchor--family">
+                            <circle class="nm-impact-arrival" r="20" fill="none" stroke="#69FF97" stroke-width="1.2" opacity="0.55"/>
+                            <circle class="nm-impact-arrival nm-impact-arrival--delay" r="20" fill="none" stroke="#69FF97" stroke-width="1" opacity="0.35"/>
+                            <circle r="38" fill="#012a16" fill-opacity="0.55" stroke="url(#nmImpactStream)" stroke-width="2"/>
+                            <path d="M-16 8 L0 -20 L16 8 V22 H-16 Z" stroke="#E8FFE8" stroke-width="1.8" fill="none"/>
+                            <rect x="-7" y="0" width="14" height="10" rx="1.5" fill="#69FF97" fill-opacity="0.45" class="nm-impact-window"/>
+                            <path d="M0 -4 C-4 -9 -10 -6 -10 -1 C-10 5 0 11 0 11 C0 11 10 5 10 -1 C10 -6 4 -9 0 -4Z" fill="#00C758" fill-opacity="0.85"/>
+                        </g>
+                    </g>
+
+                    <g class="nm-impact-labels" fill="#B8F5C8" font-family="Cairo, sans-serif" font-size="9" font-weight="700" opacity="0.72">
+                        <text x="96" y="352" text-anchor="middle"><%= __('hero_emblem_donor') %></text>
+                        <text x="200" y="228" text-anchor="middle"><%= __('hero_emblem_verify') %></text>
+                        <text x="304" y="148" text-anchor="middle"><%= __('hero_emblem_family') %></text>
+                    </g>
                 </svg>
-                <p class="nm-about-hero__emblem-caption"><%= __('brand_affiliation_short') %></p>
+                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer"><%= __('hero_tagline') %></p>
             </div>
         </div>
 
@@ -78,7 +153,7 @@
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(0, 165, 68, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-hand-holding-heart" style="color: var(--secondary); font-size: 1.5rem;"></i>
                     </div>
-                    <div class="impact-number" data-target="1400" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
+                    <div class="impact-number" data-target="<%= homepageStats.beneficiaryCases %>" data-suffix="+" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_cases') %></div>
                 </div>
                 <div class="reveal-on-scroll text-center impact-card impact-slide" style="flex: 1; min-width: 200px; position: relative;">
@@ -86,14 +161,14 @@
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(0, 165, 68, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-vault" style="color: var(--secondary); font-size: 1.5rem;"></i>
                     </div>
-                    <div class="impact-number" data-target="2500" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
+                    <div class="impact-number" data-target="<%= homepageStats.registeredDonors %>" data-suffix="+" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_donations') %></div>
                 </div>
                 <div class="reveal-on-scroll text-center impact-slide" style="flex: 1; min-width: 200px;">
                     <div style="margin-bottom: 20px; width: 60px; height: 60px; background: rgba(0, 165, 68, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                         <i class="fas fa-gem" style="color: var(--secondary); font-size: 1.5rem;"></i>
                     </div>
-                    <div class="impact-number" data-target="98" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
+                    <div class="impact-number" data-target="<%= homepageStats.transparencyPercent %>" data-suffix="%" style="font-size: 3.2rem; background: linear-gradient(135deg, var(--secondary), #016630); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--secondary); font-weight: 950; text-shadow: 0 10px 20px rgba(0, 165, 68, 0.1);">0</div>
                     <div style="font-weight: 700; color: var(--gray-mid); font-size: 0.85rem; text-transform: uppercase;"><%= __('stats_transparency') %></div>
                 </div>
                 </div>
@@ -682,7 +757,8 @@
 
             const setCounterValue = (el) => {
                 const target = parseInt(el.getAttribute('data-target') || '0', 10);
-                el.innerHTML = target.toLocaleString() + (target === 98 ? '%' : '+');
+                const suffix = el.getAttribute('data-suffix') || '+';
+                el.innerHTML = target.toLocaleString() + suffix;
             };
 
             // On mobile/tablet sliders, values should always be present even when slides are off-canvas.
@@ -702,11 +778,12 @@
             }, { threshold: 0.5 });
 
             function animateValue(obj, start, end, duration) {
+                const suffix = obj.getAttribute('data-suffix') || '+';
                 let startTimestamp = null;
                 const step = (timestamp) => {
                     if (!startTimestamp) startTimestamp = timestamp;
                     const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                    obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString() + (end === 98 ? '%' : '+');
+                    obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString() + suffix;
                     if (progress < 1) window.requestAnimationFrame(step);
                 };
                 window.requestAnimationFrame(step);
