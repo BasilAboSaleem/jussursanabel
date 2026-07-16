@@ -4771,10 +4771,54 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 }
 
 /* ── Support chat page ───────────────────────────────────────── */
+:root {
+    --nm-nav-height: 84px;
+}
+
+body:has(.nm-support-page) .nm-support-widget {
+    display: none;
+}
+
+body:has(.nm-support-page--chat) {
+    overflow: hidden !important;
+    height: 100dvh;
+    max-height: 100dvh;
+}
+
+html:has(body:has(.nm-support-page--chat)) {
+    overflow: hidden;
+    height: 100dvh;
+    max-height: 100dvh;
+}
+
+body:has(.nm-support-page--chat) .premium-footer {
+    display: none;
+}
+
 .nm-support-page {
-    min-height: 100vh;
     background: #fafaf9;
-    padding: calc(84px + 24px) 0 48px;
+    padding: 20px 0 40px;
+}
+
+.nm-support-page--empty {
+    min-height: calc(100dvh - var(--nm-nav-height) - 40px);
+}
+
+.nm-support-page--chat {
+    height: calc(100dvh - var(--nm-nav-height));
+    max-height: calc(100dvh - var(--nm-nav-height));
+    min-height: 0;
+    padding: 12px 0 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nm-support-page--chat .nm-support-page__inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .nm-support-page__inner {
@@ -4783,7 +4827,35 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 
 .nm-support-page__header {
     text-align: right;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
+    flex-shrink: 0;
+}
+
+.nm-support-page__header--compact {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.nm-support-page__back {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.nm-support-page--chat .nm-support-page__title {
+    font-size: clamp(1.15rem, 3vw, 1.45rem);
+    margin-bottom: 4px;
+}
+
+.nm-support-page--chat .nm-support-page__desc {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .nm-support-page__title {
@@ -4802,6 +4874,10 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 .nm-support-empty {
     text-align: center;
     padding: clamp(36px, 8vw, 60px) clamp(20px, 5vw, 40px);
+    background: #fff;
+    border: 1px solid rgba(0, 38, 97, 0.08);
+    border-radius: clamp(18px, 3vw, 24px);
+    box-shadow: 0 4px 20px rgba(2, 26, 15, 0.05);
 }
 
 .nm-support-empty__icon {
@@ -4827,10 +4903,14 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
     padding: 0;
     display: flex;
     flex-direction: column;
-    height: min(650px, calc(100dvh - 200px));
-    min-height: 420px;
-    border-radius: clamp(18px, 3vw, 30px);
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    border-radius: clamp(18px, 3vw, 24px);
     overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(0, 38, 97, 0.08);
+    box-shadow: 0 4px 20px rgba(2, 26, 15, 0.06);
 }
 
 .nm-support-chat__header {
@@ -4842,6 +4922,7 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .nm-support-chat__header--admin {
@@ -4898,8 +4979,11 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 
 .nm-support-chat__messages {
     flex: 1;
+    min-height: 0;
     padding: 20px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: #f8fafc;
     display: flex;
     flex-direction: column;
@@ -4977,6 +5061,7 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
     display: flex;
     gap: 10px;
     align-items: stretch;
+    flex-shrink: 0;
 }
 
 .nm-support-chat__input input {
@@ -5059,6 +5144,13 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
     50% { transform: scale(1.04); }
 }
 
+@media (max-width: 480px) {
+    .nm-support-page--chat {
+        height: calc(100dvh - 70px);
+        max-height: calc(100dvh - 70px);
+    }
+}
+
 /* ── Admin chat requests table ─────────────────────────────── */
 .nm-admin-chat-table {
     width: 100%;
@@ -5118,13 +5210,23 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 
 @media (max-width: 768px) {
     .nm-support-page {
-        padding-top: calc(72px + 16px);
-        padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+        padding: 12px 0 24px;
+    }
+
+    .nm-support-page--chat {
+        padding: 8px 0 12px;
+    }
+
+    .nm-support-page__header--compact {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nm-support-page__back {
+        align-self: flex-start;
     }
 
     .nm-support-chat {
-        height: calc(100dvh - 160px);
-        min-height: 360px;
         border-radius: 16px;
     }
 
@@ -5138,6 +5240,8 @@ a.nm-contact-card:hover .nm-contact-card__arrow {
 
     .nm-support-chat__input {
         flex-direction: column;
+        padding: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
     }
 
     .nm-support-chat__input .btn-lux {

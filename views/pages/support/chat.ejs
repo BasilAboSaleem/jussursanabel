@@ -1,14 +1,28 @@
 <%- include('../../partials/header-top') %>
 
-<main class="nm-support-page">
+<main class="nm-support-page<%= ticket ? ' nm-support-page--chat' : ' nm-support-page--empty' %>">
     <div class="container nm-support-page__inner">
+        <% if (!ticket) { %>
         <header class="nm-support-page__header">
             <h1 class="font-cairo nm-support-page__title"><%= __('support_page_title') %></h1>
             <p class="nm-support-page__desc"><%= __('support_page_desc') %></p>
         </header>
+        <% } else { %>
+        <header class="nm-support-page__header nm-support-page__header--compact">
+            <div>
+                <h1 class="font-cairo nm-support-page__title"><%= __('support_page_title') %></h1>
+                <p class="nm-support-page__desc"><%= __('support_page_desc') %></p>
+            </div>
+            <% if (!isAdmin) { %>
+            <a href="/dashboard" class="btn-lux btn-lux-outline btn-sm nm-support-page__back">
+                <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i> <%= __('dashboard') %>
+            </a>
+            <% } %>
+        </header>
+        <% } %>
 
         <% if (!ticket) { %>
-            <div class="nm-support-empty luxury-card">
+            <div class="nm-support-empty">
                 <div class="nm-support-empty__icon"><i class="fas fa-headset"></i></div>
                 <h2 class="font-cairo"><%= __('support_page_empty_title') %></h2>
                 <p><%= __('support_page_empty_desc') %></p>
@@ -17,7 +31,7 @@
                 </button>
             </div>
         <% } else { %>
-            <div class="nm-support-chat luxury-card">
+            <div class="nm-support-chat">
                 <div class="nm-support-chat__header <%= isAdmin ? 'nm-support-chat__header--admin' : '' %>">
                     <div class="nm-support-chat__header-info">
                         <% if (isAdmin) { %>
