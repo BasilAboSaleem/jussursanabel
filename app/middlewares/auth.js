@@ -71,7 +71,8 @@ exports.mediaRouteGuard = (req, res, next) => {
     const isMediaReviewGet = /^\/admin\/cases\/[^/]+\/media-review$/.test(pathOnly);
     const isAllowedPost =
         /^\/admin\/cases\/[^/]+\/status$/.test(pathOnly) ||
-        /^\/admin\/cases\/[^/]+\/media-content$/.test(pathOnly);
+        /^\/admin\/cases\/[^/]+\/media-content$/.test(pathOnly) ||
+        /^\/admin\/cases\/[^/]+\/media-content-files$/.test(pathOnly);
 
     if (method === 'GET' && (allowedGet.has(pathOnly) || isMediaReviewGet)) {
         return next();

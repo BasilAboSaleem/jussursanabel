@@ -34,7 +34,8 @@ const caseStatusUpload = upload.fields([
     { name: 'gallery', maxCount: 20 }
 ]);
 router.post('/cases/:id/status', caseStatusUpload, csrfProtection, adminController.updateCase);
-router.post('/cases/:id/media-content', caseStatusUpload, csrfProtection, adminController.saveCaseMediaContent);
+router.post('/cases/:id/media-content', csrfProtection, adminController.saveCaseMediaContent);
+router.post('/cases/:id/media-content-files', caseStatusUpload, csrfProtection, adminController.saveCaseMediaAssets);
 router.post('/cases/:id/toggle-satisfaction', adminController.toggleCaseSatisfaction);
 router.post('/cases/:id/updates', upload.array('attachments', 10), csrfProtection, adminController.addCaseUpdate);
 router.post('/cases/:id/hard-delete', restrictTo('super_admin'), adminController.hardDeleteCase);

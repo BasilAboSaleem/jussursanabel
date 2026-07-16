@@ -20,9 +20,149 @@ const { logActivity } = require('../utils/logger');
 const { getPlayableStoryVideoUrlAsync } = require('../utils/storyVideo');
 const { normalizePalestinianId } = require('../utils/palestinianIdValidator');
 const { applyGoalReachedState, hasReachedFundingGoal, normalizeLegacyCompletedStatus } = require('../utils/caseSatisfaction');
-const { validateCaseContentForRequest } = require('../utils/caseRegistrationSettings');
+const { validateCaseContentForRequest, loadCaseRegistrationSettings } = require('../utils/caseRegistrationSettings');
+const { validateCaseTextFields, isLikelyCopiedFromExamples } = require('../utils/contentFilter');
+const { invalidatePublicCaseCaches } = require('../middlewares/cache');
 
 const PASSWORD_RECOVERY_ROLES = ['donor', 'beneficiary', 'family', 'guardian'];
+
+function caseDetailsSnapshot(caseDoc) {
+    const details = caseDoc.details && typeof caseDoc.details.toObject === 'function'
+        ? caseDoc.details.toObject()
+        : { ...(caseDoc.details || {}) };
+    return details;
+}
+
+function normalizeMultilineText(value) {
+    return String(value ?? '').replace(/\r\n/g, '\n').trim();
+}
+
+function readMediaTextFields(req) {
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const missing = [];
+    if (body.title == null) missing.push('title');
+    if (body.description == null) missing.push('description');
+    if (body.storyAr == null) missing.push('storyAr');
+
+    if (missing.length) {
+        return { ok: false, missing };
+    }
+
+    const title = String(body.title).trim();
+    const description = String(body.description).trim();
+    const storyAr = String(body.storyAr).trim();
+    const storyVideo = body.storyVideo != null ? String(body.storyVideo).trim() : '';
+
+    if (!title || !description || !storyAr) {
+        return { ok: false, missing: ['empty_fields'] };
+    }
+
+    return { ok: true, title, description, storyAr, storyVideo };
+}
+
+function mergeOptionalCaseTextFields(updateData, { title, description, storyAr }, priorDetails) {
+    if (title != null && String(title).trim()) {
+        updateData.title = String(title).trim();
+    }
+    if (description != null && String(description).trim()) {
+        updateData.description = String(description).trim();
+    }
+    if (storyAr !== undefined && String(storyAr).trim()) {
+        updateData.details = {
+            familyCount: priorDetails.familyCount,
+            orphanCount: priorDetails.orphanCount,
+            storyAr: String(storyAr).trim()
+        };
+    }
+}
+
+async function persistCaseDocumentUpdate(caseDoc, updateData) {
+    const $set = {};
+    for (const [key, value] of Object.entries(updateData)) {
+        if (value === undefined) continue;
+        if (key === 'details' && value && typeof value === 'object') {
+            for (const [detailKey, detailValue] of Object.entries(value)) {
+                if (detailValue === undefined) continue;
+                $set[`details.${detailKey}`] = detailValue;
+            }
+        } else {
+            $set[key] = value;
+        }
+    }
+
+    if (!Object.keys($set).length) return caseDoc;
+
+    const result = await Case.collection.updateOne({ _id: caseDoc._id }, { $set });
+    if (result.matchedCount !== 1) {
+        throw new Error('case_update_not_matched');
+    }
+
+    return Case.findById(caseDoc._id);
+}
+
+async function verifyPersistedCaseContent(caseId, expected = {}) {
+    const saved = await Case.findById(caseId).lean();
+    if (!saved) return { ok: false, reason: 'not_found' };
+
+    if (expected.title !== undefined && saved.title !== expected.title) {
+        return { ok: false, reason: 'title' };
+    }
+    if (expected.description !== undefined) {
+        const savedDescription = normalizeMultilineText(saved.description);
+        const expectedDescription = normalizeMultilineText(expected.description);
+        if (savedDescription !== expectedDescription) {
+            return { ok: false, reason: 'description' };
+        }
+    }
+    if (expected.storyAr !== undefined) {
+        const savedStory = normalizeMultilineText(saved.details?.storyAr);
+        const expectedStory = normalizeMultilineText(expected.storyAr);
+        if (savedStory !== expectedStory) {
+            return { ok: false, reason: 'storyAr' };
+        }
+    }
+
+    return { ok: true, saved };
+}
+
+async function evaluateCaseContentFields({ title, description, storyAr }) {
+    const settings = await loadCaseRegistrationSettings({ ensureDefaults: false });
+    const validation = validateCaseTextFields({
+        title,
+        description,
+        storyAr,
+        forbiddenWords: settings.forbiddenWords
+    });
+
+    if (!validation.ok) {
+        const { field, word } = validation.matches[0];
+        return { ok: false, code: 'forbidden_word', field, word };
+    }
+
+    const examples = settings.storyExamples || [];
+    if (isLikelyCopiedFromExamples(storyAr, examples)) {
+        return { ok: false, code: 'copied_story' };
+    }
+    if (isLikelyCopiedFromExamples(description, examples)) {
+        return { ok: false, code: 'copied_description' };
+    }
+
+    return { ok: true };
+}
+
+async function assertMediaContentAccess(req, res, existingCase) {
+    const role = req.user.role;
+    const allowed =
+        (role === 'media' && existingCase.status === 'media_review') ||
+        (role === 'super_admin' && ['media_review', 'approved'].includes(existingCase.status));
+
+    if (!allowed) {
+        req.flash('error', res.__('admin_case_error_media_content_forbidden'));
+        res.redirect('/admin/cases-manager');
+        return false;
+    }
+    return true;
+}
 
 function generateTempPassword() {
     return crypto.randomBytes(6).toString('base64url').slice(0, 10);
@@ -473,9 +613,7 @@ exports.updateCase = async (req, res) => {
             }
         }
 
-        const priorDetails = existingCase.details && typeof existingCase.details.toObject === 'function'
-            ? existingCase.details.toObject()
-            : { ...(existingCase.details || {}) };
+        const priorDetails = caseDetailsSnapshot(existingCase);
 
         const uploadRel = (file) => `/uploads/${file.filename}`;
 
@@ -491,13 +629,15 @@ exports.updateCase = async (req, res) => {
             } else {
                 updateData.rejectionReason = rejectionReason;
             }
-            if (title) updateData.title = title.trim();
-            if (description) updateData.description = description.trim();
-            if (familyCount || orphanCount || storyAr !== undefined) {
+            if (title != null && String(title).trim()) updateData.title = String(title).trim();
+            if (description != null && String(description).trim()) updateData.description = String(description).trim();
+            if (familyCount || orphanCount || (storyAr !== undefined && String(storyAr).trim())) {
                 updateData.details = {
                     familyCount: familyCount !== undefined && familyCount !== '' ? familyCount : priorDetails.familyCount,
                     orphanCount: orphanCount !== undefined && orphanCount !== '' ? orphanCount : priorDetails.orphanCount,
-                    storyAr: storyAr !== undefined ? storyAr : priorDetails.storyAr
+                    storyAr: storyAr !== undefined && String(storyAr).trim()
+                        ? String(storyAr).trim()
+                        : priorDetails.storyAr
                 };
             }
             const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
@@ -543,20 +683,22 @@ exports.updateCase = async (req, res) => {
                 } catch (_) { /* ignore invalid */ }
             }
 
-            if (title) updateData.title = title;
+            if (title != null && String(title).trim()) updateData.title = String(title).trim();
             if (type) updateData.type = type;
-            if (description) updateData.description = description;
+            if (description != null && String(description).trim()) updateData.description = String(description).trim();
 
             if (targetAmount !== undefined && targetAmount !== '') updateData.targetAmount = targetAmount;
             if (monthlySponsorshipAmount !== undefined && monthlySponsorshipAmount !== '') {
                 updateData.monthlySponsorshipAmount = monthlySponsorshipAmount;
             }
 
-            if (familyCount || orphanCount || storyAr !== undefined) {
+            if (familyCount || orphanCount || (storyAr !== undefined && String(storyAr).trim())) {
                 updateData.details = {
                     familyCount: familyCount !== undefined && familyCount !== '' ? familyCount : priorDetails.familyCount,
                     orphanCount: orphanCount !== undefined && orphanCount !== '' ? orphanCount : priorDetails.orphanCount,
-                    storyAr: storyAr !== undefined ? storyAr : priorDetails.storyAr
+                    storyAr: storyAr !== undefined && String(storyAr).trim()
+                        ? String(storyAr).trim()
+                        : priorDetails.storyAr
                 };
             }
 
@@ -591,11 +733,12 @@ exports.updateCase = async (req, res) => {
             if (!contentOk) return;
         }
 
-        await Case.findByIdAndUpdate(req.params.id, updateData);
+        const updatedCase = await persistCaseDocumentUpdate(existingCase, updateData);
+        await invalidatePublicCaseCaches(updatedCase._id);
 
         // ─── Enforce single-active-case rule ────────────────────────────────────
         if (toStatus === 'approved') {
-            const newlyApprovedCase = await Case.findById(req.params.id);
+            const newlyApprovedCase = updatedCase;
             if (newlyApprovedCase && newlyApprovedCase.guardian) {
                 await Case.updateMany(
                     {
@@ -620,7 +763,6 @@ exports.updateCase = async (req, res) => {
         }
         await logActivity(req.user._id, 'case_update', 'Case', req.params.id, logMessage);
 
-        const updatedCase = await Case.findById(req.params.id);
         if (updatedCase && updatedCase.guardian) {
             let notifMessage = '';
             let notifType = 'info';
@@ -683,10 +825,16 @@ exports.getMediaCaseReview = async (req, res) => {
             return res.redirect('/admin/cases-manager');
         }
 
+        const storyAr = caseRecord.details?.storyAr || '';
+        const displayStory = storyAr || caseRecord.description || '';
+
         res.render('pages/admin/media-case-review', {
             title: res.__('admin_media_case_review_title'),
             caseRecord,
-            canPublish: caseRecord.status === 'media_review' && (role === 'media' || role === 'super_admin')
+            displayStory,
+            storyUsesDescriptionFallback: !storyAr && Boolean(caseRecord.description),
+            canPublish: caseRecord.status === 'media_review' && (role === 'media' || role === 'super_admin'),
+            isAlreadyPublished: caseRecord.status === 'approved'
         });
     } catch (err) {
         console.error(err);
@@ -695,6 +843,117 @@ exports.getMediaCaseReview = async (req, res) => {
 };
 
 exports.saveCaseMediaContent = async (req, res) => {
+    const redirectTo = `/admin/cases/${req.params.id}/media-review`;
+    const wantsJson = (req.headers.accept || '').includes('application/json')
+        || (req.headers['content-type'] || '').includes('application/json');
+
+    try {
+        const existingCase = await Case.findById(req.params.id);
+        if (!existingCase) {
+            if (wantsJson) return res.status(404).json({ ok: false, error: 'not_found' });
+            req.flash('error', res.__('flash_case_not_found'));
+            return res.redirect('/admin/cases-manager');
+        }
+
+        if (!(await assertMediaContentAccess(req, res, existingCase))) return;
+
+        const fields = readMediaTextFields(req);
+        if (!fields.ok) {
+            console.warn('Media content save missing fields', {
+                caseId: String(existingCase._id),
+                missing: fields.missing,
+                bodyKeys: Object.keys(req.body || {})
+            });
+            const message = res.__('admin_media_case_save_incomplete') || 'لم تصل جميع حقول المحتوى إلى الخادم. يرجى المحاولة مرة أخرى.';
+            if (wantsJson) return res.status(400).json({ ok: false, error: 'incomplete', missing: fields.missing });
+            req.flash('error', message);
+            return res.redirect(redirectTo);
+        }
+
+        const priorDetails = caseDetailsSnapshot(existingCase);
+        const updateData = {
+            title: fields.title,
+            description: fields.description,
+            details: {
+                familyCount: priorDetails.familyCount,
+                orphanCount: priorDetails.orphanCount,
+                storyAr: fields.storyAr
+            }
+        };
+
+        if (fields.storyVideo) {
+            const normalized = await getPlayableStoryVideoUrlAsync(fields.storyVideo);
+            if (!normalized) {
+                if (wantsJson) return res.status(400).json({ ok: false, error: 'invalid_video' });
+                req.flash('error', res.__('admin_media_story_video_invalid'));
+                return res.redirect(redirectTo);
+            }
+            updateData.storyVideo = normalized;
+        } else {
+            updateData.storyVideo = '';
+        }
+
+        const contentCheck = await evaluateCaseContentFields({
+            title: fields.title,
+            description: fields.description,
+            storyAr: fields.storyAr
+        });
+        if (!contentCheck.ok) {
+            let message = res.__('flash_case_media_content_rejected') || 'لم يتم قبول النص. راجع المحتوى وحاول مجدداً.';
+            if (contentCheck.code === 'forbidden_word') {
+                const fieldLabel = res.__(`register_case_field_${contentCheck.field}`);
+                message = res.__('flash_forbidden_word_in_field', { field: fieldLabel, word: contentCheck.word });
+            } else if (contentCheck.code === 'copied_story') {
+                message = res.__('flash_case_story_copied_example');
+            } else if (contentCheck.code === 'copied_description') {
+                message = res.__('flash_case_desc_copied_example');
+            }
+            if (wantsJson) return res.status(400).json({ ok: false, error: contentCheck.code, message });
+            req.flash('error', message);
+            return res.redirect(redirectTo);
+        }
+
+        await persistCaseDocumentUpdate(existingCase, updateData);
+        const verified = await verifyPersistedCaseContent(existingCase._id, {
+            title: fields.title,
+            description: fields.description,
+            storyAr: fields.storyAr
+        });
+        if (!verified.ok) {
+            console.error('Media content save verification failed', {
+                caseId: String(existingCase._id),
+                reason: verified.reason
+            });
+            if (wantsJson) return res.status(500).json({ ok: false, error: verified.reason });
+            req.flash('error', res.__('admin_media_case_save_verify_failed') || 'تعذّر تأكيد حفظ المحتوى في قاعدة البيانات. يرجى إعادة المحاولة.');
+            return res.redirect(redirectTo);
+        }
+
+        await invalidatePublicCaseCaches(existingCase._id);
+        await logActivity(req.user._id, 'case_update', 'Case', req.params.id, res.__('log_case_media_content_saved'));
+
+        if (wantsJson) {
+            return res.json({
+                ok: true,
+                redirect: `${redirectTo}?saved=1`,
+                saved: {
+                    title: verified.saved.title,
+                    description: verified.saved.description,
+                    storyAr: verified.saved.details?.storyAr || ''
+                }
+            });
+        }
+
+        req.flash('success', res.__('flash_case_media_content_saved'));
+        res.redirect(`${redirectTo}?saved=1`);
+    } catch (err) {
+        console.error(err);
+        if (wantsJson) return res.status(500).json({ ok: false, error: 'server_error' });
+        res.status(500).send(res.__('error_server'));
+    }
+};
+
+exports.saveCaseMediaAssets = async (req, res) => {
     try {
         const existingCase = await Case.findById(req.params.id);
         if (!existingCase) {
@@ -702,37 +961,9 @@ exports.saveCaseMediaContent = async (req, res) => {
             return res.redirect('/admin/cases-manager');
         }
 
-        const role = req.user.role;
-        const allowed =
-            (role === 'media' && existingCase.status === 'media_review') ||
-            (role === 'super_admin' && ['media_review', 'approved'].includes(existingCase.status));
+        if (!(await assertMediaContentAccess(req, res, existingCase))) return;
 
-        if (!allowed) {
-            req.flash('error', res.__('admin_case_error_media_content_forbidden'));
-            return res.redirect('/admin/cases-manager');
-        }
-
-        const { title, description, storyAr } = req.body;
         const updateData = {};
-        if (title) updateData.title = title.trim();
-        if (description) updateData.description = description.trim();
-
-        const priorDetails = existingCase.details && typeof existingCase.details.toObject === 'function'
-            ? existingCase.details.toObject()
-            : { ...(existingCase.details || {}) };
-        if (storyAr !== undefined) {
-            updateData.details = { ...priorDetails, storyAr };
-        }
-
-        const rawVideo = req.body.storyVideo != null ? String(req.body.storyVideo).trim() : '';
-        if (rawVideo) {
-            const normalized = await getPlayableStoryVideoUrlAsync(rawVideo);
-            if (!normalized) {
-                req.flash('error', res.__('admin_media_story_video_invalid'));
-                return res.redirect(`/admin/cases/${req.params.id}/media-review`);
-            }
-            updateData.storyVideo = normalized;
-        }
 
         let keptGallery = [];
         if (req.body.galleryKeep !== undefined) {
@@ -749,30 +980,16 @@ exports.saveCaseMediaContent = async (req, res) => {
         const imgFile = req.files && req.files.image && req.files.image[0];
         if (imgFile) updateData.image = `/uploads/${imgFile.filename}`;
 
-        const finalTitle = updateData.title !== undefined ? updateData.title : existingCase.title;
-        const finalDescription = updateData.description !== undefined ? updateData.description : existingCase.description;
-        const finalStoryAr = updateData.details?.storyAr !== undefined
-            ? updateData.details.storyAr
-            : priorDetails.storyAr;
-
-        if (
-            updateData.title !== undefined
-            || updateData.description !== undefined
-            || updateData.details?.storyAr !== undefined
-        ) {
-            const contentOk = await validateCaseContentForRequest(req, res, {
-                title: finalTitle,
-                description: finalDescription,
-                storyAr: finalStoryAr
-            }, `/admin/cases/${req.params.id}/media-review`);
-            if (!contentOk) return;
+        if (Object.keys(updateData).length === 0) {
+            req.flash('error', res.__('admin_media_case_no_assets') || 'لم يتم اختيار أي صور للرفع.');
+            return res.redirect(`/admin/cases/${req.params.id}/media-review`);
         }
 
-        await Case.findByIdAndUpdate(req.params.id, updateData);
+        await persistCaseDocumentUpdate(existingCase, updateData);
+        await invalidatePublicCaseCaches(existingCase._id);
+        await logActivity(req.user._id, 'case_update', 'Case', req.params.id, res.__('log_case_media_assets_saved') || 'تحديث صور الحالة الإعلامية');
 
-        await logActivity(req.user._id, 'case_update', 'Case', req.params.id, res.__('log_case_media_content_saved'));
-
-        req.flash('success', res.__('flash_case_media_content_saved'));
+        req.flash('success', res.__('flash_case_media_assets_saved') || 'تم حفظ الصور بنجاح.');
         res.redirect(`/admin/cases/${req.params.id}/media-review`);
     } catch (err) {
         console.error(err);

@@ -16,7 +16,7 @@
 
 <div class="nm-admin-card" style="margin-bottom: 25px;">
     <h4 class="font-cairo" style="margin: 0 0 20px; font-weight: 700;"><i class="fas fa-pen-to-square"></i> <%= __('admin_media_case_review_section_content') %></h4>
-    <form action="/admin/cases/<%= caseRecord._id %>/media-content" method="POST" enctype="multipart/form-data" class="premium-form">
+    <form id="mediaContentForm" action="/admin/cases/<%= caseRecord._id %>/media-content" method="POST" class="premium-form">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="form-group" style="margin-bottom: 18px;">
             <label class="form-label-luxury"><%= __('common_case_title') %></label>
@@ -25,16 +25,32 @@
         <div class="form-group" style="margin-bottom: 18px;">
             <label class="form-label-luxury"><%= __('admin_media_case_label_description') %></label>
             <textarea name="description" class="form-input" rows="5" required><%= caseRecord.description %></textarea>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">يظهر في بطاقات قائمة الحالات وصفحة القصص المرئية.</div>
         </div>
         <div class="form-group" style="margin-bottom: 18px;">
             <label class="form-label-luxury"><%= __('admin_media_case_label_story') %></label>
-            <textarea name="storyAr" class="form-input" rows="10"><%= (caseRecord.details && caseRecord.details.storyAr) ? caseRecord.details.storyAr : '' %></textarea>
+            <textarea name="storyAr" class="form-input" rows="10" required><%= typeof displayStory !== 'undefined' ? displayStory : ((caseRecord.details && caseRecord.details.storyAr) ? caseRecord.details.storyAr : '') %></textarea>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">
+                يظهر في صفحة تفاصيل الحالة ضمن قسم «القصة».
+                <% if (typeof storyUsesDescriptionFallback !== 'undefined' && storyUsesDescriptionFallback) { %>
+                    <strong style="color: #b45309;">تم تعبئة هذا الحقل مؤقتاً من الوصف المختصر لأن القصة الطويلة كانت فارغة — احفظ بعد التعديل لاعتماد النص الجديد.</strong>
+                <% } %>
+            </div>
         </div>
         <div class="form-group" style="margin-bottom: 18px;">
             <label class="form-label-luxury"><%= __('admin_media_case_label_story_video') %></label>
             <input type="text" name="storyVideo" class="form-input" value="<%= caseRecord.storyVideo || '' %>" placeholder="<%= __('admin_media_case_placeholder_youtube') %>">
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"><%= __('admin_media_case_hint_story_video') %></div>
         </div>
+        <button type="submit" class="btn-lux btn-lux-primary" id="saveMediaContentBtn"><i class="fas fa-save"></i> <%= __('admin_media_case_btn_save_content') %></button>
+        <div id="mediaContentSaveStatus" style="display:none; margin-top: 12px; font-size: 0.85rem; font-weight: 700;"></div>
+    </form>
+</div>
+
+<div class="nm-admin-card" style="margin-bottom: 25px;">
+    <h4 class="font-cairo" style="margin: 0 0 20px; font-weight: 700;"><i class="fas fa-images"></i> الصور والمعرض</h4>
+    <form action="/admin/cases/<%= caseRecord._id %>/media-content-files" method="POST" enctype="multipart/form-data" class="premium-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="form-group" style="margin-bottom: 18px;">
             <label class="form-label-luxury"><%= __('admin_media_case_label_main_image') %></label>
             <input type="file" name="image" class="form-input" accept="image/*">
@@ -56,16 +72,31 @@
             <label class="form-label-luxury" style="margin-top: 18px;"><%= __('admin_media_case_add_gallery') %></label>
             <input type="file" name="gallery" class="form-input" accept="image/*" multiple>
         </div>
-        <button type="submit" class="btn-lux btn-lux-primary"><i class="fas fa-save"></i> <%= __('admin_media_case_btn_save_content') %></button>
+        <button type="submit" class="btn-lux btn-sm btn-lux-outline"><i class="fas fa-cloud-arrow-up"></i> حفظ الصور فقط</button>
     </form>
 </div>
+
+<% if (typeof isAlreadyPublished !== 'undefined' && isAlreadyPublished) { %>
+<div class="nm-admin-card" style="margin-bottom: 25px; border: 1px solid rgba(1, 102, 48, 0.25); background: linear-gradient(135deg, rgba(1, 102, 48, 0.06), rgba(0, 165, 68, 0.04));">
+    <h4 class="font-cairo" style="margin: 0 0 10px; font-weight: 700; color: #016630;"><i class="fas fa-circle-check"></i> الحالة معتمدة ومنشورة</h4>
+    <p style="margin: 0 0 12px; color: var(--text-muted); font-size: 0.92rem; line-height: 1.7;">
+        هذه الحالة في حالة <strong>«<%= __('status_approved') %>»</strong> — أي أنها ظاهرة للجمهور. زر «اعتماد ونشر» يظهر فقط أثناء مرحلة <strong>«<%= __('status_media_review') %>»</strong>.
+        عندك كسوبر أدمن: عدّل المحتوى واضغط <strong>حفظ المحتوى</strong> فقط؛ التعديلات تنعكس على الواجهة العامة بعد الحفظ دون الحاجة لإعادة النشر.
+    </p>
+    <a href="/cases/<%= caseRecord._id %>" target="_blank" rel="noopener" class="btn-lux btn-sm btn-lux-outline"><i class="fas fa-external-link-alt"></i> معاينة الصفحة العامة</a>
+</div>
+<% } %>
 
 <% if (typeof canPublish !== 'undefined' && canPublish) { %>
 <div class="nm-admin-card nm-admin-page-header nm-admin-page-header--green" style="margin-bottom: 25px;">
     <h4 class="font-cairo" style="margin: 0 0 18px; font-weight: 700; color: #016630;"><i class="fas fa-circle-check"></i> <%= __('admin_media_case_review_section_publish') %></h4>
-    <form action="/admin/cases/<%= caseRecord._id %>/status" method="POST" enctype="multipart/form-data" style="margin-bottom: 22px;">
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 16px;"><i class="fas fa-info-circle"></i> عند النشر تُرسل نصوص النموذج أعلاه تلقائياً. احفظ المحتوى أولاً ثم انشر.</p>
+    <form id="publishCaseForm" action="/admin/cases/<%= caseRecord._id %>/status" method="POST" enctype="multipart/form-data" style="margin-bottom: 22px;">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="status" value="approved">
+        <input type="hidden" name="title" id="publishTitleField" value="">
+        <input type="hidden" name="description" id="publishDescriptionField" value="">
+        <input type="hidden" name="storyAr" id="publishStoryArField" value="">
         <div class="form-group" style="margin-bottom: 14px;">
             <label class="form-label-luxury"><%= __('admin_cases_manager_label_verification_notes') %></label>
             <textarea name="verificationNotes" class="form-input" rows="3" placeholder="<%= __('admin_cases_manager_placeholder_verification_notes') %>"><%= caseRecord.verificationNotes || '' %></textarea>
@@ -89,5 +120,123 @@
 <style>
     .badge-purple { background: linear-gradient(135deg, #6d28d9, #9333ea); color: #fff; }
 </style>
+
+<script>
+(function mediaReviewPageScripts() {
+    const contentForm = document.getElementById('mediaContentForm');
+    const publishForm = document.getElementById('publishCaseForm');
+    const saveBtn = document.getElementById('saveMediaContentBtn');
+    const saveStatus = document.getElementById('mediaContentSaveStatus');
+
+    function readContentPayload() {
+        if (!contentForm) return null;
+        return {
+            _csrf: contentForm.querySelector('[name="_csrf"]')?.value || '',
+            title: contentForm.querySelector('[name="title"]')?.value || '',
+            description: contentForm.querySelector('[name="description"]')?.value || '',
+            storyAr: contentForm.querySelector('[name="storyAr"]')?.value || '',
+            storyVideo: contentForm.querySelector('[name="storyVideo"]')?.value || ''
+        };
+    }
+
+    function setSaveStatus(message, isError) {
+        if (!saveStatus) return;
+        saveStatus.style.display = message ? 'block' : 'none';
+        saveStatus.style.color = isError ? '#b91c1c' : '#016630';
+        saveStatus.textContent = message || '';
+    }
+
+    async function saveMediaContent() {
+        const payload = readContentPayload();
+        if (!payload || !contentForm) {
+            throw new Error('form_missing');
+        }
+        if (!payload.title.trim() || !payload.description.trim() || !payload.storyAr.trim()) {
+            throw new Error('empty_fields');
+        }
+
+        const response = await fetch(contentForm.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+            const err = new Error(data.error || 'save_failed');
+            err.message = data.message || err.message;
+            throw err;
+        }
+        return data;
+    }
+
+    if (contentForm && saveBtn) {
+        contentForm.addEventListener('submit', async function onSaveContent(event) {
+            event.preventDefault();
+            saveBtn.disabled = true;
+            setSaveStatus('جاري الحفظ...', false);
+
+            try {
+                const data = await saveMediaContent();
+                setSaveStatus('تم الحفظ بنجاح.', false);
+                window.location.href = data.redirect || (contentForm.action + '?saved=1');
+            } catch (error) {
+                const message = error.message === 'empty_fields'
+                    ? 'العنوان والوصف والقصة مطلوبة بالكامل قبل الحفظ.'
+                    : (error.message || 'تعذّر حفظ المحتوى. حاول مرة أخرى.');
+                setSaveStatus(message, true);
+                saveBtn.disabled = false;
+            }
+        });
+    }
+
+    if (contentForm && publishForm) {
+        const titleInput = contentForm.querySelector('[name="title"]');
+        const descriptionInput = contentForm.querySelector('[name="description"]');
+        const storyInput = contentForm.querySelector('[name="storyAr"]');
+        const publishTitle = document.getElementById('publishTitleField');
+        const publishDescription = document.getElementById('publishDescriptionField');
+        const publishStory = document.getElementById('publishStoryArField');
+
+        function syncPublishFields() {
+            const payload = readContentPayload();
+            if (!payload) return;
+            if (publishTitle) publishTitle.value = payload.title;
+            if (publishDescription) publishDescription.value = payload.description;
+            if (publishStory) publishStory.value = payload.storyAr;
+        }
+
+        [titleInput, descriptionInput, storyInput].forEach((el) => {
+            if (el) el.addEventListener('input', syncPublishFields);
+        });
+
+        publishForm.addEventListener('submit', async function onPublish(event) {
+            event.preventDefault();
+            syncPublishFields();
+            const publishBtn = publishForm.querySelector('[type="submit"]');
+            if (publishBtn) publishBtn.disabled = true;
+            setSaveStatus('جاري حفظ المحتوى قبل النشر...', false);
+
+            try {
+                await saveMediaContent();
+                setSaveStatus('تم الحفظ. جاري النشر...', false);
+                publishForm.submit();
+            } catch (error) {
+                const message = error.message === 'empty_fields'
+                    ? 'أكمل العنوان والوصف والقصة قبل النشر.'
+                    : (error.message || 'تعذّر حفظ المحتوى قبل النشر.');
+                setSaveStatus(message, true);
+                if (publishBtn) publishBtn.disabled = false;
+            }
+        });
+
+        syncPublishFields();
+    }
+})();
+</script>
 
 <%- include('../../partials/admin-layout-bottom') %>

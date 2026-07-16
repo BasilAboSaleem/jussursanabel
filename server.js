@@ -35,6 +35,8 @@ async function initInfrastructure() {
   if (redisOk) {
     queueResult = startQueueWorkers();
     systemLogger.info("Redis connected", { queue: queueResult });
+    const { initPageCacheInvalidation } = require("./app/middlewares/cache");
+    initPageCacheInvalidation();
   } else if (process.env.REDIS_URL) {
     systemLogger.warn("Redis unavailable — emails will be sent directly via SMTP");
   }

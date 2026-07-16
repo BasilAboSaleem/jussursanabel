@@ -2,6 +2,18 @@
  * Content filter for case registration text fields (title, description, storyAr).
  */
 
+/**
+ * فحص «القصة منسوخة من الأمثلة».
+ * لتعطيله مؤقتاً: غيّر إلى false، أو عيّن ENABLE_STORY_COPY_CHECK=false في .env
+ */
+const COPY_FROM_EXAMPLES_CHECK_ENABLED = true;
+
+function isCopyFromExamplesCheckEnabled() {
+    if (process.env.ENABLE_STORY_COPY_CHECK === 'true') return true;
+    if (process.env.ENABLE_STORY_COPY_CHECK === 'false') return false;
+    return COPY_FROM_EXAMPLES_CHECK_ENABLED;
+}
+
 /** Always blocked — cannot be removed from admin settings. */
 const MANDATORY_FORBIDDEN_WORDS = [
     'شهيد', 'شهداء', 'شهيدة', 'الشهيد', 'استشهاد', 'استشهادي', 'استشهادية',
@@ -147,6 +159,7 @@ function validateCaseTextFields({ title, description, storyAr, forbiddenWords })
  * Detect if user text is largely copied from published case examples.
  */
 function isLikelyCopiedFromExamples(userText, examples) {
+    if (!isCopyFromExamplesCheckEnabled()) return false;
     if (!userText || !examples || !examples.length) return false;
 
     const normalized = normalizeText(userText);
@@ -184,6 +197,8 @@ function isLikelyCopiedFromExamples(userText, examples) {
 
 module.exports = {
     MANDATORY_FORBIDDEN_WORDS,
+    COPY_FROM_EXAMPLES_CHECK_ENABLED,
+    isCopyFromExamplesCheckEnabled,
     normalizeText,
     parseForbiddenWords,
     mergeForbiddenWords,

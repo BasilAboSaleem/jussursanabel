@@ -2,6 +2,8 @@ const { redisClient, redisEnabled } = require("../utils/redis");
 
 const memoryCache = new Map();
 const inflightRenders = new Map();
+const PAGE_CACHE_INVALIDATE_CHANNEL = "page-cache:invalidate";
+let invalidationSubscriber = null;
 
 /** Exact public paths eligible for early cache (before session/csrf/compression). */
 const EARLY_CACHE_PATHS = {
@@ -65,6 +67,59 @@ function writeCachedPage(key, value, ttlSeconds) {
   setToMemoryCache(key, value, ttlSeconds);
   if (redisEnabled && redisClient) {
     redisClient.set(key, value, "EX", ttlSeconds).catch(() => {});
+  }
+}
+
+function deleteMemoryCacheKeys(keys) {
+  for (const key of keys) {
+    memoryCache.delete(key);
+  }
+}
+
+function buildPublicCaseCacheKeys(caseId) {
+  const id = String(caseId);
+  const paths = ["/", "/cases", "/cases/feed", "/stories", `/cases/${id}`];
+  const locales = ["ar", "en"];
+  const keys = [];
+  for (const pagePath of paths) {
+    for (const locale of locales) {
+      keys.push(`page:${pagePath}:${locale}`);
+    }
+  }
+  return keys;
+}
+
+async function invalidatePublicCaseCaches(caseId) {
+  const keys = buildPublicCaseCacheKeys(caseId);
+  deleteMemoryCacheKeys(keys);
+
+  if (!redisEnabled || !redisClient) return keys;
+
+  try {
+    if (keys.length) {
+      await redisClient.del(...keys);
+    }
+    await redisClient.publish(PAGE_CACHE_INVALIDATE_CHANNEL, JSON.stringify(keys));
+  } catch (_) {}
+
+  return keys;
+}
+
+function initPageCacheInvalidation() {
+  if (!redisEnabled || !redisClient || invalidationSubscriber) return;
+
+  try {
+    invalidationSubscriber = redisClient.duplicate();
+    invalidationSubscriber.subscribe(PAGE_CACHE_INVALIDATE_CHANNEL, () => {});
+    invalidationSubscriber.on("message", (channel, payload) => {
+      if (channel !== PAGE_CACHE_INVALIDATE_CHANNEL) return;
+      try {
+        const keys = JSON.parse(payload);
+        if (Array.isArray(keys)) deleteMemoryCacheKeys(keys);
+      } catch (_) {}
+    });
+  } catch (_) {
+    invalidationSubscriber = null;
   }
 }
 
@@ -164,4 +219,10 @@ function pageCache(ttlSeconds = 60) {
   };
 }
 
-module.exports = { pageCache, earlyPublicPageCache, EARLY_CACHE_PATHS };
+module.exports = {
+  pageCache,
+  earlyPublicPageCache,
+  EARLY_CACHE_PATHS,
+  invalidatePublicCaseCaches,
+  initPageCacheInvalidation,
+};

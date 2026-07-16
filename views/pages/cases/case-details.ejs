@@ -118,7 +118,7 @@
                                     <%= __('case_details_story_title') %>
                                 </h3>
                                 <div class="case-story">
-                                    <%= foundCase.details.storyAr %>
+                                    <%= (foundCase.details && foundCase.details.storyAr) ? foundCase.details.storyAr : (foundCase.description || '') %>
                                 </div>
                             </div>
                         </div>
