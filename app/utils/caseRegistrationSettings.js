@@ -1,187 +1,207 @@
 const Setting = require('../models/Setting');
-const { parseForbiddenWords, mergeForbiddenWords, validateCaseTextFields } = require('./contentFilter');
+const { parseForbiddenWords, mergeForbiddenWords, validateCaseTextFields, isLikelyCopiedFromExamples } = require('./contentFilter');
 
 /** Bump when guide/templates change so existing installs receive updates. */
-const REGISTRATION_CONTENT_VERSION = 7;
+const REGISTRATION_CONTENT_VERSION = 8;
 
-const STORY_TEMPLATE_SECTIONS = `١ — التعريف بالمتحدث: من يتحدث وما صلته بالأسرة؟
-٢ — تكوين الأسرة: عدد الأفراد وأعمار الأطفال إن وُجدوا.
-٣ — الحياة قبل الأحداث: كيف كانت حياة الأسرة أو الأطفال قبل الفقدان أو الظروف الصعبة.
-٤ — ما الذي حصل: ما الحدث الذي غيّر وضعهم (فقدان معيل، نزوح، تدمير منزل، إلخ).
-٥ — أثر الحدث: كيف انعكس ذلك على الأسرة والأطفال.
-٦ — الظروف الحالية: الصعوبات اليومية التي يواجهونها الآن.
-٧ — أكثر ما يفتقدونه: الشيء الذي تفتقده الأسرة أو الأطفال أكثر من غيره.
-٨ — موقف مؤثر: حدث أو موقف بسيط ومؤثر خلال الفترة الماضية.
-٩ — الاحتياجات: ما تحتاجه الأسرة (طعام، شراب، كفالة تعليم، إيجار، علاج، إلخ).
-١٠ — الخاتمة: رسالة كريمة لطلب الدعم بلا مبالغة ولا ابتذال.`;
+const FAMILY_DATA_SAMPLE = `نموذج بيانات أفراد الأسرة:
+• المتحدث/الوصي: الاسم الكامل، تاريخ الميلاد، الحالة الصحية، وضع السكن، وضع الإقامة.
+• الأب: الاسم، تاريخ الوفاة، سبب الوفاة (إن وُجد).
+• الأم: الاسم، العمر، الحالة الصحية، هل على قيد الحياة؟
+• لكل طفل/فرد: الاسم، العمر، الجنس، صلة القرابة، الحالة الصحية، المرحلة الدراسية (إن وُجد).`;
+
+const FAMILY_DATA_SAMPLE_EN = `Family member data sample:
+• Speaker/guardian: full name, date of birth, health status, housing status, residency status.
+• Father: name, date of death, cause of death (if applicable).
+• Mother: name, age, health status, whether alive.
+• For each child/member: name, age, gender, relationship, health status, education level (if any).`;
+
+const CASE_STORY_EXAMPLES_AR = `لحالة 1
+العنوان (نحن 4 أخوات، وتلك هي قصتنا)
+نحن أربع أخوات، وهذه هي صورتنا
+مذ أن غاب عنا بابا، لم تعد حياتنا كما كانت.
+كنا نحبه ويحبنا، يطمئننا، يهتم بكل تفاصيلنا، ويوفر لنا كل ما نحتاجه وأكثر، بوجوده، كنا نشعر أننا بخير دائما، اليوم
+كل شيء تغير 
+ماما أصبحت تتحمل كل المسؤولية وحدها، وتحاول بكل قوتها أن توفر لنا أبسط احتياجاتنا، لكن الظروف أكبر منها، احتياجاتنا تكبر معنا كل يوم 
+نريد أن نعي مثل بافي الأطفال، وأن نكمل دراستنا، ونحن نشعر أن هناك من يقف إلى جانبنا وإلى جانب ماما
+يمكن لشيء بسيط منكم أن يصنع فرقًا كبيرًا في حياتنا، أن يساعد ............ (تكتب اسم طفلة)، وأن يوفر ل (...............) اسم الأخت الثانية // وأن يفرح قلب صغيرتنا (...............).
+نحن بانتظاركم، فلا تتركونا وحدنا وتجعلونا نعيش اليتم مرتين
+……………………………………………………………………. 
+الحالة 2 
+العنوان (وحدنا، بلا أب أو أم). 
+أنا أكبر إخوتي، وعمري 17 عامًا، في لحظة واحدة، فقدت أبي وأمي، ووجدت نفسي مسؤولًا عن أخي وأختي، لم أعد أفكر في نفسي فقط، بل أصبحت أفكر كل صباح، كيف سنكمل يومنا، كيف أحافظ عليهما وأخفف عنهما كل هذا الحزن. 
+أحاول أن أكون قويًا أمامهما، رغم أنني ما زلت في عمر صغير، أحاول أن أمنحهما الأمان، وأنا أفتقده!
+أخي يبلغ من العمر.......، وأختي ............، لكل منهما احتياجاته وأحلامه، وأتمنى أن أراهما يكبران في ظروف أفضل، وأن يكملا تعليمهما وأن يعيشا طفولة يستحقانها، لكن المسؤولية أكبر مني، وأكبر من قدرتي، لا وجد من يعيلنا، يتكفل باحتياجاتي واحتياجات إخوتي التي تزداد يومًا بعد يوم.
+كل ما أطلبه أن نجد من يقف بجانبنا، يساعدنا على تجاوز هذه المرحلة الصعبة.
+كل ما أريده هو أن أرى إخوتي بخير، يكون بصحة جيدة، ويتلقون تعليمًا جيدًا ويحصلون ولو على أدنى متطلبات الحياة.
+ورغم كل شيء أشعر أن هناك دومًا فرصة جديدة. 
+…………………………………………………………...
+الحالة 3 
+العنوان (أصعب شعور على أم عندها 6 أطفال) 
+أصعب شعور ممكن تعيشه الأم هو إنه تشعر بالعجز، بالعجز تجاه أطفالها الستة!
+كل يوم بصحى وأنا بفكر: كيف بدي أوفر لأولادي الأكل؟ كيف بدي أجيب إلهم الملابس، لو مرض واحد فيهم، كيف بدي أوفر علاجه؟
+بحاول أكون قوية، وما أبكي قدامهم، وبحكيلهم بكرة أحسن، لكن مش عارفة من وين أبدأ؟ 
+6 أطفال فقدوا أبوهم، السند والأمان في حياتهم، كبروا بسرعة، مش بالعمر، بالمسؤولية وظروف الحياة!
+ما بطلب شي لنفسي، كل اللي محتاجاه حد يوقف مع أولادي، يكملوا تعليمهم، يلبسوا زي الصغار، يعيشوا أيام زي قلوبهم البيضاء مليانة دفا وأمان، تعوضهم الفقد والحرمان. 
+يمكن كفالتكم، تخلي أولادي يعيشوا هالشعور. 
+………………………………………………………………..
+الحالة 4 
+العنوان (أنس هو كل ما تبقى لي)
+
+منذ أن فقد أنس والده، وأنا أحاول أن أكون له الأم والأب معًا.
+فقدنا بيتنا في الحرب، وفقدنا كل ما نملك، وأصبحت أعيش أنا وأنس داخل خيمة، أحاول أن أصنع منها مكانًا يشعر فيه أنس بشيء من الأمان. 
+ولكن الخيمة تبقى خيمة، لا تقي من حر الصيف ولا برد الشتاء. 
+أنس عمره سبع سنوات، لكنه يسألني أسئلة كثيرة، (ماما، متى رح نرجع على البيت) 
+ولا أعرف ماذا أجيبه!
+كل ما أتمناه أن أوفر له ما يحتاجه، طعامًا يشبع جوعه، وملابس تقيه الحر والبرد، وحقيبة يعود بها إلى مدرسته، وحياة تشبه أطفالًا بعمر السبع سنوات. 
+أنس لا يطلب الكثير، يفرح بأبسط الأشياء، ويملك ابتسامة حلوة، ينبغي ألا تغيب. 
+.....................................................................
+الحالة 5 
+العنوان (أنا وأخي) 
+أنا وأخي عايشين مع بعض بخيمة، الخيمة بتخوف!
+لما ييجي الليل، بضل قاعد جنب أخي وما بتحرك، بخاف كتير، يمكن لأنه بابا مش موجود.
+بتخيل لو كان موجود، كان بنحس بالأمان، كان يجيبلنا كل شي بدنا إياه، ونضحك سوا ونلعب معاه. 
+بس هلأ كلشي راح، يعني أشياء كتيرة محروم منها، رغم إنها بسيطة وعادية.
+نفسي أرجع للمدرسة، أحمل شنطة كويسة ومعي كتبي، أجيب أقلام ودفاتر
+نفسي أشتري لعبة، أو حتى نفسي أنام على فراش منيح..
+ما بعرف أطلب كتير، بس إنه لو وقفنا معانا وساندتونا حياتنا رح تتحسن، ورح نكون أنا وأخي مبسوطين. 
+....................................................................
+الحالة 6
+العنوان (عمري بالوجع مش بالسنين)
+أنا الحاجة تمام، كل أهل المخيم بيعرفو قصتي، يمكن أكبر وحدة موجودة، بس عمري بعده بالوجع مش بالسنين! 
+عمري راح كله وأنا بربي ولادي، وأتعب حتى يكبروا ويكونوا سندي في الحياة بعد ربنا، بس الحرب أخدت مني كل شي
+فجأة ما لقيت حد من ولادي عندي، ابني الأول إجاني خبره وإنو راح، وضليت أستنى ابني التاني على أمل إنهم يلاقوه، بس إجاني الخبر اللي كسرلي قلبي، وإنو ولادي الاتنين راحو وتركوني مع 3 أطفال وأمهم..
+بحاول أكون إلهم الجدة والأب وأعوضهم، وهاد الحمل فوق طاقتي وقدرتي، عايشين كلنا بخيمة، وأنا مريضة بحتاج العلاج، لكن والله ما بيوجعني المرض زي ما بيوجعني العجز، أشوفهم محتاجين الأكل والشرب والملابس، ومش قادرة 
+كل اللي محتاجيته الآن إنو أكون مطمنة عليهم قبل ما الله ياخد أمانته، آلاقي حد يتكفلهم ويرعاهم ويوفرهم ولو أبسط الاحتياج. 
+.......................................................................
+الحالة 7 
+العنوان (خمسة أطفال ولا معيل لهم) 
+أنا أم لخمسة أطفال أكبرهم بعمر ال........... وأصغرهم ما زال يبلغ ......... فقط
+كل واحد منهم يحمل حلمًا صغيرًا، (...........)  بتضيف هنا اسم الطفل) يتمنى أن يحصل على ثياب جديدة، و(..........) لعبته صغيرة، أما (.............) فيرغب بحقيبة جميلة، أحلامهم بسيطة لكنها بالنسبة لي تفوق قدرتي.
+نعيش في بيت يفتقد أدنى مقومات الحياة، وومع فقد زوجي لم يعد لي أي مصدر دخل، نعيش على بعض ما يتوفر لنا من أهل الخير، فأقسمه بينهم، لكنه لا يكفي.
+أشارككم قصتي، لأن أطفالي يستحقون أن يكونوا بخير، يستحقون فرصة أفضل وحياة تليق بهم.
+كفالتكم تجعلهم يحققون أحلامهم التي ما زالت ممكنة، وتشعرهم أن لا زال هناك في الحياة متسع من الأمل والفرح.`;
 
 const CASE_REGISTRATION_KEYS = {
     registration_guide_ar: {
         description: 'دليل تسجيل الحالة (عربي)',
-        default: `دليل المشاركة في سرد قصة الحالة — نَمير
+        default: `تعليمات إرشادية للتسجيل في منصة نمير 
 
-هذا الدليل يوضّح آلية المشاركة من طرفكم كأسرة مستفيدة، ويساعد فريق المراجعة على إعادة الصياغة والفلترة بسرعة ودقة. يُفضَّل قراءته كاملاً قبل التعبئة، ثم استخدام «نموذج القصة المستوفي» وملؤه بأسلوبكم.
-
-━━━ البيانات المطلوبة ━━━
-• عنوان تعريفي للحالة (10–80 حرفاً) — واضح ومحايد.
-• وصف قصير للمتبرعين (40–350 حرفاً) — ملخص موضوعي دون تفاصيل شخصية حساسة.
-• القصة الكاملة (200–1200 كلمة تقريباً) — وفق البنود العشرة أدناه.
-• الموقع، نوع الحالة، الاحتياجات، والصور (1–3). الفيديو اختياري (YouTube Shorts أو TikTok).
-• بيانات الهيكل العائلي كما في النموذج (أسماء، أعمار، إلخ).
-
-━━━ هيكل القصة الكاملة (إلزامي من حيث الترتيب المنطقي) ━━━
-${STORY_TEMPLATE_SECTIONS}
-
-━━━ الكلمات والألفاظ غير المقبولة ━━━
-يُرفض تلقائياً أي نص يتضمّن:
-• ألفاظ الشهادة أو ما يشابهها.
-• محتوى تحريضي أو عنيف أو يدعو إلى الكراهية أو الانقسام.
-• السبّ والإهانة والعنصرية والمبالغة المبتذلة.
-• معلومات كاذبة أو تحريضية أو مسيئة للكرامة.
-
-عند المطابقة يُظهر النظام الكلمة الممنوعة ويمنع الإرسال حتى التصحيح.
-
-━━━ معايير الصور ━━━
-• من 1 إلى 3 صور فقط، واضحة وحديثة قدر الإمكان.
-• تُفضَّل صور تعبّر عن الواقع المعيشي دون إحراج (طعام، سكن، دراسة، أدوية...).
-• تجنّبوا إظهار وجوه الأطفال أو بيانات هوية حساسة إن أمكن.
-• لا صور عنيفة أو مسيئة أو منسوخة من الإنترنت بلا إذن.
-
-━━━ معايير الفيديو (اختياري — ليس إلزامياً) ━━━
-• الفيديو اختياري تماماً؛ يمكنكم تقديم الطلب دون أي رابط فيديو.
-• المقبول: رابط YouTube Shorts (ستوري شورت) لا يتجاوز دقيقة واحدة، أو رابط مقطع TikTok قصير.
-• يجب أن يخص المقطع حالتكم وأسرتكم فقط — لا مقاطع عامة أو منقولة عن غيركم.
-• يُفضَّل أن يعرض واقعاً من حياتكم اليومية أو يكمّل القصة المكتوبة بأسلوب بسيط ومحترم.
-• لا محتوى تحريضي أو مسيء أو مخالف للقوانين.
-
-━━━ أسلوب الكتابة ━━━
-• اكتبوا بصوتكم بسيطاً وواقعياً — كأنكم تشرحون لجار تثقون به.
-• لا مبالغة عاطفية ولا استجداء مبتذل؛ الكرامة أولاً.
-• ركّزوا على الحقائق والاحتياجات الفعلية القابلة للتحقق ميدانياً.
-
-━━━ بعد الإرسال ━━━
-يُراجع الطلب إدارياً وميدانياً وإعلامياً قبل النشر. قد يتواصل معكم الفريق لاستكمال أو تنقيح الصياغة.`
+قبل تعبئة الطلب، يرجى قراءة التعليمات الإرشادية التالية، فهذا يساعدكم على كتابة قصتكم بشكل صحيح، ويسهل مراجعة الطلب ونشره. 
+أولًا: ما المطلوب تعبئته: 
+    • عنوان مختصر عن القصة. 
+    • وصف قصير يوضح طبيعة الحالة.
+    • القصة كاملة.
+    • تحديد الاحتياج. 
+    • صور.
+    • رابط القصة فيديو (اختياري). 
+    • بيانات أفراد الأسرة كاملة.
+${FAMILY_DATA_SAMPLE}
+ثانيًا: كيف أكتب القصة: 
+حاول أن تكتب قصتك بهذا الترتيب: 
+    • من المتحدث، وما صلته بالأسرة. 
+    • عرفنا بأسرتك وعدد أفرادها. 
+    • كيف كانت حياتكم قبل الحرب. 
+    • ما الذي حدث معكم، وكيف أثر عليكم.
+    • ما الصعوبات والمشكلات التي تعيشونها اليوم، ولو كان هناك موقفًا مؤثرًا اذكروه. 
+    • ما أكثر شيء تحتاجونه، وما نوع المساعدة التي تريدونها. 
+    • اختم قصتك برسالة قصيرة إلى المتبرع.  
+ثالثًا: عند كتابة قصتك:
+    • اكتب بأسلوبك وبكلماتك.
+    • اذكر الحقائق والواقع كما هي. 
+    • تجنب المبالغة أو الاستعطاف. 
+    •  تجنب الألفاظ المسيئة أو التحريضية. 
+    • تجنب الألفاظ المسيئة أو التحريضية أو أي معلومات غير صحيحة.
+رابعًا: الصور: 
+    • أرفق من صور إلى ثلاث صور. 
+    • استخدم صورًا واضحة وحديثة.
+    • أن تعكس احتياج الأسرة بشكل يحفظ الكرامة. 
+    • لا تستخدم صورًا من الإنترنت أو صورًا لا تخص حالتك. 
+خامسًا: الفيديو (اختياري):
+    • يمكنك إرفاق رابط فيديو قصير على منصة (يوتيوب/ تيك توك) لا يتعدى دقيقة تروي فيه قصتك وتوضح حالتك. 
+ماذا يحدث بعد إرسال الطلب:
+بعد إرسال طلب من طرفكم، يقوم فريق المنصة بمراجعته والتأكد منه المعلومات الواردة فيه، وقد يتم التواصل معكم إذا احتاجنا إلى استكمال بعض البيانات أو تعديل بعض التفاصيل قبل النشر.`
     },
     registration_guide_en: {
         description: 'Case registration guide (English)',
-        default: `Case story participation guide — Nameer
+        default: `Guidance for registering on the Nameer platform
 
-This guide explains how your family participates in telling your story and helps our review team filter and rewrite content efficiently. Read it fully, then use the “full story template” and fill it in your own words.
+Before filling out the application, please read the following instructions. This helps you write your story correctly and makes review and publication easier.
 
-━━━ Required data ━━━
-• Case title (10–80 characters) — clear and neutral.
-• Short donor-facing description (40–350 characters).
-• Full story (about 200–1,200 words) — following the 10 sections below.
-• Location, case type, needs, and 1–3 photos. Video is optional (YouTube Shorts or TikTok).
-• Family structure details as requested in the form.
+First: What to fill in:
+    • A short title for the story.
+    • A brief description of the case.
+    • The full story.
+    • Stated needs.
+    • Photos.
+    • Story video link (optional).
+    • Complete family member data.
+${FAMILY_DATA_SAMPLE_EN}
 
-━━━ Full story structure (logical order required) ━━━
-1 — Speaker: Who is narrating and their relationship to the family.
-2 — Family composition: Number of members and children's ages if any.
-3 — Life before events: Daily life before loss or hardship.
-4 — What happened: The event that changed their situation.
-5 — Impact: How it affected the family and children.
-6 — Current conditions: Daily difficulties they face now.
-7 — What they miss most: What the family or children long for most.
-8 — A meaningful moment: One simple, impactful event from recent months.
-9 — Needs: Food, water, education sponsorship, rent, medical care, etc.
-10 — Closing: A dignified, modest request for support — no exaggeration.
+Second: How to write the story:
+Try to write your story in this order:
+    • Who is speaking and their relationship to the family.
+    • Introduce your family and number of members.
+    • What life was like before the war.
+    • What happened to you and how it affected you.
+    • Current hardships; mention a meaningful moment if there is one.
+    • What you need most and what kind of help you want.
+    • End with a short message to donors.
 
-━━━ Prohibited wording ━━━
-Submissions are blocked if they include martyrdom-related terms, incitement or violence, hate speech, insults, or degrading exaggeration. The system shows the matched word and blocks submit until corrected.
+Third: When writing your story:
+    • Write in your own words and style.
+    • State facts and reality as they are.
+    • Avoid exaggeration or emotional manipulation.
+    • Avoid offensive or inflammatory language.
+    • Avoid offensive, inflammatory, or incorrect information.
 
-━━━ Photo standards ━━━
-• 1–3 clear, recent photos where possible.
-• Prefer dignified images of living conditions; avoid children's faces and ID documents when possible.
-• No violent, offensive, or misleading stock images.
+Fourth: Photos:
+    • Attach one to three photos.
+    • Use clear, recent photos.
+    • Reflect the family's need while preserving dignity.
+    • Do not use internet photos or photos that are not yours.
 
-━━━ Video standards (optional — not required) ━━━
-• Video is fully optional; you may submit without any video link.
-• Accepted: YouTube Shorts (up to 1 minute) or a short TikTok clip.
-• Clips must relate to your family and case only — no generic or reused third-party content.
-• Prefer simple, dignified footage that reflects your daily reality or complements the written story.
-• No inflammatory, offensive, or unlawful content.
+Fifth: Video (optional):
+    • You may attach a short video link on YouTube or TikTok (up to one minute) telling your story and explaining your situation.
 
-━━━ Writing style ━━━
-• Simple, factual, dignified tone — no melodrama or begging.
-• Focus on verifiable needs and facts.
-
-━━━ After submission ━━━
-Your request goes through admin, field, and media review before publication.`
+What happens after submission:
+After you submit, the platform team reviews the application and verifies the information. We may contact you to complete data or adjust details before publication.`
     },
-    case_template_orphan_ar: {
-        description: 'قالب قصة حالة يتيم',
-        default: `[١ — التعريف بالمتحدث]
-أنا [الاسم الكامل]، [وصي الأيتام / الأم / القريب...]، وأروي هذه القصة باسم أسرتنا التي أنهكتها الأحداث الصعبة.
-
-[٢ — تكوين الأسرة]
-تتكوّن أسرتنا من (...) أفراد، منهم (...) أيتام. أعمار الأطفال: [الاسم — العمر]، [الاسم — العمر]، [...].
-
-[٣ — الحياة قبل الأحداث]
-قبل ما حصل، كانت حياتنا [...صف بسيط: المدرسة، العمل، البيت، العادات اليومية...].
-
-[٤ — ما الذي حصل؟]
-في [...الفترة تقريباً...]، فقد أطفالنا معيلهم / تغيّر وضعنا بسبب [...الحدث باختصار واقعي: وفاة الأب، نزوح، تدمير منزل...].
-
-[٥ — أثر الحدث عليهم]
-انعكس ذلك على الأطفال في [...التعليم / النوم / الخوف / الصحة / العلاقات...].
-
-[٦ — الظروف الحالية والصعوبات]
-اليوم نعيش في [...] ونواجه: [...قلة دخل، إيجار، مواصلات مدرسية، علاج، ملابس، طعام...].
-
-[٧ — أكثر ما يفتقدونه]
-أكثر ما يفتقده الأطفال والأسرة هو [...].
-
-[٨ — موقف أو حدث مؤثر]
-أذكر موقفاً واحداً [...حدث بسيط ومؤثر من واقع حياتنا...].
-
-[٩ — الاحتياجات]
-نحتاج إلى: [...طعام / شراب / كفالة تعليم / إيجار / علاج / مستلزمات مدرسية / ...].
-
-[١٠ — الخاتمة]
-نسأل الله أن ييسّر لأطفالنا خيراً، ونرجو من أصحاب القلوب الرحيمة مساندة أسرتنا بما يحفظ كرامتنا.`
-    },
-    case_template_family_ar: {
-        description: 'قالب قصة حالة أسرة',
-        default: `[١ — التعريف بالمتحدث]
-أنا [الاسم الكامل]، [ربّ الأسرة / الأم / الوصي...]، وأروي هذه القصة باسم أسرتنا التي أنهكتها الأحداث الصعبة.
-
-[٢ — تكوين الأسرة]
-أسرتنا مكوّنة من (...) أفراد. الأطفال وهم: [الاسم — العمر]، [...]. البالغون: [...].
-
-[٣ — الحياة قبل الأحداث]
-قبل الأحداث الأخيرة، كانت حياتنا [...وصف واقعي للعمل والسكن والتعليم والحياة اليومية...].
-
-[٤ — ما الذي حصل؟]
-حدث [...فقدان مصدر الدخل / نزوح / تضرر المنزل / مرض مفاجئ / ...] في [...الفترة...]، فتغيّر وضعنا بالكامل.
-
-[٥ — أثر الحدث]
-أثّر ذلك علينا في [...الجانب النفسي / المعيشي / التعليمي / الصحي...].
-
-[٦ — الظروف الحالية والصعوبات]
-نقطن حالياً في [...] ونواجه صعوبات يومية مثل [...].
-
-[٧ — أكثر ما تفتقده الأسرة]
-أكثر ما نفتقده كأسرة هو [...].
-
-[٨ — موقف أو حدث مؤثر]
-من المواقف التي لا تُنسى [...قصة قصيرة محددة من واقع حياتنا...].
-
-[٩ — الاحتياجات]
-احتياجاتنا الأساسية: [...أكل / شرب / كفالة / تعليم / علاج / إيجار / تدفئة / ...].
-
-[١٠ — الخاتمة]
-نسأل الله أن ييسّر لنا ولأبنائنا خيراً، ونرجو من أصحاب القلوب الرحيمة مساندة أسرتنا بما يحفظ كرامتنا.`
+    case_story_examples_ar: {
+        description: 'نماذج قصص الحالات (عربي)',
+        default: CASE_STORY_EXAMPLES_AR
     },
     case_template_desc_ar: {
         description: 'قالب الوصف القصير للحالة',
-        default: `في [الموقع]، [من هم؟ جملة واحدة تُظهر إنسانيتهم — أمّ وحدها، أطفال بلا مأوى، أسرة فقدت معيلها...]. [ماذا يتمنون أو يخافون فقده؟ حلم صغير، دفء، مدرسة، دواء...]. يدكم في [الاحتياج] قد تعني لهم أكثر مما تتخيلون.`
+        default: `وصف قصير يوضح طبيعة الحالة في جملتين أو ثلاث: من هم؟ أين يعيشون؟ وما أبرز احتياجهم اليوم؟`
     },
     forbidden_words: {
         description: 'قائمة الكلمات الممنوعة في نصوص الحالة (فاصلة أو سطر لكل كلمة)',
         default: 'كلب,حمار,غبي,أحمق,لعنة,لعن,قذر,حقير,تافه,كذاب,كذب,احتيال,نصب,سرقة,قتل,إرهاب,تحريض,كراهية,عنصرية,إهانة,سب,شتم,شهيد,شهداء,شهيدة,استشهاد,استشهادي,إرهابي,ارهابي,تأييد الإرهاب,دعم الإرهاب,نصرة الإرهاب,تنظيم إرهابي,martyr,martyrs'
     }
 };
+
+/**
+ * Splits stored examples text into an array (one entry per "الحالة N" / "لحالة N").
+ */
+function parseStoryExamples(raw) {
+    if (!raw || !String(raw).trim()) return [];
+    return String(raw)
+        .split(/\n(?=ل?الحالة\s*\d+)/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Short label for UI picker, e.g. "الحالة 1 — نحن 4 أخوات..."
+ */
+function storyExampleLabel(exampleText, index) {
+    const titleMatch = exampleText.match(/العنوان\s*\(([^)]+)\)/);
+    const caseMatch = exampleText.match(/^(ل?الحالة\s*\d+)/);
+    const caseNum = caseMatch ? caseMatch[1] : `الحالة ${index + 1}`;
+    const title = titleMatch ? titleMatch[1].trim() : '';
+    return title ? `${caseNum} — ${title}` : caseNum;
+}
 
 async function ensureSetting(key) {
     const meta = CASE_REGISTRATION_KEYS[key];
@@ -206,8 +226,7 @@ async function syncRegistrationContentDefaults() {
     const contentKeys = [
         'registration_guide_ar',
         'registration_guide_en',
-        'case_template_orphan_ar',
-        'case_template_family_ar',
+        'case_story_examples_ar',
         'case_template_desc_ar'
     ];
 
@@ -255,6 +274,10 @@ async function loadCaseRegistrationSettings({ ensureDefaults = true } = {}) {
         ? String(docs.forbidden_words.value || '')
         : CASE_REGISTRATION_KEYS.forbidden_words.default;
 
+    const storyExamplesRaw = docs.case_story_examples_ar
+        ? String(docs.case_story_examples_ar.value)
+        : CASE_REGISTRATION_KEYS.case_story_examples_ar.default;
+
     return {
         registrationGuideAr: docs.registration_guide_ar
             ? String(docs.registration_guide_ar.value)
@@ -262,12 +285,8 @@ async function loadCaseRegistrationSettings({ ensureDefaults = true } = {}) {
         registrationGuideEn: docs.registration_guide_en
             ? String(docs.registration_guide_en.value)
             : CASE_REGISTRATION_KEYS.registration_guide_en.default,
-        caseTemplateOrphanAr: docs.case_template_orphan_ar
-            ? String(docs.case_template_orphan_ar.value)
-            : CASE_REGISTRATION_KEYS.case_template_orphan_ar.default,
-        caseTemplateFamilyAr: docs.case_template_family_ar
-            ? String(docs.case_template_family_ar.value)
-            : CASE_REGISTRATION_KEYS.case_template_family_ar.default,
+        caseStoryExamplesAr: storyExamplesRaw,
+        storyExamples: parseStoryExamples(storyExamplesRaw),
         caseTemplateDescAr: docs.case_template_desc_ar
             ? String(docs.case_template_desc_ar.value)
             : CASE_REGISTRATION_KEYS.case_template_desc_ar.default,
@@ -293,12 +312,26 @@ async function validateCaseContentForRequest(req, res, { title, description, sto
         return false;
     }
 
+    const examples = settings.storyExamples || [];
+    if (isLikelyCopiedFromExamples(storyAr, examples)) {
+        req.flash('error', res.__('flash_case_story_copied_example'));
+        res.redirect(redirectTo);
+        return false;
+    }
+    if (isLikelyCopiedFromExamples(description, examples)) {
+        req.flash('error', res.__('flash_case_desc_copied_example'));
+        res.redirect(redirectTo);
+        return false;
+    }
+
     return true;
 }
 
 module.exports = {
     CASE_REGISTRATION_KEYS,
     REGISTRATION_CONTENT_VERSION,
+    parseStoryExamples,
+    storyExampleLabel,
     ensureSetting,
     syncRegistrationContentDefaults,
     loadCaseRegistrationSettings,

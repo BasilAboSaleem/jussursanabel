@@ -52,8 +52,7 @@ exports.getSettings = async (req, res) => {
                 chat_day: chatDayConfig.value,
                 registration_guide_ar: registrationSettings.registrationGuideAr,
                 registration_guide_en: registrationSettings.registrationGuideEn,
-                case_template_orphan_ar: registrationSettings.caseTemplateOrphanAr,
-                case_template_family_ar: registrationSettings.caseTemplateFamilyAr,
+                case_story_examples_ar: registrationSettings.caseStoryExamplesAr,
                 case_template_desc_ar: registrationSettings.caseTemplateDescAr,
                 forbidden_words: registrationSettings.forbiddenWordsRaw
             }
@@ -73,8 +72,7 @@ exports.updateSettings = async (req, res) => {
             chat_day,
             registration_guide_ar,
             registration_guide_en,
-            case_template_orphan_ar,
-            case_template_family_ar,
+            case_story_examples_ar,
             case_template_desc_ar,
             forbidden_words
         } = req.body;
@@ -148,8 +146,7 @@ exports.updateSettings = async (req, res) => {
         const registrationFields = [
             ['registration_guide_ar', registration_guide_ar],
             ['registration_guide_en', registration_guide_en],
-            ['case_template_orphan_ar', case_template_orphan_ar],
-            ['case_template_family_ar', case_template_family_ar],
+            ['case_story_examples_ar', case_story_examples_ar],
             ['case_template_desc_ar', case_template_desc_ar],
             ['forbidden_words', forbidden_words]
         ];
