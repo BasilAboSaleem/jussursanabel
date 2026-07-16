@@ -1,21 +1,21 @@
 <%- include('../../partials/admin-layout-top') %>
 
 <!-- Admin Header Info (Updated for Professional Sidebar) -->
-<div style="margin-bottom: 40px; background: white; padding: 30px; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
-    <span class="section-badge" style="margin: 0 0 10px 0;"><i class="fas fa-shield-alt"></i> <%= __('admin_dashboard_badge') %></span>
-    <h2 class="font-cairo" style="margin: 0; font-weight: 800;"><%= __('admin_dashboard_title') %></h2>
-    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_dashboard_welcome') %><%= user.name %><%= __('admin_dashboard_welcome_desc') %></p>
+<div class="nm-admin-hero-banner">
+    <span class="section-badge"><i class="fas fa-shield-alt"></i> <%= __('admin_dashboard_badge') %></span>
+    <h2 class="font-cairo"><%= __('admin_dashboard_title') %></h2>
+    <p><%= __('admin_dashboard_welcome') %><%= user.name %><%= __('admin_dashboard_welcome_desc') %></p>
 </div>
 
     <!-- Executive Stats -->
     <div class="<%= user.role === 'super_admin' ? 'grid-auto-4' : 'grid-auto-3' %>" style="margin-bottom: 50px;">
-        <div class="luxury-card glass-panel" style="padding: 30px 15px; text-align: center; border-bottom: 4px solid var(--secondary);">
+        <div class="nm-admin-card nm-admin-stat-card">
             <div style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px;"><i class="fas fa-vault"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_dashboard_total_donations') %></div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">$<%= stats.totalDonations %></div>
         </div>
         <% if (user.role === 'super_admin') { %>
-            <div class="luxury-card glass-panel" style="padding: 30px 15px; text-align: center; border-bottom: 4px solid #8b5cf6;">
+            <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--purple">
                 <div style="font-size: 2.5rem; color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-chart-line"></i></div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_dashboard_operation_fees') %></div>
                 <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;">$<%= stats.operationFees.toFixed(2) %></div>
@@ -24,12 +24,12 @@
                 </a>
             </div>
         <% } %>
-        <div class="luxury-card glass-panel" style="padding: 30px 15px; text-align: center; border-bottom: 4px solid var(--accent);">
+        <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--accent">
             <div style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"><i class="fas fa-handshake-angle"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_dashboard_active_sponsorships') %></div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= stats.activeSponsorships %></div>
         </div>
-        <div class="luxury-card glass-panel" style="padding: 30px 15px; text-align: center; border-bottom: 4px solid #00A544;">
+        <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--green">
             <div style="font-size: 2.5rem; color: #00A544; margin-bottom: 15px;"><i class="fas fa-user-shield"></i></div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_dashboard_total_users') %></div>
             <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= stats.totalUsers %></div>
@@ -45,7 +45,7 @@
                 <a href="/admin/cases-manager" style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);"><%= __('admin_common_view_all') %> <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i></a>
             </div>
             <% if (pendingCases.length > 0) { %>
-                <div class="luxury-card glass-panel" style="padding: 0;">
+                <div class="nm-admin-card nm-admin-card--flush">
                     <div class="table-responsive">
                         <table style="width: 100%; border-collapse: collapse; text-align: right;">
                         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -73,7 +73,7 @@
                 </div>
             </div>
             <% } else { %>
-                <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                <div class="nm-admin-card nm-admin-empty-state">
                     <i class="fas fa-check-double" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
                     <p><%= __('admin_dashboard_empty_cases') %></p>
                 </div>
@@ -87,7 +87,7 @@
                 <a href="/admin/distribution" style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);"><%= __('admin_common_view_all') %> <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i></a>
             </div>
             <% if (pendingTransactions.length > 0) { %>
-                <div class="luxury-card glass-panel" style="padding: 0;">
+                <div class="nm-admin-card nm-admin-card--flush">
                     <div class="table-responsive">
                         <table style="width: 100%; border-collapse: collapse; text-align: right;">
                         <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -119,7 +119,7 @@
                 </div>
             </div>
 <% } else { %>
-                <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                <div class="nm-admin-card nm-admin-empty-state">
                     <i class="fas fa-coins" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
                     <p><%= __('admin_dashboard_empty_transactions') %></p>
                 </div>
@@ -135,7 +135,7 @@
         </div>
         
         <% if (pendingImpactProofs && pendingImpactProofs.length > 0) { %>
-            <div class="luxury-card glass-panel" style="padding: 0;">
+            <div class="nm-admin-card nm-admin-card--flush">
                 <div class="table-responsive">
                     <table style="width: 100%; border-collapse: collapse; text-align: right;">
                     <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -162,7 +162,7 @@
             </div>
         </div>
         <% } else { %>
-            <div class="luxury-card glass-panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
+            <div class="nm-admin-card nm-admin-empty-state">
                 <i class="fas fa-shield-check" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
                 <p><%= __('admin_dashboard_empty_impact_proofs') %></p>
             </div>

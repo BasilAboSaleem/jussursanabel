@@ -1,15 +1,16 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="container-fluid" style="padding: 30px; max-width: 1000px; margin: 0 auto;">
-    <div class="section-header-luxury" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; margin-bottom: 40px;">
-        <span class="section-badge"><i class="fas fa-cogs"></i> <%= __('common_control_center') %></span>
-        <h2 class="section-title-luxury"><%= __('admin_settings_title') %></h2>
-        <p class="section-subtitle-luxury"><%= __('admin_settings_desc') %></p>
+<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--primary" style="max-width: 1000px; margin: 0 auto 32px;">
+        <div class="nm-admin-page-header__text">
+            <span class="section-badge" style="margin-bottom: 10px;"><i class="fas fa-cogs"></i> <%= __('common_control_center') %></span>
+            <h2 class="font-cairo nm-admin-page-header__title"><%= __('admin_settings_title') %></h2>
+            <p class="nm-admin-page-header__desc"><%= __('admin_settings_desc') %></p>
+        </div>
     </div>
 
-    <div class="row">
+    <div class="row" style="max-width: 1000px; margin: 0 auto;">
         <div class="col-md-8 mx-auto">
-            <div class="luxury-card glass-panel" style="padding: 40px; border-radius: 25px;">
+            <div class="nm-admin-card">
                 <form action="/admin/settings/update" method="POST">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
@@ -159,7 +160,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <style>
     .form-label-luxury {

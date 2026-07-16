@@ -1,19 +1,19 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid #8b5cf6;">
+<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--purple">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
         <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
             <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-chart-line"></i> <%= __('admin_fees_title') %></h3>
             <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_fees_desc') %></p>
         </div>
-        <div class="glass-panel" style="padding: 15px 30px; text-align: center;">
+        <div class="nm-admin-stat-pill" style="padding: 15px 30px;">
             <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_fees_total_label') %></div>
             <div style="font-size: 2rem; font-weight: 900; color: #8b5cf6;">$<%= totalFees.toFixed(2) %></div>
         </div>
     </div>
 </div>
 
-<div class="luxury-card" style="padding: 0;">
+<div class="nm-admin-card nm-admin-card--flush">
     <div class="table-responsive">
     <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; vertical-align: middle;">
         <thead>

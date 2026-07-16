@@ -1,15 +1,14 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="admin-container-lux">
-    <div class="luxury-card glass-panel" style="margin-bottom: 30px; border-radius: 20px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-        <h2 class="font-cairo"><i class="fa-solid fa-shield-check"></i> <%= __('admin_impact_title') %></h2>
-        <p class="text-muted"><%= __('admin_impact_desc') %></p>
+<div class="nm-admin-card nm-admin-page-header">
+        <h2 class="font-cairo nm-admin-page-header__title"><i class="fa-solid fa-shield-check"></i> <%= __('admin_impact_title') %></h2>
+        <p class="nm-admin-page-header__desc"><%= __('admin_impact_desc') %></p>
     </div>
 
     <% if (pendingProofs && pendingProofs.length > 0) { %>
         <div class="proofs-grid">
             <% pendingProofs.forEach(proof => { %>
-                <div class="luxury-card glass-panel proof-card" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                <div class="nm-admin-card proof-card" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                     <div class="proof-header">
                         <span class="badge badge-navy"><%= proof.case ? proof.case.title : __('common_deleted_case') %></span>
                         <span class="proof-date"><%= new Date(proof.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></span>
@@ -61,13 +60,12 @@
             <% }) %>
         </div>
     <% } else { %>
-        <div class="luxury-card glass-panel" style="text-align: center; padding: 100px 40px;">
+        <div class="nm-admin-card nm-admin-empty-state nm-admin-empty-state--large">
             <i class="fa-solid fa-clipboard-check" style="font-size: 4rem; opacity: 0.1; margin-bottom: 25px;"></i>
             <h3><%= __('admin_impact_no_pending') %></h3>
             <p class="text-muted"><%= __('admin_impact_no_pending_desc') %></p>
         </div>
     <% } %>
-</div>
 
 <style>
     .proofs-grid {

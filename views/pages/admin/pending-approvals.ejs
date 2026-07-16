@@ -1,6 +1,6 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="luxury-card glass-panel" style="padding: 30px; margin-bottom: 30px; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
+<div class="nm-admin-card nm-admin-page-header">
     <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= __('admin_pending_approvals_title') %></h2>
@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<div class="luxury-card glass-panel" style="padding: 0;">
+<div class="nm-admin-card nm-admin-card--flush">
     <div class="table-responsive">
         <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
             <thead style="background: rgba(0,0,0,0.03);">

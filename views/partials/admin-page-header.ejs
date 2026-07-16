@@ -1,0 +1,14 @@
+<%#
+  Usage: include with title, optional desc, icon, accent ('secondary'|'primary'|'accent'|'purple')
+%>
+<div class="nm-admin-card nm-admin-page-header<%= typeof accent !== 'undefined' && accent ? ' nm-admin-page-header--' + accent : '' %>">
+    <% if (typeof icon !== 'undefined' && icon) { %>
+        <div class="nm-admin-page-header__icon" aria-hidden="true"><i class="<%= icon %>"></i></div>
+    <% } %>
+    <div class="nm-admin-page-header__text">
+        <h2 class="font-cairo nm-admin-page-header__title"><%= title %></h2>
+        <% if (typeof desc !== 'undefined' && desc) { %>
+            <p class="nm-admin-page-header__desc"><%= desc %></p>
+        <% } %>
+    </div>
+</div>
