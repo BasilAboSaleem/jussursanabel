@@ -1,317 +1,271 @@
 <%- include('../../partials/header-top') %>
 
-<main style="min-height: calc(100vh - 72px); position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 24px 20px;">
-    <!-- Soft Atmospheric Background -->
-    <div style="position: absolute; inset: 0; background: 
-        radial-gradient(circle at 80% 20%, rgba(0, 165, 68, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 20% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
-    </div>
-    <div class="bg-mesh" style="opacity: 0.15;"></div>
-
-    <!-- Floating Elements -->
-    <div class="float-element" style="position: absolute; top: 10%; right: 15%; font-size: 3.5rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
-        <i class="fas fa-heart"></i>
-    </div>
-    <div class="float-element" style="position: absolute; bottom: 10%; left: 12%; font-size: 5rem; color: var(--accent); opacity: 0.12; filter: blur(2px); animation-delay: -4s;">
-        <i class="fas fa-hand-holding-heart"></i>
+<main class="nm-auth-screen nm-auth-screen--register" aria-label="<%= __('register_title') %>">
+    <div class="nm-auth-screen__atmosphere nm-about-hero__atmosphere" aria-hidden="true">
+        <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
+        <span class="nm-about-hero__grain" style="--x:14%; --d:0s;"></span>
+        <span class="nm-about-hero__grain" style="--x:48%; --d:1.4s;"></span>
+        <span class="nm-about-hero__grain" style="--x:76%; --d:0.6s;"></span>
     </div>
 
-    <!-- Onboarding Card -->
-    <div class="luxury-card onboarding-card" style="width: 100%; max-width: 700px; padding: 0; border-radius: 35px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(30px); position: relative; z-index: 10; overflow: hidden; box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6);">
-        
-        <!-- Step Indicator -->
-        <div style="height: 6px; background: rgba(255,255,255,0.05); display: flex;">
-            <div id="progress-bar" style="width: 33.33%; background: linear-gradient(135deg, #002661 0%, #00A544 100%); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
-        </div>
+    <div class="nm-auth-screen__watermark" aria-hidden="true"><%= __('hero_title') %></div>
 
-        <div style="padding: 45px 50px;">
-            <form action="/auth/register" method="POST" id="registration-form" class="premium-form">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <input type="hidden" name="role" id="selected-role" value="donor">
+    <div class="nm-auth-screen__inner nm-auth-screen__inner--register">
+        <aside class="nm-auth-screen__brand" aria-hidden="true">
+            <p class="nm-auth-screen__affiliate"><%= __('hero_affiliation') %></p>
+            <h1 class="nm-auth-screen__title">
+                <span class="nm-auth-screen__title-ar"><%= __('hero_title') %></span>
+                <span class="nm-auth-screen__title-en">Nameer</span>
+            </h1>
+            <p class="nm-auth-screen__tagline"><%= __('hero_tagline') %></p>
 
-                <!-- STEP 1: IMPACT CHOICE -->
-                <div id="step-1" class="onboarding-step active">
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <span class="section-badge" style="background: rgba(0, 165, 68, 0.12); color: var(--secondary); margin-bottom: 15px;">الخطوة 1 من 3</span>
-                        <h2 class="font-cairo" style="font-size: 2rem; color: #fff; margin-bottom: 12px; font-weight: 800;">كيف ترغب في المشاركة؟</h2>
-                        <p id="typewriter-text" style="color: rgba(255,255,255,0.6); min-height: 1.5em;"></p>
-                    </div>
-
-                    <div class="role-card-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 35px;">
-                        <div class="role-card active" onclick="selectRole('donor')" id="card-donor">
-                            <div class="role-icon"><i class="fas fa-hand-holding-heart"></i></div>
-                            <h4 class="font-cairo">أريد التبرع</h4>
-                            <p>كفالة أيتام أو دعم حالات إنسانية</p>
-                        </div>
-                        <div class="role-card" onclick="selectRole('beneficiary')" id="card-beneficiary">
-                            <div class="role-icon"><i class="fas fa-house-user"></i></div>
-                            <h4 class="font-cairo">أحتاج مساعدة</h4>
-                            <p>تسجيل حالة يتيم أو طلب دعم أسرة</p>
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="nextStep(2)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; height: 55px; border-radius: 15px; font-size: 1.1rem;">
-                        المتابعة للخطوة التالية <i class="fas fa-arrow-left" style="margin-right: 12px;"></i>
-                    </button>
-                    
-                    <div style="margin-top: 35px; display: flex; align-items: center; justify-content: center; gap: 25px; opacity: 0.6;">
-                        <div style="text-align: center;">
-                            <div style="font-weight: 900; color: #fff; font-size: 1.1rem;">+5,000</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">متبرع نشط</div>
-                        </div>
-                        <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
-                        <div style="text-align: center;">
-                            <div style="font-weight: 900; color: #fff; font-size: 1.1rem;">$2.4M</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">إجمالي التبرعات</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STEP 2: PERSONAL IDENTITY -->
-                <div id="step-2" class="onboarding-step" style="display: none;">
-                    <div style="text-align: center; margin-bottom: 35px;">
-                        <button type="button" onclick="nextStep(1)" style="background: none; border: none; color: var(--secondary); font-size: 0.85rem; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-right: auto;">
-                            <i class="fas fa-chevron-right"></i> العودة للخلف
-                        </button>
-                        <h2 class="font-cairo" style="font-size: 1.85rem; color: #fff; margin-bottom: 10px; font-weight: 800;">عرفنا بنفسك</h2>
-                        <p style="color: rgba(255,255,255,0.6);">لنقم بإنشاء هويتك في مجتمع نَمير</p>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">الاسم الكامل</label>
-                        <input type="text" name="name" id="reg-name" class="form-input-dark" placeholder="الاسم كما يظهر في الهوية" required>
-                        <div class="field-error" id="error-name"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">البريد الإلكتروني</label>
-                        <input type="email" name="email" id="reg-email" class="form-input-dark" placeholder="yourname@example.com" required>
-                        <div class="field-error" id="error-email"></div>
-                    </div>
-
-                    <div class="form-group" id="phone-group" style="margin-bottom: 20px;">
-                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">رقم الجوال</label>
-                        <input type="text" name="phone" id="reg-phone" class="form-input-dark" placeholder="05XXXXXXXX" required>
-                        <div class="field-error" id="error-phone"></div>
-                    </div>
-
-                    <div id="donor-only-fields" style="display: none;">
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_whatsapp') %></label>
-                            <input type="text" name="whatsapp" id="reg-whatsapp" class="form-input-dark" placeholder="05XXXXXXXX">
-                            <div class="field-error" id="error-whatsapp"></div>
-                        </div>
-                    </div>
-
-                    <!-- Beneficiary-only Fields -->
-                    <div id="beneficiary-fields" style="display: none;">
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">رقم الهوية / الجواز</label>
-                            <input type="text" name="idNumber" id="reg-idNumber" class="form-input-dark" placeholder="<%= __('register_id_placeholder') %>" inputmode="numeric" maxlength="9">
-                            <div class="field-error" id="error-idNumber"></div>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('common_address') %></label>
-                            <input type="text" name="address" id="reg-address" class="form-input-dark" placeholder="المدينة، الحي، الشارع">
-                            <div class="field-error" id="error-address"></div>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_alt_phone') %></label>
-                            <input type="text" name="altPhone" id="reg-altPhone" class="form-input-dark" placeholder="05XXXXXXXX">
-                        </div>
-
-                        <div style="margin-top: 30px; padding: 20px; background: rgba(0, 165, 68, 0.08); border-radius: 20px; border: 1px solid rgba(0, 165, 68, 0.14);">
-                            <h4 class="font-cairo" style="color: var(--secondary); margin-bottom: 20px; font-size: 1.1rem;">
-                                <i class="fas fa-university" style="margin-left: 8px;"></i> بيانات الحساب البنكي
-                                <small style="display: block; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 5px; font-weight: 400;"><%= __('register_financial_bank_only_hint') %></small>
-                            </h4>
-
-                            <div class="form-group" style="margin-bottom: 20px;">
-                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_account_holder') %></label>
-                                <input type="text" name="paymentDetails[accountHolder]" id="reg-accountHolder" class="form-input-dark" placeholder="الاسم كما يظهر في الحساب البنكي" required>
-                                <div class="field-error" id="error-accountHolder"></div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 10px;">
-                                <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);"><%= __('register_bank_palestine_iban') %> <span style="color: #fca5a5;">*</span></label>
-                                <input type="text" name="paymentDetails[iban]" id="reg-iban" class="form-input-dark" placeholder="PS00 PALA 0000 0000 0000 0000 00000" required>
-                                <div class="field-error" id="error-iban"></div>
-                            </div>
-                            <div class="field-error" id="error-financial" style="text-align: center;"></div>
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="nextStep(3)" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; height: 55px; border-radius: 15px; font-size: 1.1rem;">
-                        المتابعة للأمان <i class="fas fa-shield-alt" style="margin-right: 12px;"></i>
-                    </button>
-                </div>
-
-                <!-- STEP 3: SECURITY & COMPLETE -->
-                <div id="step-3" class="onboarding-step" style="display: none;">
-                    <div style="text-align: center; margin-bottom: 35px;">
-                        <button type="button" onclick="nextStep(2)" style="background: none; border: none; color: var(--secondary); font-size: 0.85rem; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-right: auto;">
-                            <i class="fas fa-chevron-right"></i> العودة للخلف
-                        </button>
-                        <h2 class="font-cairo" style="font-size: 1.85rem; color: #fff; margin-bottom: 10px; font-weight: 800;">تأمين حسابك</h2>
-                        <p style="color: rgba(255,255,255,0.6);">اختر كلمة مرور قوية لحماية حسابك</p>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">كلمة المرور</label>
-                        <input type="password" name="password" id="reg-password" class="form-input-dark" placeholder="••••••••" required>
-                        <div class="field-error" id="error-password"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 35px;">
-                        <label class="form-label-luxury" style="color: rgba(255,255,255,0.8);">تأكيد كلمة المرور</label>
-                        <input type="password" name="confirmPassword" id="reg-confirmPassword" class="form-input-dark" placeholder="••••••••" required>
-                        <div class="field-error" id="error-confirmPassword"></div>
-                    </div>
-
-                    <!-- إقرار إلكتروني — يظهر لمستفيد فقط -->
-                    <div id="beneficiary-contract-section" style="display: none; margin-bottom: 28px;">
-                        <h3 class="font-cairo" style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 14px; font-weight: 800;">
-                            <%= __('register_beneficiary_contract_title') %>
-                        </h3>
-                        <div dir="<%= locals.langDir || 'rtl' %>" style="max-height: 220px; overflow-y: auto; padding: 18px 16px; border-radius: 16px; background: rgba(0,0,0,0.25); border: 1px solid rgba(0, 165, 68, 0.22); text-align: <%= (locals.langDir || 'rtl') === 'rtl' ? 'right' : 'left' %>;">
-                            <p style="margin: 0; color: rgba(255,255,255,0.82); font-size: 0.88rem; line-height: 1.75; white-space: pre-line;"><%= __('register_beneficiary_contract_body') %></p>
-                        </div>
-                        <label dir="<%= locals.langDir || 'rtl' %>" style="display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; cursor: pointer; color: rgba(255,255,255,0.9); font-size: 0.9rem; line-height: 1.55;">
-                            <input type="checkbox" name="beneficiaryTermsAccepted" id="beneficiary-terms-checkbox" value="accepted" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--secondary); flex-shrink: 0;">
-                            <span><%= __('register_beneficiary_contract_checkbox') %></span>
-                        </label>
-                        <div class="field-error" id="error-beneficiary-terms" style="margin-top: 8px;"></div>
-                    </div>
-
-                    <button type="submit" class="btn-lux btn-lux-navy" style="width: 100%; justify-content: center; height: 60px; border-radius: 18px; font-weight: 900; font-size: 1.25rem;">
-                        تأكيد الانضمام <i class="fas fa-check-circle" style="margin-right: 15px;"></i>
-                    </button>
-                </div>
-            </form>
-
-            <div style="text-align: center; margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 25px;">
-                <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">
-                    لديك حساب بالفعل؟ 
-                    <a href="/auth/login" style="color: var(--secondary); font-weight: 800; text-decoration: none; margin-right: 8px;">تسجيل الدخول</a>
-                </p>
+            <div class="nm-auth-screen__emblem">
+                <svg class="nm-home-give-emblem" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="nmRegisterStream" x1="80" y1="320" x2="320" y2="80" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.15"/>
+                            <stop offset="0.35" stop-color="#69FF97"/>
+                            <stop offset="0.7" stop-color="#00C758"/>
+                            <stop offset="1" stop-color="#E8FFE8"/>
+                        </linearGradient>
+                        <linearGradient id="nmRegisterRing" x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.05"/>
+                            <stop offset="0.5" stop-color="#69FF97" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0.05"/>
+                        </linearGradient>
+                        <radialGradient id="nmRegisterHalo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 210) rotate(90) scale(155 140)">
+                            <stop stop-color="#69FF97" stop-opacity="0.28"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="200" cy="210" rx="152" ry="138" fill="url(#nmRegisterHalo)" class="nm-impact-halo"/>
+                    <circle cx="200" cy="200" r="168" class="nm-impact-orbit" stroke="url(#nmRegisterRing)" stroke-width="1.5" fill="none"/>
+                    <path class="nm-impact-stream" d="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96" stroke="url(#nmRegisterStream)" stroke-width="2.5" stroke-linecap="round"/>
+                    <g transform="translate(200, 182)">
+                        <g class="nm-impact-stage nm-impact-stage--verify">
+                            <circle r="26" fill="#016630" fill-opacity="0.4" stroke="#69FF97" stroke-opacity="0.65" stroke-width="1.4"/>
+                            <path d="M0 -14 L18 -6 V8 C18 18 0 26 0 26 C0 26 -18 18 -18 8 V-6 Z" stroke="#E8FFE8" stroke-width="1.6" fill="none"/>
+                            <path class="nm-impact-check" d="M-7 4 L-1 11 L9 -3" stroke="#69FF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g transform="translate(96, 302)">
+                        <g class="nm-impact-anchor nm-impact-anchor--donor">
+                            <circle r="34" fill="#012a16" fill-opacity="0.55" stroke="url(#nmRegisterStream)" stroke-width="2"/>
+                            <circle cy="-4" r="9" fill="none" stroke="#E8FFE8" stroke-width="1.8"/>
+                            <path d="M-16 14 C-10 2 10 2 16 14" stroke="#E8FFE8" stroke-width="1.8" stroke-linecap="round"/>
+                        </g>
+                    </g>
+                    <g transform="translate(304, 96)">
+                        <g class="nm-impact-anchor nm-impact-anchor--family">
+                            <circle r="38" fill="#012a16" fill-opacity="0.55" stroke="url(#nmRegisterStream)" stroke-width="2"/>
+                            <path d="M-16 8 L0 -20 L16 8 V22 H-16 Z" stroke="#E8FFE8" stroke-width="1.8" fill="none"/>
+                            <path d="M0 -4 C-4 -9 -10 -6 -10 -1 C-10 5 0 11 0 11 C0 11 10 5 10 -1 C10 -6 4 -9 0 -4Z" fill="#00C758" fill-opacity="0.85"/>
+                        </g>
+                    </g>
+                </svg>
             </div>
-        </div>
+
+            <ul class="nm-auth-screen__trust">
+                <li><i class="fas fa-shield-halved"></i> <%= __('hero_trust_verified') %></li>
+                <li><i class="fas fa-user-shield"></i> <%= __('hero_trust_privacy') %></li>
+            </ul>
+        </aside>
+
+        <section class="nm-auth-screen__panel">
+            <div class="nm-register-card">
+                <div class="nm-register-progress" aria-hidden="true">
+                    <div id="progress-bar" class="nm-register-progress__bar"></div>
+                </div>
+
+                <div class="nm-auth-card__head nm-auth-card__head--mobile">
+                    <p class="nm-auth-mobile-brand"><%= __('hero_title') %> · <%= __('register_subtitle') %></p>
+                </div>
+
+                <div class="nm-register-body" id="register-scroll">
+                    <form action="/auth/register" method="POST" id="registration-form" class="premium-form nm-register-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="role" id="selected-role" value="donor">
+
+                        <!-- STEP 1 -->
+                        <div id="step-1" class="onboarding-step active">
+                            <div class="nm-register-step-head">
+                                <span class="nm-register-step-badge"><%= __('register_step_1_of_3') %></span>
+                                <h2><%= __('register_step1_title') %></h2>
+                                <p id="typewriter-text"><%= __('register_step1_intro') %></p>
+                            </div>
+
+                            <div class="nm-register-role-grid">
+                                <div class="nm-register-role-card active" onclick="selectRole('donor')" id="card-donor" role="button" tabindex="0">
+                                    <div class="nm-register-role-card__icon"><i class="fas fa-hand-holding-heart"></i></div>
+                                    <h4><%= __('register_role_donor_title') %></h4>
+                                    <p><%= __('register_role_donor_desc') %></p>
+                                </div>
+                                <div class="nm-register-role-card" onclick="selectRole('beneficiary')" id="card-beneficiary" role="button" tabindex="0">
+                                    <div class="nm-register-role-card__icon"><i class="fas fa-house-user"></i></div>
+                                    <h4><%= __('register_role_beneficiary_title') %></h4>
+                                    <p><%= __('register_role_beneficiary_desc') %></p>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="nextStep(2)" class="btn-lux btn-lux-primary nm-register-continue">
+                                <%= __('register_continue') %>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+
+                        <!-- STEP 2 -->
+                        <div id="step-2" class="onboarding-step" style="display: none;">
+                            <div class="nm-register-step-head">
+                                <button type="button" onclick="nextStep(1)" class="nm-register-back">
+                                    <i class="fas fa-chevron-right"></i> <%= __('register_back') %>
+                                </button>
+                                <span class="nm-register-step-badge"><%= __('register_step_2_of_3') %></span>
+                                <h2><%= __('register_step2_title') %></h2>
+                                <p><%= __('register_step2_desc') %></p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-luxury" for="reg-name"><%= __('register_full_name_label') %></label>
+                                <input type="text" name="name" id="reg-name" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_full_name_placeholder') %>" required>
+                                <div class="nm-register-field-error" id="error-name"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-luxury" for="reg-email"><%= __('register_email_label') %></label>
+                                <input type="email" name="email" id="reg-email" class="nm-auth-input nm-auth-input--plain" placeholder="yourname@example.com" required>
+                                <div class="nm-register-field-error" id="error-email"></div>
+                            </div>
+
+                            <div class="form-group" id="phone-group">
+                                <label class="form-label-luxury" for="reg-phone"><%= __('register_phone_label') %></label>
+                                <input type="text" name="phone" id="reg-phone" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_phone_placeholder') %>">
+                                <div class="nm-register-field-error" id="error-phone"></div>
+                            </div>
+
+                            <div id="donor-only-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label-luxury" for="reg-whatsapp"><%= __('register_whatsapp') %></label>
+                                    <input type="text" name="whatsapp" id="reg-whatsapp" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_phone_placeholder') %>">
+                                    <div class="nm-register-field-error" id="error-whatsapp"></div>
+                                </div>
+                            </div>
+
+                            <div id="beneficiary-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label-luxury" for="reg-idNumber"><%= __('register_id_label') %></label>
+                                    <input type="text" name="idNumber" id="reg-idNumber" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_id_placeholder') %>" inputmode="numeric" maxlength="9">
+                                    <div class="nm-register-field-error" id="error-idNumber"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label-luxury" for="reg-address"><%= __('common_address') %></label>
+                                    <input type="text" name="address" id="reg-address" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_address_placeholder') %>">
+                                    <div class="nm-register-field-error" id="error-address"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label-luxury" for="reg-altPhone"><%= __('register_alt_phone') %></label>
+                                    <input type="text" name="altPhone" id="reg-altPhone" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_phone_placeholder') %>">
+                                    <div class="nm-register-field-error" id="error-altPhone"></div>
+                                </div>
+
+                                <div class="nm-register-bank-box">
+                                    <h4>
+                                        <i class="fas fa-university"></i> <%= __('register_bank_section_title') %>
+                                        <small><%= __('register_financial_bank_only_hint') %></small>
+                                    </h4>
+
+                                    <div class="form-group">
+                                        <label class="form-label-luxury" for="reg-accountHolder"><%= __('register_account_holder') %></label>
+                                        <input type="text" name="paymentDetails[accountHolder]" id="reg-accountHolder" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_account_holder_placeholder') %>">
+                                        <div class="nm-register-field-error" id="error-accountHolder"></div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label-luxury" for="reg-iban"><%= __('register_bank_palestine_iban') %> <span style="color: #fca5a5;">*</span></label>
+                                        <input type="text" name="paymentDetails[iban]" id="reg-iban" class="nm-auth-input nm-auth-input--plain" placeholder="PS00 PALA 0000 0000 0000 0000 00000">
+                                        <div class="nm-register-field-error" id="error-iban"></div>
+                                    </div>
+                                    <div class="nm-register-field-error" id="error-financial" style="text-align: center;"></div>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="nextStep(3)" class="btn-lux btn-lux-primary nm-register-continue">
+                                <%= __('register_continue_security') %>
+                                <i class="fas fa-shield-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- STEP 3 -->
+                        <div id="step-3" class="onboarding-step" style="display: none;">
+                            <div class="nm-register-step-head">
+                                <button type="button" onclick="nextStep(2)" class="nm-register-back">
+                                    <i class="fas fa-chevron-right"></i> <%= __('register_back') %>
+                                </button>
+                                <span class="nm-register-step-badge"><%= __('register_step_3_of_3') %></span>
+                                <h2><%= __('register_step3_title') %></h2>
+                                <p><%= __('register_step3_desc') %></p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-luxury" for="reg-password"><%= __('register_password_label') %></label>
+                                <input type="password" name="password" id="reg-password" class="nm-auth-input nm-auth-input--plain" placeholder="••••••••" required>
+                                <div class="nm-register-field-error" id="error-password"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-luxury" for="reg-confirmPassword"><%= __('register_confirm_password_label') %></label>
+                                <input type="password" name="confirmPassword" id="reg-confirmPassword" class="nm-auth-input nm-auth-input--plain" placeholder="••••••••" required>
+                                <div class="nm-register-field-error" id="error-confirmPassword"></div>
+                            </div>
+
+                            <div id="beneficiary-contract-section" class="nm-register-contract" style="display: none;">
+                                <h3><%= __('register_beneficiary_contract_title') %></h3>
+                                <div class="nm-register-contract__scroll" dir="<%= locals.langDir || 'rtl' %>">
+                                    <p><%= __('register_beneficiary_contract_body') %></p>
+                                </div>
+                                <label class="nm-register-contract__check" dir="<%= locals.langDir || 'rtl' %>">
+                                    <input type="checkbox" name="beneficiaryTermsAccepted" id="beneficiary-terms-checkbox" value="accepted">
+                                    <span><%= __('register_beneficiary_contract_checkbox') %></span>
+                                </label>
+                                <div class="nm-register-field-error" id="error-beneficiary-terms"></div>
+                            </div>
+
+                            <button type="submit" class="btn-lux btn-lux-primary nm-register-submit">
+                                <%= __('register_submit') %>
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="nm-register-foot">
+                    <%= __('register_have_account') %>
+                    <a href="/auth/login"><%= __('login') %></a>
+                </div>
+            </div>
+        </section>
     </div>
 </main>
-
-<style>
-    :root {
-        --secondary: #00A544;
-        --secondary-light: #69FF97;
-        --grad-gold: linear-gradient(135deg, #002661 0%, #00A544 100%);
-    }
-
-    .onboarding-step {
-        animation: slideIn 0.5s ease-out forwards;
-    }
-
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(-20px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-
-    .role-card {
-        padding: 25px 15px;
-        background: rgba(255,255,255,0.03);
-        border: 2px solid rgba(255,255,255,0.05);
-        border-radius: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .role-card:hover {
-        background: rgba(255,255,255,0.06);
-        border-color: rgba(0, 165, 68, 0.35);
-        transform: translateY(-5px);
-    }
-
-    .role-card.active {
-        background: rgba(0, 165, 68, 0.12);
-        border-color: var(--secondary);
-        box-shadow: 0 15px 35px rgba(0, 165, 68, 0.15);
-    }
-
-    .role-icon {
-        width: 60px;
-        height: 60px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 15px;
-        font-size: 1.5rem;
-        color: var(--secondary);
-    }
-
-    .role-card.active .role-icon {
-        background: var(--secondary);
-        color: white;
-    }
-
-    .role-card h4 {
-        margin: 0 0 8px;
-        color: #fff;
-    }
-
-    .role-card p {
-        font-size: 0.75rem;
-        color: rgba(255,255,255,0.5);
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .form-input-dark {
-        width: 100%;
-        padding: 16px 20px;
-        border-radius: 12px;
-        background: rgba(0,0,0,0.2);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #fff;
-        font-family: inherit;
-        transition: all 0.3s;
-    }
-
-    .form-input-dark:focus {
-        background: rgba(0,0,0,0.3);
-        border-color: var(--secondary);
-        box-shadow: 0 0 15px rgba(0, 165, 68, 0.16);
-        outline: none;
-    }
-
-    .field-error {
-        color: #fca5a5;
-        font-size: 0.75rem;
-        margin-top: 5px;
-        min-height: 1em;
-        transition: all 0.3s;
-    }
-
-    input.invalid {
-        border-color: #ef4444 !important;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
-    }
-
-    @media (max-width: 768px) {
-        .onboarding-card { border-radius: 0; min-height: auto; }
-        .onboarding-card > div { padding: 30px 20px !important; }
-        .onboarding-card h2 { font-size: 1.6rem !important; }
-        .onboarding-card .role-card-grid { grid-template-columns: 1fr !important; }
-        .role-card { padding: 20px 10px; }
-    }
-</style>
 
 <script>
     const PS_IBAN_LENGTH = 29;
     const PS_IBAN_REGEX = /^PS\d{2}[A-Z]{4}[A-Z0-9]{21}$/;
+    const I18N = {
+        donorTypewriter: '<%= __('register_role_donor_typewriter') %>',
+        beneficiaryTypewriter: '<%= __('register_role_beneficiary_typewriter') %>',
+        introTypewriter: '<%= __('register_step1_intro') %>',
+        incompleteTitle: '<%= __('register_validation_incomplete_title') %>',
+        incompleteText: '<%= __('register_validation_incomplete_text') %>',
+        errorsTitle: '<%= __('register_validation_errors_title') %>',
+        errorsText: '<%= __('register_validation_errors_text') %>',
+        fixText: '<%= __('register_validation_fix_text') %>',
+        ok: '<%= __('register_ok') %>',
+        financialTitle: '<%= __('register_financial_incomplete_title') %>',
+        approvalTitle: '<%= __('register_approval_required_title') %>'
+    };
 
     function normalizeIbanValue(iban) {
         return (iban || '').replace(/\s+/g, '').toUpperCase();
@@ -377,17 +331,21 @@
         return { valid: true, idNumber: normalized };
     }
 
+    function scrollRegisterTop() {
+        const el = document.getElementById('register-scroll');
+        if (el) el.scrollTop = 0;
+    }
+
     function nextStep(step) {
         if (step === 3) {
-            // Basic validation for step 2
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             if (!name || !email) {
-                Swal.fire({ icon: 'error', title: 'بيانات ناقصة', text: 'يرجى إكمال البيانات الأساسية قبل المتابعة' });
+                Swal.fire({ icon: 'error', title: I18N.incompleteTitle, text: I18N.incompleteText });
                 return;
             }
             if (document.querySelectorAll('#step-2 .invalid').length > 0) {
-                Swal.fire({ icon: 'error', title: 'خطأ في البيانات', text: 'يرجى تصحيح الأخطاء قبل المتابعة' });
+                Swal.fire({ icon: 'error', title: I18N.errorsTitle, text: I18N.errorsText });
                 return;
             }
         }
@@ -396,32 +354,31 @@
         document.getElementById('step-' + next).style.display = 'block';
         const progress = (next / 3) * 100;
         document.getElementById('progress-bar').style.width = progress + '%';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollRegisterTop();
     }
 
-    function selectRole(role) {
+    function selectRole(role, opts) {
+        opts = opts || {};
         document.getElementById('selected-role').value = role;
         document.getElementById('card-donor').classList.remove('active');
         document.getElementById('card-beneficiary').classList.remove('active');
         document.getElementById('card-' + role).classList.add('active');
-        const text = role === 'donor' 
-            ? 'انضم لآلاف المتبرعين وكن سبباً في تغيير حياة إنسان اليوم.' 
-            : 'نحن هنا لنساندك.. سجل بياناتك لتبدأ رحلة الدعم والتمكين.';
-        startTypewriter(text);
+        if (!opts.skipTypewriter) {
+            const text = role === 'donor' ? I18N.donorTypewriter : I18N.beneficiaryTypewriter;
+            startTypewriter(text);
+        }
 
-        // Toggle fields
         const bFields = document.getElementById('beneficiary-fields');
         const dFields = document.getElementById('donor-only-fields');
         const phoneGrp = document.getElementById('phone-group');
         const idInput = document.getElementById('reg-idNumber');
         const phoneInput = document.getElementById('reg-phone');
         const addrInput = document.getElementById('reg-address');
-        
         const contractSec = document.getElementById('beneficiary-contract-section');
         const termsCb = document.getElementById('beneficiary-terms-checkbox');
         const termsErr = document.getElementById('error-beneficiary-terms');
 
-        if(role === 'beneficiary') {
+        if (role === 'beneficiary') {
             bFields.style.display = 'block';
             dFields.style.display = 'none';
             phoneGrp.style.display = 'block';
@@ -446,9 +403,9 @@
     let timer;
     function startTypewriter(text) {
         const speed = 40;
-        const target = document.getElementById("typewriter-text");
+        const target = document.getElementById('typewriter-text');
         if (!target) return;
-        target.innerHTML = "";
+        target.innerHTML = '';
         i = 0;
         if (timer) clearInterval(timer);
         timer = setInterval(() => {
@@ -462,17 +419,18 @@
     }
 
     window.onload = () => {
-        startTypewriter('اختر المسار الذي يناسبك لنتمكن من توجيهك بشكل صحيح.');
+        selectRole('donor', { skipTypewriter: true });
+        startTypewriter(I18N.introTypewriter);
         setupValidation();
     };
 
     function setupValidation() {
         const msgIdTaken = `<%= __('flash_id_registered') %>`;
         const fields = [
-            { id: 'reg-email', field: 'email', msg: 'هذا البريد الإلكتروني مستخدم بالفعل' },
-            { id: 'reg-phone', field: 'phone', msg: 'رقم الهاتف هذا مسجل مسبقاً' },
+            { id: 'reg-email', field: 'email', msg: '<%= __('register_email_taken') %>' },
+            { id: 'reg-phone', field: 'phone', msg: '<%= __('register_phone_taken') %>' },
             { id: 'reg-idNumber', field: 'idNumber', msg: msgIdTaken },
-            { id: 'reg-whatsapp', field: 'whatsapp', msg: 'رقم الواتساب هذا مسجل مسبقاً' },
+            { id: 'reg-whatsapp', field: 'whatsapp', msg: '<%= __('register_whatsapp_taken') %>' },
             { id: 'reg-iban', field: 'iban', msg: `<%= __('flash_iban_taken') %>` }
         ];
 
@@ -524,7 +482,7 @@
                     } catch (e) { console.error(e); }
                     return;
                 }
-                
+
                 try {
                     const res = await fetch(`/auth/check-exists?field=${f.field}&value=${val}`);
                     const data = await res.json();
@@ -537,14 +495,13 @@
             });
         });
 
-        // Password Validation
         const passEl = document.getElementById('reg-password');
         const confirmEl = document.getElementById('reg-confirmPassword');
         const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
 
         passEl.addEventListener('input', () => {
             if (!passRegex.test(passEl.value)) {
-                showError('reg-password', 'يجب أن تحتوي على 7 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص');
+                showError('reg-password', '<%= __('register_password_rules') %>');
             } else {
                 clearError('reg-password');
             }
@@ -552,7 +509,7 @@
 
         confirmEl.addEventListener('input', () => {
             if (confirmEl.value !== passEl.value) {
-                showError('reg-confirmPassword', 'كلمة المرور غير متطابقة');
+                showError('reg-confirmPassword', '<%= __('register_password_mismatch') %>');
             } else {
                 clearError('reg-confirmPassword');
             }
@@ -600,19 +557,6 @@
         errEl.innerText = '';
     }
 
-    // Length Validation Helper
-    function validateLength(id, expectedLength, errorMsg) {
-        const el = document.getElementById(id);
-        const val = el.value.trim();
-        if (val && val.length !== expectedLength) {
-            showError(id, errorMsg);
-            return false;
-        }
-        if (val) clearError(id);
-        return true;
-    }
-
-    // Final Form Guard
     document.getElementById('registration-form').onsubmit = function(e) {
         const role = document.getElementById('selected-role').value;
         const phone = document.getElementById('reg-phone').value.trim();
@@ -633,16 +577,16 @@
                 valid = false;
             }
             if (!address) {
-                showError('reg-address', 'يرجى إدخال العنوان السكني');
+                showError('reg-address', '<%= __('register_address_required') %>');
                 valid = false;
             }
             if (altPhone && altPhone.length !== 10) {
-                showError('reg-altPhone', `<%= __('register_phone_length_error') %>`);
+                showError('reg-altPhone', '<%= __('register_phone_length_error') %>');
                 valid = false;
             }
         } else {
             if (whatsapp && whatsapp.length !== 10) {
-                showError('reg-whatsapp', `<%= __('register_phone_length_error') %>`);
+                showError('reg-whatsapp', '<%= __('register_phone_length_error') %>');
                 valid = false;
             }
         }
@@ -652,15 +596,14 @@
             e.preventDefault();
             Swal.fire({
                 icon: 'error',
-                title: 'خطأ في البيانات',
-                text: 'يرجى تصحيح الأخطاء المشار إليها قبل المتابعة',
-                confirmButtonText: 'حسناً'
+                title: I18N.errorsTitle,
+                text: I18N.fixText,
+                confirmButtonText: I18N.ok
             });
             nextStep(2);
             return false;
         }
 
-        // Financial Validation for Beneficiaries
         if (role === 'beneficiary') {
             const iban = document.getElementById('reg-iban').value.trim();
             const accountHolder = document.getElementById('reg-accountHolder').value.trim();
@@ -686,9 +629,9 @@
                 document.getElementById('error-financial').innerText = '<%= __('register_bank_iban_required') %>';
                 Swal.fire({
                     icon: 'warning',
-                    title: 'بيانات الحساب البنكي ناقصة',
+                    title: I18N.financialTitle,
                     text: '<%= __('register_financial_bank_only_hint') %>',
-                    confirmButtonText: 'حسناً'
+                    confirmButtonText: I18N.ok
                 });
                 nextStep(2);
                 return false;
@@ -703,9 +646,9 @@
                 if (termsErr) termsErr.innerText = '<%= __('flash_beneficiary_contract_required') %>';
                 Swal.fire({
                     icon: 'warning',
-                    title: 'الموافقة مطلوبة',
+                    title: I18N.approvalTitle,
                     text: '<%= __('flash_beneficiary_contract_required') %>',
-                    confirmButtonText: 'حسناً'
+                    confirmButtonText: I18N.ok
                 });
                 nextStep(3);
                 return false;
@@ -717,7 +660,6 @@
     };
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="/assets/js/main.js"></script>
 </body>
 </html>
