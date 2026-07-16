@@ -1,14 +1,20 @@
 const Case = require('../models/Case');
+const User = require('../models/User');
 const Testimonial = require('../models/Testimonial');
 const { prepareStoryVideoAsync } = require('../utils/storyVideo');
 const { PUBLIC_CASE_STATUSES } = require('../utils/caseSatisfaction');
+
+const HOMEPAGE_PUBLIC_CASES_FILTER = {
+    status: { $in: PUBLIC_CASE_STATUSES },
+    isHidden: { $ne: true }
+};
 
 exports.getHomepage = async (req, res) => {
     try {
         const casesLimit = Number(process.env.HOMEPAGE_CASES_LIMIT || 8);
         const testimonialsLimit = Number(process.env.HOMEPAGE_TESTIMONIALS_LIMIT || 12);
 
-        const [cases, testimonials] = await Promise.all([
+        const [cases, testimonials, beneficiaryCasesCount, registeredDonorsCount] = await Promise.all([
             Case.find({
                 status: { $in: PUBLIC_CASE_STATUSES },
                 isHidden: { $ne: true },
@@ -23,7 +29,9 @@ exports.getHomepage = async (req, res) => {
                 .populate('user', 'name avatar')
                 .sort({ createdAt: -1 })
                 .limit(testimonialsLimit)
-                .lean()
+                .lean(),
+            Case.countDocuments(HOMEPAGE_PUBLIC_CASES_FILTER),
+            User.countDocuments({ role: 'donor', isSoftDeleted: { $ne: true } })
         ]);
 
         const isEn = req.getLocale() === 'en';
@@ -120,6 +128,11 @@ exports.getHomepage = async (req, res) => {
             title: res.__('home'),
             cases: preparedCases,
             testimonials: testimonials.length > 0 ? testimonials : defaultTestimonials,
+            homepageStats: {
+                beneficiaryCases: beneficiaryCasesCount,
+                registeredDonors: registeredDonorsCount,
+                transparencyPercent: 100
+            },
             fullUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`
         });
     } catch (err) {
