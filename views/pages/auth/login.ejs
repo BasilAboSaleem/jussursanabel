@@ -1,123 +1,143 @@
 <%- include('../../partials/header-top') %>
 
-<main style="min-height: calc(100vh - 72px); position: relative; overflow: hidden; background: #020617; display: flex; align-items: center; justify-content: center; padding: 24px 20px;">
-    <!-- Soft Atmospheric Background -->
-    <div style="position: absolute; inset: 0; background: 
-        radial-gradient(circle at 20% 20%, rgba(0, 165, 68, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(30, 58, 95, 0.4) 0%, transparent 60%);">
-    </div>
-    <div class="bg-mesh" style="opacity: 0.15;"></div>
-
-    <!-- Floating Elements (Back by Request) -->
-    <div class="float-element" style="position: absolute; top: 12%; left: 15%; font-size: 3.5rem; color: var(--secondary); opacity: 0.15; filter: blur(1px);">
-        <i class="fas fa-star"></i>
-    </div>
-    <div class="float-element" style="position: absolute; bottom: 20%; right: 12%; font-size: 5rem; color: var(--accent); opacity: 0.12; filter: blur(2px); animation-delay: -4s;">
-        <i class="fas fa-hand-holding-heart"></i>
-    </div>
-    <div class="float-element" style="position: absolute; top: 70%; left: 8%; font-size: 2.5rem; color: var(--secondary); opacity: 0.08; filter: blur(1px); animation-delay: -2s;">
-        <i class="fas fa-sparkles"></i>
+<main class="nm-auth-screen nm-login-screen" aria-label="<%= __('login') %>">
+    <div class="nm-auth-screen__atmosphere nm-about-hero__atmosphere" aria-hidden="true">
+        <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
+        <span class="nm-about-hero__grain" style="--x:18%; --d:0s;"></span>
+        <span class="nm-about-hero__grain" style="--x:52%; --d:1.1s;"></span>
+        <span class="nm-about-hero__grain" style="--x:82%; --d:0.5s;"></span>
     </div>
 
-    <!-- Soft Glass Login Card -->
-    <div class="luxury-card reveal-on-scroll active" style="width: 100%; max-width: 480px; padding: 38px; border-radius: 36px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-        
-        <div style="text-align: center; margin-bottom: 40px;">
-            <div style="display: inline-block; width: 85px; height: 85px; background: linear-gradient(135deg, #002661 0%, #00A544 100%); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0, 165, 68, 0.25); transform: rotate(-5deg);">
-                <i class="fas fa-lock" style="font-size: 2.22rem; color: white;"></i>
+    <div class="nm-auth-screen__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+
+    <div class="nm-auth-screen__inner">
+        <aside class="nm-auth-screen__brand" aria-hidden="true">
+            <p class="nm-auth-screen__affiliate"><%= __('hero_affiliation') %></p>
+            <h1 class="nm-auth-screen__title">
+                <span class="nm-auth-screen__title-ar"><%= __('hero_title') %></span>
+                <span class="nm-auth-screen__title-en">Nameer</span>
+            </h1>
+            <p class="nm-auth-screen__tagline"><%= __('hero_tagline') %></p>
+
+            <div class="nm-auth-screen__emblem">
+                <svg class="nm-home-give-emblem" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="nmLoginStream" x1="80" y1="320" x2="320" y2="80" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.15"/>
+                            <stop offset="0.35" stop-color="#69FF97"/>
+                            <stop offset="0.7" stop-color="#00C758"/>
+                            <stop offset="1" stop-color="#E8FFE8"/>
+                        </linearGradient>
+                        <linearGradient id="nmLoginRing" x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#69FF97" stop-opacity="0.05"/>
+                            <stop offset="0.5" stop-color="#69FF97" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0.05"/>
+                        </linearGradient>
+                        <radialGradient id="nmLoginHalo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 210) rotate(90) scale(155 140)">
+                            <stop stop-color="#69FF97" stop-opacity="0.28"/>
+                            <stop offset="1" stop-color="#69FF97" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="200" cy="210" rx="152" ry="138" fill="url(#nmLoginHalo)" class="nm-impact-halo"/>
+                    <circle cx="200" cy="200" r="168" class="nm-impact-orbit" stroke="url(#nmLoginRing)" stroke-width="1.5" fill="none"/>
+                    <path class="nm-impact-stream" d="M 96 302 C 142 248, 178 205, 200 182 C 222 159, 258 122, 304 96" stroke="url(#nmLoginStream)" stroke-width="2.5" stroke-linecap="round"/>
+                    <g transform="translate(200, 182)">
+                        <g class="nm-impact-stage nm-impact-stage--verify">
+                            <circle r="26" fill="#016630" fill-opacity="0.4" stroke="#69FF97" stroke-opacity="0.65" stroke-width="1.4"/>
+                            <path d="M0 -14 L18 -6 V8 C18 18 0 26 0 26 C0 26 -18 18 -18 8 V-6 Z" stroke="#E8FFE8" stroke-width="1.6" fill="none"/>
+                            <path class="nm-impact-check" d="M-7 4 L-1 11 L9 -3" stroke="#69FF97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g transform="translate(96, 302)">
+                        <g class="nm-impact-anchor nm-impact-anchor--donor">
+                            <circle r="34" fill="#012a16" fill-opacity="0.55" stroke="url(#nmLoginStream)" stroke-width="2"/>
+                            <circle cy="-4" r="9" fill="none" stroke="#E8FFE8" stroke-width="1.8"/>
+                            <path d="M-16 14 C-10 2 10 2 16 14" stroke="#E8FFE8" stroke-width="1.8" stroke-linecap="round"/>
+                        </g>
+                    </g>
+                    <g transform="translate(304, 96)">
+                        <g class="nm-impact-anchor nm-impact-anchor--family">
+                            <circle r="38" fill="#012a16" fill-opacity="0.55" stroke="url(#nmLoginStream)" stroke-width="2"/>
+                            <path d="M-16 8 L0 -20 L16 8 V22 H-16 Z" stroke="#E8FFE8" stroke-width="1.8" fill="none"/>
+                            <path d="M0 -4 C-4 -9 -10 -6 -10 -1 C-10 5 0 11 0 11 C0 11 10 5 10 -1 C10 -6 4 -9 0 -4Z" fill="#00C758" fill-opacity="0.85"/>
+                        </g>
+                    </g>
+                </svg>
             </div>
-            <h2 class="font-cairo" style="font-size: 2.4rem; color: #ffffff; margin-bottom: 10px; font-weight: 800;">تسجيل الدخول</h2>
-            <p style="color: rgba(255,255,255,0.65); font-size: 1.05rem;">أهلاً بك مجدداً في نَمير</p>
-        </div>
 
-        <% if (error && error.length > 0) { %>
-            <div style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 18px; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
-                <i class="fas fa-circle-exclamation" style="margin-left: 8px;"></i> <%= error %>
-            </div>
-        <% } %>
+            <ul class="nm-auth-screen__trust">
+                <li><i class="fas fa-shield-halved"></i> <%= __('hero_trust_verified') %></li>
+                <li><i class="fas fa-user-shield"></i> <%= __('hero_trust_privacy') %></li>
+            </ul>
+        </aside>
 
-        <% if (success && success.length > 0) { %>
-            <div style="background: rgba(0, 165, 68, 0.15); color: #6ee7b7; padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 165, 68, 0.2); margin-bottom: 30px; text-align: center; font-size: 0.95rem;">
-                <i class="fas fa-circle-check" style="margin-left: 8px;"></i> <%= success %>
-            </div>
-        <% } %>
+        <section class="nm-auth-screen__panel">
+            <div class="nm-auth-card luxury-card">
+                <div class="nm-auth-card__head nm-auth-card__head--mobile">
+                    <p class="nm-auth-mobile-brand"><%= __('hero_title') %> · <%= __('hero_tagline') %></p>
+                </div>
 
-        <form action="/auth/login" method="POST" class="premium-form">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="nm-auth-card__head">
+                    <h2><%= __('login') %></h2>
+                    <p><%= __('login_welcome') %></p>
+                </div>
 
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;"><%= __('login_identifier_label') %></label>
-                <div style="position: relative;">
-                    <i class="fas fa-user" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
-                    <input type="text" name="identifier" required class="form-input-soft" placeholder="<%= __('login_identifier_placeholder') %>" autocomplete="username">
+                <% if (error && error.length > 0) { %>
+                    <div class="nm-auth-alert nm-auth-alert--error" role="alert">
+                        <i class="fas fa-circle-exclamation"></i> <%= error %>
+                    </div>
+                <% } %>
+
+                <% if (success && success.length > 0) { %>
+                    <div class="nm-auth-alert nm-auth-alert--success" role="status">
+                        <i class="fas fa-circle-check"></i> <%= success %>
+                    </div>
+                <% } %>
+
+                <form action="/auth/login" method="POST" class="premium-form nm-auth-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <div class="form-group">
+                        <label class="form-label-luxury" for="login-identifier"><%= __('login_identifier_label') %></label>
+                        <div class="nm-auth-input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="login-identifier" name="identifier" required class="nm-auth-input" placeholder="<%= __('login_identifier_placeholder') %>" autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label-luxury" for="login-password"><%= __('login_password_label') %></label>
+                        <div class="nm-auth-input-wrap">
+                            <i class="fas fa-key"></i>
+                            <input type="password" id="login-password" name="password" required class="nm-auth-input" placeholder="••••••••" autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <div class="nm-auth-form__row">
+                        <label class="nm-auth-form__remember">
+                            <input type="checkbox" name="rememberMe">
+                            <%= __('login_remember_me') %>
+                        </label>
+                        <a href="/auth/forgot-password" class="nm-auth-form__forgot"><%= __('login_forgot_password') %></a>
+                    </div>
+
+                    <button type="submit" class="btn-lux btn-lux-primary nm-auth-submit">
+                        <%= __('login_submit') %>
+                        <i class="fas fa-sign-in-alt"></i>
+                    </button>
+                </form>
+
+                <div class="nm-auth-card__foot">
+                    <%= __('login_no_account') %>
+                    <a href="/auth/register"><%= __('login_create_account') %></a>
                 </div>
             </div>
-
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label class="form-label-luxury" style="color: rgba(255,255,255,0.85); margin-bottom: 12px; display: block; font-weight: 700;">كلمة المرور</label>
-                <div style="position: relative;">
-                    <i class="fas fa-key" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--secondary); opacity: 0.7;"></i>
-                    <input type="password" name="password" required class="form-input-soft" placeholder="••••••••" autocomplete="current-password">
-                </div>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; gap: 12px;">
-                <label style="display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.75); cursor: pointer; font-size: 0.95rem;">
-                    <input type="checkbox" name="rememberMe" style="width: 18px; height: 18px; accent-color: var(--secondary); cursor: pointer;">
-                    <%= __('login_remember_me') %>
-                </label>
-                <a href="/auth/forgot-password" style="color: var(--secondary); font-weight: 700; text-decoration: none; font-size: 0.95rem;">
-                    <%= __('login_forgot_password') %>
-                </a>
-            </div>
-
-            <button type="submit" class="btn-lux btn-lux-primary btn-lg" style="width: 100%; justify-content: center; height: 60px; border-radius: 20px; font-size: 1.15rem; font-weight: 900; box-shadow: 0 10px 30px rgba(0, 165, 68, 0.2);">
-                دخول للحساب <i class="fas fa-sign-in-alt" style="margin-right: 15px;"></i>
-            </button>
-        </form>
-
-        <div style="text-align: center; margin-top: 45px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.06);">
-            <p style="color: rgba(255,255,255,0.55); font-size: 1rem;">
-                ليس لديك حساب؟ 
-                <a href="/auth/register" style="color: var(--secondary); font-weight: 900; text-decoration: none; margin-right: 8px;">إنشاء حساب جديد</a>
-            </p>
-        </div>
+        </section>
     </div>
 </main>
 
-<style>
-    :root {
-        --secondary: #00A544;
-        --secondary-light: #69FF97;
-        --grad-gold: linear-gradient(135deg, #002661 0%, #00A544 100%);
-    }
-
-    .form-input-soft {
-        width: 100%;
-        padding: 18px 55px 18px 20px;
-        border-radius: 20px;
-        background: #ffffff;
-        border: 2px solid #f1f5f9;
-        font-family: inherit;
-        font-size: 1rem;
-        color: var(--primary);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        outline: none;
-    }
-
-    .form-input-soft:focus {
-        border-color: var(--secondary);
-        box-shadow: 0 10px 25px rgba(0, 165, 68, 0.16);
-        transform: translateY(-2px);
-    }
-
-    .form-input-soft::placeholder {
-        color: #94a3b8;
-    }
-    
-    body { background: #020617 !important; }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="/assets/js/main.js"></script>
 </body>
 </html>
