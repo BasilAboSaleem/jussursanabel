@@ -4,7 +4,7 @@
     <%- include('../../partials/family-layout-top') %>
 <% } %>
 
-<div class="chat-wrapper-lux">
+<div class="nm-messages-hub chat-wrapper-lux">
     <!-- Sidebar: Contacts List -->
     <div class="chat-sidebar-lux">
         <div class="sidebar-header-lux">
@@ -51,10 +51,10 @@
         <!-- Placeholder (Always present, toggled via JS) -->
         <div id="chatPlaceholder" class="chat-placeholder-lux" style="display: block;">
             <div class="placeholder-icon">
-                <i class="fab fa-whatsapp"></i>
+                <i class="fas fa-comments"></i>
             </div>
             <h3 class="font-cairo">ابدأ حواراً آمناً</h3>
-            <p>اختر أحد جهات الاتصال المعتمدة على اليمين لبدء المحادثة.</p>
+            <p>اختر أحد جهات الاتصال المعتمدة لبدء المحادثة بخصوصية وشفافية.</p>
         </div>
 
         <!-- Chat Content (Always present, toggled via JS) -->
@@ -78,16 +78,14 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <i class="fas fa-phone-alt"></i>
-                    <i class="fas fa-video"></i>
-                    <i class="fas fa-info-circle"></i>
+                    <i class="fas fa-shield-halved" title="محادثة مراقبة" onclick="showMonitoringModal()"></i>
                 </div>
             </div>
 
             <!-- Monitoring Warning Bar -->
             <div class="monitoring-notice">
                 <i class="fas fa-shield-halved"></i>
-                <span>تنبيه: هذه المحادثة مراقبة لضمان الجودة والشفافية. يُرجى مراجعة <a href="javascript:void(0)" onclick="showMonitoringModal()" style="color: var(--secondary); text-decoration: underline;">شروط الاستخدام</a>.</span>
+                <span>تنبيه: هذه المحادثة مراقبة لضمان الجودة والشفافية. يُرجى مراجعة <a href="javascript:void(0)" onclick="showMonitoringModal()">شروط الاستخدام</a>.</span>
             </div>
 
             <!-- Chat History Area -->
@@ -152,7 +150,7 @@
 
 <!-- Monitoring Consent Modal -->
 <div id="monitoringModal" class="modal-overlay-lux" style="display: none;">
-    <div class="luxury-card glass-panel modal-content-lux" style="max-width: 500px; padding: 40px; text-align: center; background: white; border-radius: 20px;">
+    <div class="nm-admin-card nm-admin-modal-card modal-content-lux" style="max-width: 500px; text-align: center;">
         <div class="modal-icon-lux" style="font-size: 3rem; color: var(--secondary); margin-bottom: 20px;"><i class="fas fa-user-shield"></i></div>
         <h3 class="font-cairo">اتفاقية التواصل الآمن</h3>
         <p style="margin: 20px 0; line-height: 1.7; color: var(--text-muted);">
@@ -163,516 +161,7 @@
     </div>
 </div>
 
-<style>
-    /* ===== WRAPPER & LAYOUT ===== */
-    .chat-wrapper-lux {
-        height: calc(100vh - 160px);
-        display: grid;
-        grid-template-columns: 350px 1fr;
-        background: white;
-        border-radius: 30px;
-        overflow: hidden;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        border: 1px solid rgba(0,0,0,0.05);
-    }
-
-    /* ===== SIDEBAR ===== */
-    .chat-sidebar-lux { background: #f8fafc; border-left: 1px solid #edf2f7; display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header-lux { padding: 25px; border-bottom: 1px solid #edf2f7; flex-shrink: 0; }
-    .sidebar-header-lux h3 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary); }
-    .search-box-lux { position: relative; background: white; border-radius: 12px; padding: 8px 15px; display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; }
-    .search-box-lux input { border: none; outline: none; width: 100%; font-size: 0.85rem; }
-    .contacts-list-lux { flex: 1; overflow-y: auto; }
-    .contact-item-lux { display: flex; gap: 15px; padding: 18px 25px; text-decoration: none; border-bottom: 1px solid #edf2f7; transition: all 0.3s; cursor: pointer; }
-    .contact-item-lux:hover { background: #f1f5f9; }
-    .contact-item-lux.active { background: white; border-right: 4px solid var(--secondary); }
-    .avatar-lux { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
-    .online-indicator { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: #00A544; border: 2px solid white; }
-    .contact-name { font-weight: 800; color: var(--primary); font-size: 0.95rem; }
-    .last-message { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* ===== MAIN CHAT AREA ===== */
-    .chat-main-lux {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Critical: prevents the area from growing */
-        background: #fff url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-        background-blend-mode: overlay;
-        position: relative;
-    }
-
-    /* Placeholder shown when no chat is selected */
-    .chat-placeholder-lux {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        text-align: center;
-        padding: 40px;
-    }
-    .chat-placeholder-lux .placeholder-icon { font-size: 5rem; color: #c7d2fe; margin-bottom: 20px; }
-    .chat-placeholder-lux h3 { font-size: 1.4rem; color: var(--primary); margin-bottom: 10px; }
-    .chat-placeholder-lux p { font-size: 0.95rem; }
-
-    /* Active chat: fills remaining height, with internal scroll on history */
-    #activeChatUI {
-        flex: 1;
-        display: none; /* toggled by JS */
-        flex-direction: column;
-        overflow: hidden; /* Critical */
-        min-height: 0; /* Required for flex children to shrink properly */
-    }
-
-    .chat-header-lux { padding: 15px 30px; background: white; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; z-index: 10; flex-shrink: 0; }
-    .avatar-sm-lux { width: 40px; height: 40px; border-radius: 50%; }
-    .monitoring-notice { background: rgba(0, 165, 68, 0.12); padding: 10px 20px; font-size: 0.8rem; color: var(--primary); border-bottom: 1px solid rgba(0, 165, 68, 0.2); flex-shrink: 0; }
-
-    /* Chat history: scrollable, fills remaining space */
-    .chat-history-lux {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px 30px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        min-height: 0; /* Required */
-    }
-
-    /* Messages */
-    .msg-group { display: flex; width: 100%; }
-    .msg-group.sent { justify-content: flex-end; }
-    .msg-group.received { justify-content: flex-start; }
-    .msg-bubble { max-width: 65%; padding: 12px 18px; border-radius: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .sent .msg-bubble { background: var(--primary); color: white; border-bottom-left-radius: 4px; }
-    .received .msg-bubble { background: white; color: #1a202c; border-bottom-right-radius: 4px; border: 1px solid #edf2f7; }
-    .msg-bubble p { margin: 0 0 4px; line-height: 1.5; }
-    .msg-time { font-size: 0.72rem; opacity: 0.7; display: block; text-align: left; margin-top: 4px; }
-    .sent .msg-time { color: rgba(255,255,255,0.8); }
-    .chat-img-bubble { max-width: 100%; border-radius: 12px; margin-bottom: 8px; cursor: pointer; display: block; }
-
-    /* ===== INPUT AREA (pinned to bottom) ===== */
-    .chat-input-area-lux {
-        flex-shrink: 0; /* Never shrink */
-        padding: 15px 25px;
-        background: #f8fafc;
-        border-top: 1px solid #edf2f7;
-        position: relative;
-    }
-    .chat-input-area-lux form {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: white;
-        padding: 8px 15px;
-        border-radius: 50px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    .chat-input-area-lux input[type="text"] { flex: 1; border: none; outline: none; padding: 6px; font-size: 0.95rem; background: transparent; }
-    .btn-icon {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--text-muted);
-        font-size: 1.1rem;
-        padding: 6px;
-        border-radius: 50%;
-        transition: color 0.2s, background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-    }
-    .btn-icon:hover { color: var(--primary); background: #f1f5f9; }
-    .btn-send-lux {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: var(--primary);
-        color: white;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.2s, background 0.2s;
-        flex-shrink: 0;
-    }
-    .btn-send-lux:hover { transform: scale(1.08); background: var(--secondary); }
-
-    /* Emoji Picker Panel */
-    .emoji-picker-panel {
-        position: absolute;
-        bottom: calc(100% + 8px);
-        left: 25px;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 12px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        width: 280px;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 100;
-    }
-    .emoji-picker-panel span {
-        font-size: 1.4rem;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 8px;
-        transition: background 0.15s;
-        line-height: 1;
-    }
-    .emoji-picker-panel span:hover { background: #f1f5f9; }
-
-    /* ===== CONSENT LOCK AREA ===== */
-    .monitoring-consent-lock {
-        flex-shrink: 0;
-        background: rgba(255,255,255,0.97);
-        backdrop-filter: blur(5px);
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-top: 1px solid #e2e8f0;
-    }
-    .lock-content { text-align: center; }
-    .lock-content i { font-size: 2rem; color: var(--secondary); margin-bottom: 10px; display: block; }
-    .lock-content h4 { margin: 5px 0; font-size: 1rem; color: var(--primary); }
-    .lock-content p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
-
-    /* ===== MODAL ===== */
-    .modal-overlay-lux { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-
-    /* Header actions */
-    .header-actions { display: flex; gap: 15px; align-items: center; }
-    .header-actions i { color: var(--text-muted); font-size: 1.1rem; cursor: pointer; transition: color 0.2s; }
-    .header-actions i:hover { color: var(--primary); }
-    .header-user-lux { display: flex; gap: 12px; align-items: center; }
-    .status-lux { font-size: 0.8rem; color: #00A544; }
-    .status-lux i { font-size: 0.5rem; margin-left: 3px; vertical-align: middle; }
-    .contact-header { display: flex; justify-content: space-between; align-items: center; }
-    .contact-time { font-size: 0.72rem; color: var(--text-muted); }
-    .avatar-wrapper { position: relative; flex-shrink: 0; }
-    .support-badge {
-        background: linear-gradient(135deg, #00A544 0%, #016630 100%);
-        color: white;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        margin-right: 8px;
-        display: none;
-        align-items: center;
-        gap: 4px;
-        box-shadow: 0 2px 4px rgba(0, 165, 68, 0.2);
-    }
-    .user-meta-lux {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .chat-back-mobile {
-        display: none;
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        color: var(--primary);
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-
-    /* ===== BAN BANNER ===== */
-    .ban-policy-banner {
-        background: #fff1f2;
-        border-top: 2px solid #fda4af;
-        padding: 20px;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        flex-shrink: 0;
-    }
-    .ban-content { display: flex; align-items: center; gap: 20px; max-width: 600px; }
-    .ban-icon { font-size: 2.5rem; color: #e11d48; }
-    .ban-text h4 { margin: 0 0 5px; color: #9f1239; font-weight: 800; }
-    .ban-text p { margin: 0 0 8px; color: #be123c; font-size: 0.9rem; line-height: 1.5; }
-    .ban-appeal { font-size: 0.8rem; color: #e11d48; font-weight: 600; }
-
-    /* ===== CHAT RESTRICTED BANNER ===== */
-    .chat-restricted-banner {
-        background: #fffbeb;
-        border-top: 2px solid #fcd34d;
-        padding: 20px;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        flex-shrink: 0;
-    }
-    .restricted-content { display: flex; align-items: center; gap: 20px; max-width: 600px; }
-    .restricted-icon { font-size: 2.5rem; color: #00A544; }
-    .restricted-text h4 { margin: 0 0 5px; color: #047857; font-weight: 800; }
-    .restricted-text p { margin: 0 0 8px; color: #065f46; font-size: 0.9rem; line-height: 1.5; }
-    .restricted-note { font-size: 0.8rem; color: #00A544; font-weight: 600; }
-
-    @media (max-width: 992px) {
-        .chat-wrapper-lux {
-            grid-template-columns: 1fr;
-            height: auto;
-            min-height: calc(100vh - 140px);
-        }
-
-        .chat-sidebar-lux {
-            max-height: 320px;
-            border-left: none;
-            border-bottom: 1px solid #edf2f7;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .chat-wrapper-lux {
-            min-height: calc(100vh - 115px);
-            height: calc(100vh - 115px);
-            display: block;
-            position: relative;
-        }
-
-        .chat-sidebar-lux,
-        .chat-main-lux {
-            height: 100%;
-        }
-
-        .chat-main-lux {
-            display: none;
-        }
-
-        .chat-wrapper-lux.mobile-chat-open .chat-sidebar-lux {
-            display: none;
-        }
-
-        .chat-wrapper-lux.mobile-chat-open .chat-main-lux {
-            display: flex;
-        }
-
-        .chat-back-mobile {
-            display: inline-flex;
-        }
-
-        .chat-sidebar-lux {
-            max-height: none;
-            border-bottom: none;
-        }
-
-        .sidebar-header-lux {
-            padding: 16px 14px;
-        }
-
-        .sidebar-header-lux h3 {
-            font-size: 1.05rem;
-            margin-bottom: 10px;
-        }
-
-        .contact-item-lux {
-            padding: 12px 14px;
-            gap: 10px;
-        }
-
-        .avatar-lux {
-            width: 44px;
-            height: 44px;
-        }
-
-        .contact-name {
-            font-size: 0.88rem;
-        }
-
-        .last-message {
-            font-size: 0.75rem;
-        }
-
-        .chat-wrapper-lux {
-            border-radius: 18px;
-            min-height: calc(100vh - 115px);
-        }
-
-        .chat-header-lux,
-        .chat-history-lux,
-        .chat-input-area-lux {
-            padding-left: 12px;
-            padding-right: 12px;
-        }
-
-        .chat-header-lux {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            gap: 8px;
-        }
-
-        .header-user-lux {
-            gap: 8px;
-            min-width: 0;
-        }
-
-        .header-user-lux h4 {
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 42vw;
-        }
-
-        .user-meta-lux {
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .support-badge,
-        .status-lux,
-        .typing-indicator-header {
-            font-size: 0.66rem !important;
-        }
-
-        .monitoring-notice {
-            padding: 8px 12px;
-            font-size: 0.72rem;
-        }
-
-        .chat-history-lux {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            gap: 10px;
-        }
-
-        .msg-bubble {
-            max-width: 90%;
-            padding: 10px 12px;
-            border-radius: 14px;
-        }
-
-        .msg-bubble p {
-            font-size: 0.86rem;
-            line-height: 1.45;
-        }
-
-        .msg-time {
-            font-size: 0.66rem;
-        }
-
-        .header-actions {
-            display: none;
-        }
-
-        .chat-input-area-lux form {
-            gap: 6px;
-            padding: 8px 10px;
-            border-radius: 16px;
-        }
-
-        .chat-input-area-lux input[type="text"] {
-            font-size: 16px;
-            padding: 5px 0;
-        }
-
-        .emoji-picker-panel {
-            left: 8px;
-            right: 8px;
-            width: auto;
-            max-width: calc(100vw - 36px);
-        }
-
-        .ban-policy-banner,
-        .chat-restricted-banner,
-        .monitoring-consent-lock {
-            padding: 14px 12px;
-        }
-
-        .ban-content,
-        .restricted-content {
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .ban-icon,
-        .restricted-icon {
-            font-size: 1.5rem;
-            margin-top: 2px;
-        }
-
-        .ban-text h4,
-        .restricted-text h4 {
-            font-size: 0.88rem;
-            line-height: 1.4;
-        }
-
-        .ban-text p,
-        .restricted-text p,
-        .ban-appeal,
-        .restricted-note,
-        .lock-content p {
-            font-size: 0.75rem;
-            line-height: 1.45;
-        }
-    }
-
-    @media (max-width: 360px) {
-        .chat-wrapper-lux {
-            border-radius: 14px;
-            min-height: calc(100vh - 105px);
-            height: calc(100vh - 105px);
-        }
-
-        .sidebar-header-lux,
-        .chat-header-lux,
-        .chat-history-lux,
-        .chat-input-area-lux {
-            padding-left: 8px;
-            padding-right: 8px;
-        }
-
-        .contact-item-lux {
-            padding: 10px 8px;
-        }
-
-        .avatar-lux {
-            width: 40px;
-            height: 40px;
-        }
-
-        .chat-back-mobile {
-            width: 30px;
-            height: 30px;
-        }
-
-        .msg-bubble {
-            max-width: 94%;
-            padding: 9px 10px;
-        }
-
-        .btn-icon {
-            width: 32px;
-            height: 32px;
-            font-size: 0.95rem;
-        }
-
-        .btn-send-lux {
-            width: 36px;
-            height: 36px;
-        }
-    }
-</style>
-
-
-    <div id="supportConfig" data-initial-support="<%= (activeContact && (activeContact.role === 'admin' || activeContact.role === 'super_admin')) ? 'true' : 'false' %>" style="display: none;"></div>
+<div id="supportConfig" data-initial-support="<%= (activeContact && (activeContact.role === 'admin' || activeContact.role === 'super_admin')) ? 'true' : 'false' %>" style="display: none;"></div>
     <div id="initialChatConfig" data-contact-id="<%= (typeof activeContact !== 'undefined' && activeContact) ? activeContact._id : '' %>" style="display: none;"></div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -695,8 +184,29 @@
     const consentArea = document.getElementById('consentRequiredArea');
     const consentText = document.getElementById('consentStatusText');
     const mainAgreeBtn = document.getElementById('mainAgreeBtn');
-    const chatWrapper = document.querySelector('.chat-wrapper-lux');
+    const chatWrapper = document.querySelector('.nm-messages-hub');
     const chatBackBtn = document.getElementById('chatBackBtn');
+    let lastRenderedDate = null;
+
+    function formatDateLabel(date) {
+        const d = new Date(date);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        if (d.toDateString() === today.toDateString()) return 'اليوم';
+        if (d.toDateString() === yesterday.toDateString()) return 'أمس';
+        return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function appendDateDivider(date) {
+        const msgDate = new Date(date).toDateString();
+        if (lastRenderedDate === msgDate) return;
+        lastRenderedDate = msgDate;
+        const divider = document.createElement('div');
+        divider.className = 'nm-msg-date-divider';
+        divider.innerHTML = `<span>${formatDateLabel(date)}</span>`;
+        chatHistoryEl.appendChild(divider);
+    }
 
     function isMobileViewport() {
         return window.matchMedia('(max-width: 768px)').matches;
@@ -746,6 +256,7 @@
 
         // Clear deduplication set on switch
         renderedMessages.clear();
+        lastRenderedDate = null;
 
         try {
             const response = await fetch(`/messages/data/${targetUserId}`);
@@ -767,6 +278,7 @@
         if (supportBadge) supportBadge.style.display = isSupport ? 'inline-flex' : 'none';
         
         chatHistoryEl.innerHTML = '';
+        lastRenderedDate = null;
         if (data.chatHistory) data.chatHistory.forEach(msg => appendMessage(msg));
         chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
 
@@ -840,13 +352,15 @@
         const senderId = (typeof senderVal === 'object' && senderVal._id) ? senderVal._id : senderVal;
         
         const isMe = String(senderId) === String(currentUserId);
+        appendDateDivider(msg.createdAt || Date.now());
+
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg-group ${isMe ? 'sent' : 'received'}`;
         const time = new Date(msg.createdAt || Date.now()).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
         
         msgDiv.innerHTML = `
             <div class="msg-bubble">
-                ${msg.imageUrl ? `<img src="${msg.imageUrl}" class="chat-img-bubble" onclick="window.open(this.src)">` : ''}
+                ${msg.imageUrl ? `<img src="${msg.imageUrl}" class="chat-img-bubble" onclick="window.open(this.src)" alt="">` : ''}
                 ${msg.content ? `<p>${msg.content}</p>` : ''}
                 <span class="msg-time">${time}</span>
             </div>
@@ -1042,6 +556,7 @@
     if (chatBackBtn) {
         chatBackBtn.addEventListener('click', () => {
             activeReceiverId = '';
+            lastRenderedDate = null;
             activeChatUI.style.display = 'none';
             chatPlaceholder.style.display = 'flex';
             document.querySelectorAll('.contact-item-lux').forEach(el => el.classList.remove('active'));
@@ -1068,4 +583,8 @@
     }
 </script>
 
+<% if (user && user.role === 'donor') { %>
+<%- include('../../partials/donor-layout-bottom') %>
+<% } else { %>
 <%- include('../../partials/family-layout-bottom') %>
+<% } %>
