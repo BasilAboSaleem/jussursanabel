@@ -2,7 +2,7 @@
 
 <main class="about-page">
     <!-- Signature About Hero — unique to this page -->
-    <section class="nm-about-hero" aria-label="<%= __('about_us') %>">
+    <section class="nm-about-hero" aria-label="<%= siteText('about_us') %>">
         <div class="nm-about-hero__atmosphere" aria-hidden="true">
             <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
             <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
@@ -15,26 +15,26 @@
             <span class="nm-about-hero__grain" style="--x:91%; --d:1.6s;"></span>
         </div>
 
-        <div class="nm-about-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+        <div class="nm-about-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
 
         <div class="container nm-about-hero__layout">
             <div class="nm-about-hero__copy">
-                <p class="nm-about-hero__affiliate"><%= __('hero_affiliation') %></p>
+                <p class="nm-about-hero__affiliate"><%= siteText('hero_affiliation') %></p>
                 <h1 class="nm-about-hero__title">
-                    <span class="nm-about-hero__title-ar"><%= __('hero_title') %></span>
-                    <span class="nm-about-hero__title-en">Nameer</span>
+                    <span class="nm-about-hero__title-ar"><%= siteText('hero_title') %></span>
+                    <span class="nm-about-hero__title-en"><%= siteText('hero_title_en') %></span>
                 </h1>
-                <p class="nm-about-hero__tagline"><%= __('about_story_title') %></p>
-                <p class="nm-about-hero__text"><%= __('about_hero_desc') %></p>
+                <p class="nm-about-hero__tagline"><%= siteText('about_story_title') %></p>
+                <p class="nm-about-hero__text"><%= siteText('about_hero_desc') %></p>
                 <div class="nm-about-hero__cta">
-                    <a href="#about-story" class="nm-about-hero__btn nm-about-hero__btn--primary"><%= __('about_story_badge') %></a>
-                    <a href="/cases" class="nm-about-hero__btn nm-about-hero__btn--line"><%= __('cases') %></a>
+                    <a href="#about-story" class="nm-about-hero__btn nm-about-hero__btn--primary"><%= siteText('about_story_badge') %></a>
+                    <a href="/cases" class="nm-about-hero__btn nm-about-hero__btn--line"><%= siteText('cases') %></a>
                 </div>
             </div>
 
             <div class="nm-about-hero__emblem nm-about-hero__emblem--nameer" aria-hidden="true">
                 <%- include('../partials/nm-impact-emblem', { emblemPrefix: 'nmAboutImpact', showEmblemLabels: true, showEmblemParticles: true }) %>
-                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer"><%= __('hero_tagline') %></p>
+                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer"><%= siteText('hero_tagline') %></p>
             </div>
         </div>
 
@@ -46,11 +46,11 @@
     <!-- What is Nameer -->
     <section id="about-story" class="about-section about-section--story">
         <div class="container about-story">
-            <div class="about-story__label"><%= __('about_story_badge') %></div>
-            <h2 class="about-story__title"><%= __('about_hero_title') %></h2>
+            <div class="about-story__label"><%= siteText('about_story_badge') %></div>
+            <h2 class="about-story__title"><%= siteText('about_hero_title') %></h2>
             <div class="about-story__copy">
-                <p><%= __('about_story_p1') %></p>
-                <p><%= __('about_story_p2') %></p>
+                <p><%= siteText('about_story_p1') %></p>
+                <p><%= siteText('about_story_p2') %></p>
             </div>
             <a class="about-text-link" href="https://www.senabil-pal.org/ar/about" target="_blank" rel="noopener">
                 <%= __('about_senabil_cta') %>
@@ -63,12 +63,12 @@
     <section class="about-section about-section--split">
         <div class="container about-split">
             <article class="about-split__item">
-                <h3><%= __('about_vision_title') %></h3>
-                <p><%= __('about_vision_desc') %></p>
+                <h3><%= siteText('about_vision_title') %></h3>
+                <p><%= siteText('about_vision_desc') %></p>
             </article>
             <article class="about-split__item">
-                <h3><%= __('about_mission_title') %></h3>
-                <p><%= __('about_mission_desc') %></p>
+                <h3><%= siteText('about_mission_title') %></h3>
+                <p><%= siteText('about_mission_desc') %></p>
             </article>
         </div>
     </section>
@@ -77,29 +77,29 @@
     <section class="about-section">
         <div class="container">
             <header class="about-section__head">
-                <p class="about-section__eyebrow"><%= __('about_goals_badge') %></p>
-                <h2><%= __('about_goals_title') %></h2>
+                <p class="about-section__eyebrow"><%= siteText('about_goals_badge') %></p>
+                <h2><%= siteText('about_goals_title') %></h2>
             </header>
             <ol class="about-goals">
                 <li>
                     <span class="about-goals__num">01</span>
                     <div>
-                        <h4><%= __('about_goal_1_title') %></h4>
-                        <p><%= __('about_goal_1_desc') %></p>
+                        <h4><%= siteText('about_goal_1_title') %></h4>
+                        <p><%= siteText('about_goal_1_desc') %></p>
                     </div>
                 </li>
                 <li>
                     <span class="about-goals__num">02</span>
                     <div>
-                        <h4><%= __('about_goal_2_title') %></h4>
-                        <p><%= __('about_goal_2_desc') %></p>
+                        <h4><%= siteText('about_goal_2_title') %></h4>
+                        <p><%= siteText('about_goal_2_desc') %></p>
                     </div>
                 </li>
                 <li>
                     <span class="about-goals__num">03</span>
                     <div>
-                        <h4><%= __('about_goal_3_title') %></h4>
-                        <p><%= __('about_goal_3_desc') %></p>
+                        <h4><%= siteText('about_goal_3_title') %></h4>
+                        <p><%= siteText('about_goal_3_desc') %></p>
                     </div>
                 </li>
             </ol>
@@ -110,25 +110,25 @@
     <section class="about-section about-section--muted">
         <div class="container">
             <header class="about-section__head">
-                <p class="about-section__eyebrow"><%= __('about_values_badge') %></p>
-                <h2><%= __('about_values_title') %></h2>
+                <p class="about-section__eyebrow"><%= siteText('about_values_badge') %></p>
+                <h2><%= siteText('about_values_title') %></h2>
             </header>
             <div class="about-principles">
                 <div>
-                    <h4><%= __('about_value_1_title') %></h4>
-                    <p><%= __('about_value_1_desc') %></p>
+                    <h4><%= siteText('about_value_1_title') %></h4>
+                    <p><%= siteText('about_value_1_desc') %></p>
                 </div>
                 <div>
-                    <h4><%= __('about_value_2_title') %></h4>
-                    <p><%= __('about_value_2_desc') %></p>
+                    <h4><%= siteText('about_value_2_title') %></h4>
+                    <p><%= siteText('about_value_2_desc') %></p>
                 </div>
                 <div>
-                    <h4><%= __('about_value_3_title') %></h4>
-                    <p><%= __('about_value_3_desc') %></p>
+                    <h4><%= siteText('about_value_3_title') %></h4>
+                    <p><%= siteText('about_value_3_desc') %></p>
                 </div>
                 <div>
-                    <h4><%= __('about_value_4_title') %></h4>
-                    <p><%= __('about_value_4_desc') %></p>
+                    <h4><%= siteText('about_value_4_title') %></h4>
+                    <p><%= siteText('about_value_4_desc') %></p>
                 </div>
             </div>
         </div>
@@ -138,14 +138,14 @@
     <section class="about-section">
         <div class="container about-why">
             <header class="about-section__head about-section__head--start">
-                <p class="about-section__eyebrow"><%= __('about_why_badge') %></p>
-                <h2><%= __('about_why_title') %></h2>
+                <p class="about-section__eyebrow"><%= siteText('about_why_badge') %></p>
+                <h2><%= siteText('about_why_title') %></h2>
             </header>
             <ul class="about-why__list">
-                <li><%= __('about_why_1') %></li>
-                <li><%= __('about_why_2') %></li>
-                <li><%= __('about_why_3') %></li>
-                <li><%= __('about_why_4') %></li>
+                <li><%= siteText('about_why_1') %></li>
+                <li><%= siteText('about_why_2') %></li>
+                <li><%= siteText('about_why_3') %></li>
+                <li><%= siteText('about_why_4') %></li>
             </ul>
         </div>
     </section>
@@ -154,8 +154,8 @@
     <section id="faq" class="about-section about-section--muted about-faq-wrap">
         <div class="container">
             <header class="about-section__head">
-                <h2><%= __('faq_title') %></h2>
-                <p class="about-section__sub"><%= __('faq_subtitle') %></p>
+                <h2><%= siteText('faq_title') %></h2>
+                <p class="about-section__sub"><%= siteText('faq_subtitle') %></p>
             </header>
             <div class="about-faq">
                 <% [['faq_q1','faq_a1'],['faq_q2','faq_a2'],['faq_q3','faq_a3'],['faq_q4','faq_a4']].forEach(([q,a]) => { %>
@@ -171,11 +171,11 @@
     <!-- CTA -->
     <section class="about-cta">
         <div class="container about-cta__inner">
-            <h2><%= __('about_cta_title') %></h2>
-            <p><%= __('about_cta_desc') %></p>
+            <h2><%= siteText('about_cta_title') %></h2>
+            <p><%= siteText('about_cta_desc') %></p>
             <div class="about-cta__actions">
-                <a href="/auth/register" class="about-btn about-btn--solid"><%= __('about_cta_btn_start') %></a>
-                <a href="/contact" class="about-btn about-btn--ghost"><%= __('about_cta_btn_contact') %></a>
+                <a href="/auth/register" class="about-btn about-btn--solid"><%= siteText('about_cta_btn_start') %></a>
+                <a href="/contact" class="about-btn about-btn--ghost"><%= siteText('about_cta_btn_contact') %></a>
             </div>
         </div>
     </section>

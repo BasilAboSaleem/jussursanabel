@@ -1,0 +1,449 @@
+<%- include('../../partials/admin-layout-top') %>
+
+<section class="cm-hero">
+    <div class="cm-hero__glow" aria-hidden="true"></div>
+    <div class="cm-hero__inner">
+        <div class="cm-hero__badge"><i class="fas fa-wand-magic-sparkles"></i> <%= __('admin_content_badge') %></div>
+        <h1 class="font-cairo cm-hero__title"><%= __('admin_sidebar_content_management') %></h1>
+        <p class="cm-hero__desc"><%= __('admin_content_desc') %></p>
+    </div>
+</section>
+
+<form action="/admin/content-management/update" method="POST" class="cm-form" id="contentMgmtForm">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="cm-dashboard">
+        <aside class="cm-sidebar" aria-label="<%= __('admin_content_sections_label') %>">
+            <button type="button" class="cm-nav-item is-active" data-panel="overview">
+                <i class="fas fa-grip"></i>
+                <span><%= __('admin_content_dashboard') %></span>
+            </button>
+
+            <p class="cm-sidebar__group"><%= __('admin_content_group_public') %></p>
+            <% siteContentSections.forEach((section) => { %>
+                <button type="button" class="cm-nav-item" data-panel="site-<%= section.id %>">
+                    <i class="fas <%= section.icon %>"></i>
+                    <span><%= langDir === 'rtl' ? section.labelAr : section.labelEn %></span>
+                </button>
+            <% }) %>
+
+            <p class="cm-sidebar__group"><%= __('admin_content_group_registration') %></p>
+            <button type="button" class="cm-nav-item" data-panel="needs">
+                <i class="fas fa-list-check"></i>
+                <span><%= __('admin_settings_needs_label') %></span>
+            </button>
+            <button type="button" class="cm-nav-item" data-panel="guides">
+                <i class="fas fa-book-open"></i>
+                <span><%= __('admin_content_section_guides') %></span>
+            </button>
+            <button type="button" class="cm-nav-item" data-panel="stories">
+                <i class="fas fa-pen-fancy"></i>
+                <span><%= __('admin_content_section_stories') %></span>
+            </button>
+            <button type="button" class="cm-nav-item" data-panel="safety">
+                <i class="fas fa-shield-halved"></i>
+                <span><%= __('admin_settings_registration_forbidden_words') %></span>
+            </button>
+        </aside>
+
+        <div class="cm-main">
+            <!-- Overview -->
+            <section class="content-mgmt-section is-active" data-panel="overview" id="panel-overview">
+                <header class="content-mgmt-section__head content-mgmt-section__head--navy">
+                    <div class="content-mgmt-section__icon"><i class="fas fa-grip"></i></div>
+                    <div>
+                        <h2 class="font-cairo content-mgmt-section__title"><%= __('admin_content_dashboard') %></h2>
+                        <p class="content-mgmt-section__desc"><%= __('admin_content_overview_desc') %></p>
+                    </div>
+                </header>
+                <div class="cm-overview">
+                    <div class="cm-overview__block">
+                        <h3 class="cm-overview__heading"><i class="fas fa-globe"></i> <%= __('admin_content_group_public') %></h3>
+                        <div class="cm-overview__grid">
+                            <% siteContentSections.forEach((section) => { %>
+                                <button type="button" class="cm-overview-card" data-panel="site-<%= section.id %>">
+                                    <span class="cm-overview-card__icon cm-overview-card__icon--<%= section.theme %>"><i class="fas <%= section.icon %>"></i></span>
+                                    <span class="cm-overview-card__text">
+                                        <strong><%= langDir === 'rtl' ? section.labelAr : section.labelEn %></strong>
+                                        <small><%= __('admin_content_fields_count', { count: section.fields.length }) %></small>
+                                    </span>
+                                    <i class="fas fa-chevron-left cm-overview-card__arrow"></i>
+                                </button>
+                            <% }) %>
+                        </div>
+                    </div>
+                    <div class="cm-overview__block">
+                        <h3 class="cm-overview__heading"><i class="fas fa-file-circle-plus"></i> <%= __('admin_content_group_registration') %></h3>
+                        <div class="cm-overview__grid">
+                            <button type="button" class="cm-overview-card" data-panel="needs">
+                                <span class="cm-overview-card__icon cm-overview-card__icon--green"><i class="fas fa-list-check"></i></span>
+                                <span class="cm-overview-card__text"><strong><%= __('admin_settings_needs_label') %></strong><small><%= __('admin_settings_needs_desc') %></small></span>
+                                <i class="fas fa-chevron-left cm-overview-card__arrow"></i>
+                            </button>
+                            <button type="button" class="cm-overview-card" data-panel="guides">
+                                <span class="cm-overview-card__icon cm-overview-card__icon--navy"><i class="fas fa-book-open"></i></span>
+                                <span class="cm-overview-card__text"><strong><%= __('admin_content_section_guides') %></strong><small><%= __('admin_content_section_guides_desc') %></small></span>
+                                <i class="fas fa-chevron-left cm-overview-card__arrow"></i>
+                            </button>
+                            <button type="button" class="cm-overview-card" data-panel="stories">
+                                <span class="cm-overview-card__icon cm-overview-card__icon--purple"><i class="fas fa-pen-fancy"></i></span>
+                                <span class="cm-overview-card__text"><strong><%= __('admin_content_section_stories') %></strong><small><%= __('admin_settings_registration_story_examples') %></small></span>
+                                <i class="fas fa-chevron-left cm-overview-card__arrow"></i>
+                            </button>
+                            <button type="button" class="cm-overview-card" data-panel="safety">
+                                <span class="cm-overview-card__icon cm-overview-card__icon--danger"><i class="fas fa-shield-halved"></i></span>
+                                <span class="cm-overview-card__text"><strong><%= __('admin_settings_registration_forbidden_words') %></strong><small><%= __('admin_content_section_safety_desc') %></small></span>
+                                <i class="fas fa-chevron-left cm-overview-card__arrow"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <%- include('../../partials/admin-site-content-panels') %>
+
+            <section class="content-mgmt-section" data-panel="needs" id="panel-needs" hidden>
+                <header class="content-mgmt-section__head content-mgmt-section__head--green">
+                    <div class="content-mgmt-section__icon"><i class="fas fa-list-check"></i></div>
+                    <div>
+                        <h2 class="font-cairo content-mgmt-section__title"><%= __('admin_settings_needs_label') %></h2>
+                        <p class="content-mgmt-section__desc"><%= __('admin_settings_needs_desc') %></p>
+                    </div>
+                </header>
+                <div class="content-mgmt-section__body">
+                    <label class="content-mgmt-label" for="case_needs"><%= __('admin_settings_needs_input_label') %></label>
+                    <input type="text" id="case_needs" name="case_needs" class="form-input content-mgmt-input"
+                           value="<%= content.case_needs %>"
+                           placeholder="<%= __('admin_settings_needs_placeholder') %>" required>
+                    <div class="content-mgmt-tip content-mgmt-tip--green">
+                        <i class="fas fa-circle-info"></i>
+                        <span><%= __('admin_settings_needs_info') %></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-mgmt-section" data-panel="guides" id="panel-guides" hidden>
+                <header class="content-mgmt-section__head content-mgmt-section__head--navy">
+                    <div class="content-mgmt-section__icon"><i class="fas fa-book-open"></i></div>
+                    <div>
+                        <h2 class="font-cairo content-mgmt-section__title"><%= __('admin_content_section_guides') %></h2>
+                        <p class="content-mgmt-section__desc"><%= __('admin_content_section_guides_desc') %></p>
+                    </div>
+                </header>
+                <div class="content-mgmt-section__body content-mgmt-section__body--grid">
+                    <div>
+                        <label class="content-mgmt-label" for="registration_guide_ar"><%= __('admin_settings_registration_guide_ar') %></label>
+                        <textarea id="registration_guide_ar" name="registration_guide_ar" class="form-input content-mgmt-textarea" rows="10"><%= content.registration_guide_ar %></textarea>
+                    </div>
+                    <div>
+                        <label class="content-mgmt-label" for="registration_guide_en"><%= __('admin_settings_registration_guide_en') %></label>
+                        <textarea id="registration_guide_en" name="registration_guide_en" class="form-input content-mgmt-textarea" rows="10"><%= content.registration_guide_en %></textarea>
+                    </div>
+                    <div class="content-mgmt-section__full">
+                        <label class="content-mgmt-label" for="case_template_desc_ar"><%= __('admin_settings_registration_template_desc') %></label>
+                        <textarea id="case_template_desc_ar" name="case_template_desc_ar" class="form-input content-mgmt-textarea" rows="4"><%= content.case_template_desc_ar %></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-mgmt-section" data-panel="stories" id="panel-stories" hidden>
+                <header class="content-mgmt-section__head content-mgmt-section__head--purple">
+                    <div class="content-mgmt-section__icon"><i class="fas fa-pen-fancy"></i></div>
+                    <div>
+                        <h2 class="font-cairo content-mgmt-section__title"><%= __('admin_content_section_stories') %></h2>
+                        <p class="content-mgmt-section__desc"><%= __('admin_settings_registration_story_examples') %></p>
+                    </div>
+                </header>
+                <div class="content-mgmt-section__body">
+                    <label class="content-mgmt-label" for="case_story_examples_ar"><%= __('admin_settings_registration_story_examples') %></label>
+                    <textarea id="case_story_examples_ar" name="case_story_examples_ar" class="form-input content-mgmt-textarea content-mgmt-textarea--large" rows="18"><%= content.case_story_examples_ar %></textarea>
+                    <div class="content-mgmt-tip content-mgmt-tip--purple">
+                        <i class="fas fa-lightbulb"></i>
+                        <span><%= __('admin_content_stories_hint') %></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-mgmt-section" data-panel="safety" id="panel-safety" hidden>
+                <header class="content-mgmt-section__head content-mgmt-section__head--danger">
+                    <div class="content-mgmt-section__icon"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <h2 class="font-cairo content-mgmt-section__title"><%= __('admin_settings_registration_forbidden_words') %></h2>
+                        <p class="content-mgmt-section__desc"><%= __('admin_content_section_safety_desc') %></p>
+                    </div>
+                </header>
+                <div class="content-mgmt-section__body">
+                    <label class="content-mgmt-label" for="forbidden_words"><%= __('admin_settings_registration_forbidden_words') %></label>
+                    <textarea id="forbidden_words" name="forbidden_words" class="form-input content-mgmt-textarea" rows="8"
+                              placeholder="<%= __('admin_settings_registration_forbidden_words_placeholder') %>"><%= content.forbidden_words %></textarea>
+                    <div class="content-mgmt-tip content-mgmt-tip--danger">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span><%= __('admin_settings_registration_forbidden_words_info') %></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="content-mgmt-savebar">
+        <div class="content-mgmt-savebar__hint">
+            <i class="fas fa-circle-check"></i>
+            <span><%= __('admin_content_save_hint') %></span>
+        </div>
+        <button type="submit" class="btn-lux btn-lux-primary content-mgmt-savebar__btn">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <%= __('admin_content_save_btn') %>
+        </button>
+    </div>
+</form>
+
+<style>
+    .cm-hero {
+        position: relative;
+        margin-bottom: 20px;
+        border-radius: 22px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #002661 0%, #014a2e 48%, #00A544 100%);
+        color: #fff;
+        box-shadow: 0 16px 40px rgba(0, 38, 97, 0.18);
+    }
+    .cm-hero__glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.16), transparent 40%);
+        pointer-events: none;
+    }
+    .cm-hero__inner { position: relative; padding: 28px 28px 24px; }
+    .cm-hero__badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 12px; border-radius: 999px;
+        background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.2);
+        font-size: 0.76rem; font-weight: 800; margin-bottom: 10px;
+    }
+    .cm-hero__title { margin: 0 0 8px; font-size: clamp(1.4rem, 2.5vw, 1.85rem); font-weight: 900; }
+    .cm-hero__desc { margin: 0; max-width: 640px; color: rgba(255,255,255,0.82); font-size: 0.9rem; line-height: 1.65; }
+
+    .cm-form { margin-bottom: 24px; }
+    .cm-dashboard {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .cm-sidebar {
+        position: sticky;
+        top: 88px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 14px;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        box-shadow: 0 8px 24px rgba(0, 38, 97, 0.05);
+        max-height: calc(100vh - 110px);
+        overflow-y: auto;
+    }
+    .cm-sidebar__group {
+        margin: 12px 10px 4px;
+        font-size: 0.68rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+    }
+    .cm-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: #475569;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .cm-nav-item i { width: 18px; text-align: center; flex-shrink: 0; opacity: 0.75; }
+    .cm-nav-item:hover { background: #f1f5f9; color: var(--primary); }
+    .cm-nav-item.is-active {
+        background: linear-gradient(135deg, rgba(0, 165, 68, 0.12), rgba(0, 38, 97, 0.06));
+        color: var(--primary);
+        box-shadow: inset 3px 0 0 var(--secondary);
+    }
+    [dir="rtl"] .cm-nav-item.is-active { box-shadow: inset -3px 0 0 var(--secondary); }
+
+    .cm-main { min-width: 0; }
+    .content-mgmt-section {
+        background: #fff;
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(2, 26, 15, 0.04);
+    }
+    .content-mgmt-section[hidden] { display: none !important; }
+    .content-mgmt-section__head {
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: 20px 22px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .content-mgmt-section__head--green { background: linear-gradient(135deg, #f0fdf4, #fff); }
+    .content-mgmt-section__head--navy { background: linear-gradient(135deg, #eff6ff, #fff); }
+    .content-mgmt-section__head--purple { background: linear-gradient(135deg, #f5f3ff, #fff); }
+    .content-mgmt-section__head--danger { background: linear-gradient(135deg, #fef2f2, #fff); }
+    .content-mgmt-section__icon {
+        width: 44px; height: 44px; border-radius: 13px;
+        display: flex; align-items: center; justify-content: center;
+        background: #fff; border: 1px solid rgba(0, 38, 97, 0.08);
+        color: var(--primary); flex-shrink: 0;
+    }
+    .content-mgmt-section__title { margin: 0 0 4px; font-size: 1.1rem; font-weight: 900; color: var(--primary); }
+    .content-mgmt-section__desc { margin: 0; font-size: 0.84rem; color: #64748b; line-height: 1.55; }
+    .content-mgmt-section__body { padding: 20px 22px 22px; }
+    .content-mgmt-section__body--grid {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+    }
+    .content-mgmt-section__body--fields {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+    }
+    .content-mgmt-section__full { grid-column: 1 / -1; }
+    .content-mgmt-field--bilingual { grid-column: 1 / -1; }
+    .content-mgmt-bilingual-grid {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    }
+    .content-mgmt-lang-tag {
+        display: inline-block; margin-bottom: 6px;
+        font-size: 0.7rem; font-weight: 800; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .content-mgmt-label { display: block; margin-bottom: 8px; font-weight: 800; color: var(--primary); font-size: 0.88rem; }
+    .content-mgmt-input, .content-mgmt-textarea { width: 100%; font-size: 0.93rem; line-height: 1.6; }
+    .content-mgmt-textarea--large { min-height: 360px; font-family: 'Tajawal', 'Cairo', sans-serif; }
+    .content-mgmt-tip {
+        margin-top: 12px; padding: 11px 13px; border-radius: 11px;
+        display: flex; gap: 9px; align-items: flex-start;
+        font-size: 0.8rem; line-height: 1.5;
+    }
+    .content-mgmt-tip--green { background: #f0fdf4; border: 1px dashed #86efac; color: #14532d; }
+    .content-mgmt-tip--purple { background: #f5f3ff; border: 1px dashed #c4b5fd; color: #5b21b6; }
+    .content-mgmt-tip--danger { background: #fef2f2; border: 1px dashed #fca5a5; color: #7f1d1d; }
+
+    .cm-overview { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 24px; }
+    .cm-overview__heading {
+        margin: 0 0 12px;
+        font-size: 0.92rem; font-weight: 900; color: var(--primary);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .cm-overview__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+    }
+    .cm-overview-card {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        background: #f8fafc;
+        cursor: pointer;
+        text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+        transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cm-overview-card:hover {
+        border-color: rgba(0, 165, 68, 0.35);
+        box-shadow: 0 8px 20px rgba(0, 165, 68, 0.08);
+        transform: translateY(-2px);
+    }
+    .cm-overview-card__icon {
+        width: 40px; height: 40px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        background: #fff; flex-shrink: 0; font-size: 0.95rem;
+    }
+    .cm-overview-card__icon--green { color: #016630; }
+    .cm-overview-card__icon--navy { color: #1e40af; }
+    .cm-overview-card__icon--purple { color: #7c3aed; }
+    .cm-overview-card__icon--danger { color: #b91c1c; }
+    .cm-overview-card__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .cm-overview-card__text strong { font-size: 0.86rem; color: var(--primary); font-weight: 800; }
+    .cm-overview-card__text small { font-size: 0.72rem; color: #64748b; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .cm-overview-card__arrow { color: #cbd5e1; font-size: 0.75rem; flex-shrink: 0; }
+    [dir="rtl"] .cm-overview-card__arrow { transform: scaleX(-1); }
+
+    .content-mgmt-savebar {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 14px; flex-wrap: wrap;
+        margin-top: 18px;
+        padding: 16px 20px;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid rgba(0, 38, 97, 0.1);
+        box-shadow: 0 4px 16px rgba(0, 38, 97, 0.05);
+    }
+    .content-mgmt-savebar__hint { display: flex; align-items: center; gap: 9px; color: #64748b; font-size: 0.84rem; font-weight: 600; }
+    .content-mgmt-savebar__hint i { color: var(--secondary); }
+    .content-mgmt-savebar__btn {
+        padding: 12px 26px !important; border-radius: 13px !important;
+        font-weight: 800; display: inline-flex; align-items: center; gap: 9px;
+    }
+
+    @media (max-width: 960px) {
+        .cm-dashboard { grid-template-columns: 1fr; }
+        .cm-sidebar {
+            position: static;
+            max-height: none;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .cm-sidebar__group { width: 100%; margin: 8px 6px 2px; }
+        .cm-nav-item { width: auto; flex: 1 1 auto; min-width: calc(50% - 6px); justify-content: center; font-size: 0.76rem; padding: 8px 10px; }
+        .cm-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .content-mgmt-section__body--grid,
+        .content-mgmt-section__body--fields,
+        .content-mgmt-bilingual-grid { grid-template-columns: 1fr; }
+        .cm-overview__grid { grid-template-columns: 1fr; }
+        .content-mgmt-savebar { flex-direction: column; align-items: stretch; }
+        .content-mgmt-savebar__btn { width: 100%; justify-content: center; }
+    }
+</style>
+
+<script>
+(function () {
+    const PANEL_KEY = 'cm_active_panel';
+    const navItems = document.querySelectorAll('.cm-nav-item, .cm-overview-card');
+    const panels = document.querySelectorAll('.content-mgmt-section[data-panel]');
+
+    function showPanel(id) {
+        panels.forEach((p) => {
+            const active = p.dataset.panel === id;
+            p.hidden = !active;
+            p.classList.toggle('is-active', active);
+        });
+        document.querySelectorAll('.cm-nav-item').forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.panel === id);
+        });
+        try { sessionStorage.setItem(PANEL_KEY, id); } catch (_) {}
+        if (history.replaceState) {
+            history.replaceState(null, '', id === 'overview' ? location.pathname : '#panel-' + id);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    navItems.forEach((btn) => {
+        btn.addEventListener('click', () => showPanel(btn.dataset.panel));
+    });
+
+    const hash = location.hash.replace('#panel-', '');
+    const stored = (() => { try { return sessionStorage.getItem(PANEL_KEY); } catch (_) { return null; } })();
+    const initial = hash || stored || 'overview';
+    const exists = document.querySelector('[data-panel="' + initial + '"]');
+    showPanel(exists ? initial : 'overview');
+})();
+</script>
+
+<%- include('../../partials/admin-layout-bottom') %>

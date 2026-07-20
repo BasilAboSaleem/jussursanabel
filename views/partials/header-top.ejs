@@ -5,23 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- SEO & Meta Tags -->
-    <meta name="description" content="<%= locals.metaDescription || __('meta_default_description') %>">
-    <meta name="keywords" content="<%= __('meta_default_keywords') %>">
+    <meta name="description" content="<%= locals.metaDescription || siteText('meta_default_description') %>">
+    <meta name="keywords" content="<%= siteText('meta_default_keywords') %>">
     <meta name="author" content="نَمير | Nameer">
     <!-- Open Graph (Facebook, WhatsApp, etc.) -->
-    <meta property="og:title" content="<%= title %> — <%= __('hero_title') %>">
-    <meta property="og:description" content="<%= locals.metaDescription || __('hero_desc') %>">
+    <meta property="og:title" content="<%= title %> — <%= siteText('hero_title') %>">
+    <meta property="og:description" content="<%= locals.metaDescription || siteText('hero_desc') %>">
     <meta property="og:image" content="<%= locals.ogImage || asset('/assets/images/logo.png') %>">
     <meta property="og:url" content="<%= locals.fullUrl || '' %>">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="<%= locals.currentLocale === 'en' ? 'en_US' : 'ar_AR' %>">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= title %> — <%= __('hero_title') %>">
-    <meta name="twitter:description" content="<%= locals.metaDescription || __('hero_desc') %>">
+    <meta name="twitter:title" content="<%= title %> — <%= siteText('hero_title') %>">
+    <meta name="twitter:description" content="<%= locals.metaDescription || siteText('hero_desc') %>">
     <meta name="twitter:image" content="<%= locals.ogImage || asset('/assets/images/logo.png') %>">
 
-    <title><%= title %> — <%= __('hero_title') %></title>
+    <title><%= title %> — <%= siteText('hero_title') %></title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

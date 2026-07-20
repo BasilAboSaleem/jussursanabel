@@ -1,13 +1,13 @@
 <%- include('../partials/header-top') %>
 
 <main class="nm-transparency-page">
-    <section class="nm-page-hero" aria-label="<%= __('navbar_transparency') %>">
+    <section class="nm-page-hero" aria-label="<%= siteText('navbar_transparency') %>">
         <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
         <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= __('transparency_hero_badge') %></p>
-            <h1 class="nm-page-hero__title"><%= __('transparency_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= __('transparency_hero_desc') %></p>
+            <p class="nm-page-hero__eyebrow"><%= siteText('transparency_hero_badge') %></p>
+            <h1 class="nm-page-hero__title"><%= siteText('transparency_hero_title') %></h1>
+            <p class="nm-page-hero__desc"><%= siteText('transparency_hero_desc') %></p>
         </div>
         <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#ffffff"/>
@@ -15,15 +15,15 @@
     </section>
 
     <!-- Impact metrics -->
-    <section class="nm-transparency-stats" aria-label="<%= __('transparency_hero_title') %>">
+    <section class="nm-transparency-stats" aria-label="<%= siteText('transparency_hero_title') %>">
         <div class="container">
             <div class="nm-transparency-stats__grid">
                 <%
                     const stats = [
-                        { target: 100, label: __('transparency_stat_1'), icon: 'fa-hand-holding-heart', suffix: '%' },
-                        { target: 1400, label: __('transparency_stat_2'), icon: 'fa-clipboard-check', suffix: '+' },
-                        { target: 24, label: __('transparency_stat_3'), icon: 'fa-bolt', suffix: '+' },
-                        { target: 98, label: __('transparency_stat_4'), icon: 'fa-face-smile-beam', suffix: '%' }
+                        { target: parseInt(siteText('transparency_stat_value_1'), 10) || 100, label: siteText('transparency_stat_1'), icon: 'fa-hand-holding-heart', suffix: '%' },
+                        { target: parseInt(siteText('transparency_stat_value_2'), 10) || 1400, label: siteText('transparency_stat_2'), icon: 'fa-clipboard-check', suffix: '+' },
+                        { target: parseInt(siteText('transparency_stat_value_3'), 10) || 24, label: siteText('transparency_stat_3'), icon: 'fa-bolt', suffix: '+' },
+                        { target: parseInt(siteText('transparency_stat_value_4'), 10) || 98, label: siteText('transparency_stat_4'), icon: 'fa-face-smile-beam', suffix: '%' }
                     ];
                     stats.forEach((s, idx) => {
                 %>
@@ -41,17 +41,17 @@
     <section class="nm-transparency-journey">
         <div class="container">
             <header class="nm-transparency-head reveal-on-scroll">
-                <span class="nm-transparency-head__badge"><i class="fas fa-route"></i> <%= __('transparency_journey_badge') %></span>
-                <h2 class="nm-transparency-head__title"><%= __('transparency_journey_title') %></h2>
-                <p class="nm-transparency-head__desc"><%= __('transparency_journey_desc') %></p>
+                <span class="nm-transparency-head__badge"><i class="fas fa-route"></i> <%= siteText('transparency_journey_badge') %></span>
+                <h2 class="nm-transparency-head__title"><%= siteText('transparency_journey_title') %></h2>
+                <p class="nm-transparency-head__desc"><%= siteText('transparency_journey_desc') %></p>
             </header>
 
             <ol class="nm-transparency-steps">
                 <%
                     const steps = [
-                        { icon: 'fa-magnifying-glass-location', title: __('transparency_step_1_title'), desc: __('transparency_step_1_desc') },
-                        { icon: 'fa-comments', title: __('transparency_step_2_title'), desc: __('transparency_step_2_desc') },
-                        { icon: 'fa-file-circle-check', title: __('transparency_step_3_title'), desc: __('transparency_step_3_desc') }
+                        { icon: 'fa-magnifying-glass-location', title: siteText('transparency_step_1_title'), desc: siteText('transparency_step_1_desc') },
+                        { icon: 'fa-comments', title: siteText('transparency_step_2_title'), desc: siteText('transparency_step_2_desc') },
+                        { icon: 'fa-file-circle-check', title: siteText('transparency_step_3_title'), desc: siteText('transparency_step_3_desc') }
                     ];
                     steps.forEach((step, idx) => {
                 %>
@@ -70,8 +70,8 @@
     <section class="nm-transparency-reports" id="reports">
         <div class="container">
             <header class="nm-transparency-head reveal-on-scroll">
-                <span class="nm-transparency-head__badge"><i class="fas fa-file-invoice-dollar"></i> <%= __('transparency_reports_badge') %></span>
-                <h2 class="nm-transparency-head__title"><%= __('transparency_reports_title') %></h2>
+                <span class="nm-transparency-head__badge"><i class="fas fa-file-invoice-dollar"></i> <%= siteText('transparency_reports_badge') %></span>
+                <h2 class="nm-transparency-head__title"><%= siteText('transparency_reports_title') %></h2>
             </header>
 
             <div class="nm-transparency-reports__grid">
@@ -101,17 +101,17 @@
         <div class="container">
             <div class="nm-transparency-trust__panel reveal-on-scroll">
                 <div class="nm-transparency-trust__copy">
-                    <h2 class="nm-transparency-trust__title"><%= __('transparency_trust_title') %></h2>
-                    <p class="nm-transparency-trust__desc"><%= __('transparency_trust_desc') %></p>
+                    <h2 class="nm-transparency-trust__title"><%= siteText('transparency_trust_title') %></h2>
+                    <p class="nm-transparency-trust__desc"><%= siteText('transparency_trust_desc') %></p>
                     <p class="nm-transparency-trust__policy">
                         <i class="fas fa-user-shield"></i>
-                        <span><%= __('transparency_trust_policy') %></span>
+                        <span><%= siteText('transparency_trust_policy') %></span>
                     </p>
                 </div>
                 <aside class="nm-transparency-trust__aside">
                     <h3 class="nm-transparency-trust__aside-title"><%= __('transparency_faq_title') %></h3>
                     <p class="nm-transparency-trust__aside-desc"><%= __('transparency_faq_desc') %></p>
-                    <a href="/contact" class="nm-transparency-trust__cta"><%= __('about_cta_btn_contact') %></a>
+                    <a href="/contact" class="nm-transparency-trust__cta"><%= siteText('about_cta_btn_contact') %></a>
                 </aside>
             </div>
         </div>

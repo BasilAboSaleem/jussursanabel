@@ -1,7 +1,8 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const settingsController = require('../controllers/settingsController');
+const contentController = require('../controllers/contentController');
 const messageController = require('../controllers/messageController');
 const notificationController = require('../controllers/notificationController');
 const { protect, restrictTo, viewOnly, mediaRouteGuard } = require('../middlewares/auth');
@@ -54,6 +55,8 @@ router.get('/donations-ledger/export', restrictTo('super_admin'), adminControlle
 // System Settings (Super Admin Only)
 router.get('/settings', restrictTo('super_admin'), settingsController.getSettings);
 router.post('/settings/update', restrictTo('super_admin'), settingsController.updateSettings);
+router.get('/content-management', restrictTo('super_admin'), contentController.getContentManagement);
+router.post('/content-management/update', restrictTo('super_admin'), contentController.updateContentManagement);
 router.get('/password-recovery', restrictTo('super_admin'), adminController.getPasswordRecovery);
 router.post('/users/:id/temporary-password', restrictTo('super_admin'), adminController.issueTemporaryPassword);
 

@@ -1,0 +1,177 @@
+<% const wf = impactWorkflowStats || { pending: 0, approved: 0, rejected: 0, total: 0 }; %>
+<div class="impact-workflow" aria-label="<%= __('admin_impact_workflow_title') %>">
+    <div class="impact-workflow__track">
+        <div class="impact-workflow__step<%= wf.total > 0 ? ' is-done' : '' %>">
+            <div class="impact-workflow__node"><i class="fas fa-upload"></i></div>
+            <div class="impact-workflow__copy">
+                <strong><%= __('admin_impact_workflow_step_submit') %></strong>
+                <span><%= __('admin_impact_workflow_step_submit_desc') %></span>
+            </div>
+        </div>
+        <div class="impact-workflow__connector<%= wf.pending > 0 ? ' is-active' : (wf.approved + wf.rejected > 0 ? ' is-done' : '') %>"></div>
+        <div class="impact-workflow__step<%= wf.pending > 0 ? ' is-active' : (wf.approved + wf.rejected > 0 ? ' is-done' : '') %>">
+            <div class="impact-workflow__node">
+                <i class="fas fa-magnifying-glass"></i>
+                <% if (wf.pending > 0) { %><span class="impact-workflow__badge"><%= wf.pending %></span><% } %>
+            </div>
+            <div class="impact-workflow__copy">
+                <strong><%= __('admin_impact_workflow_step_review') %></strong>
+                <span><%= __('admin_impact_workflow_step_review_desc') %></span>
+            </div>
+        </div>
+        <div class="impact-workflow__connector<%= wf.approved + wf.rejected > 0 ? ' is-done' : '' %>"></div>
+        <div class="impact-workflow__step<%= wf.approved > 0 || wf.rejected > 0 ? ' is-done' : '' %>">
+            <div class="impact-workflow__node"><i class="fas fa-scale-balanced"></i></div>
+            <div class="impact-workflow__copy">
+                <strong><%= __('admin_impact_workflow_step_decision') %></strong>
+                <span><%= __('admin_impact_workflow_step_decision_desc') %></span>
+            </div>
+        </div>
+        <div class="impact-workflow__connector<%= wf.approved > 0 ? ' is-done' : '' %>"></div>
+        <div class="impact-workflow__step<%= wf.approved > 0 ? ' is-done' : '' %>">
+            <div class="impact-workflow__node"><i class="fas fa-bullhorn"></i></div>
+            <div class="impact-workflow__copy">
+                <strong><%= __('admin_impact_workflow_step_publish') %></strong>
+                <span><%= __('admin_impact_workflow_step_publish_desc') %></span>
+            </div>
+        </div>
+    </div>
+    <div class="impact-workflow__stats">
+        <div class="impact-workflow__stat impact-workflow__stat--pending">
+            <span class="impact-workflow__stat-value"><%= wf.pending %></span>
+            <span class="impact-workflow__stat-label"><%= __('admin_analytics_impact_pending_label') %></span>
+        </div>
+        <div class="impact-workflow__stat impact-workflow__stat--approved">
+            <span class="impact-workflow__stat-value"><%= wf.approved %></span>
+            <span class="impact-workflow__stat-label"><%= __('admin_impact_workflow_stat_approved') %></span>
+        </div>
+        <div class="impact-workflow__stat impact-workflow__stat--rejected">
+            <span class="impact-workflow__stat-value"><%= wf.rejected %></span>
+            <span class="impact-workflow__stat-label"><%= __('admin_impact_workflow_stat_rejected') %></span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .impact-workflow { margin-bottom: 0; }
+    .impact-workflow__track {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+        gap: 8px;
+        align-items: start;
+        margin-bottom: 16px;
+    }
+    .impact-workflow__step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+        min-width: 0;
+    }
+    .impact-workflow__node {
+        position: relative;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        color: #94a3b8;
+        border: 2px solid #e2e8f0;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    .impact-workflow__step.is-active .impact-workflow__node {
+        background: linear-gradient(135deg, #00A544, #016630);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 8px 20px rgba(0, 165, 68, 0.28);
+    }
+    .impact-workflow__step.is-done .impact-workflow__node {
+        background: #f0fdf4;
+        color: #016630;
+        border-color: #86efac;
+    }
+    .impact-workflow__badge {
+        position: absolute;
+        top: -6px;
+        <%= langDir === 'rtl' ? 'left' : 'right' %>: -6px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: #ea580c;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+    }
+    .impact-workflow__copy strong {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 900;
+        color: var(--primary);
+        margin-bottom: 3px;
+    }
+    .impact-workflow__copy span {
+        display: block;
+        font-size: 0.68rem;
+        line-height: 1.45;
+        color: #94a3b8;
+    }
+    .impact-workflow__step.is-active .impact-workflow__copy strong { color: #016630; }
+    .impact-workflow__connector {
+        height: 3px;
+        margin-top: 22px;
+        border-radius: 999px;
+        background: #e2e8f0;
+    }
+    .impact-workflow__connector.is-active { background: linear-gradient(90deg, #86efac, #00A544); }
+    .impact-workflow__connector.is-done { background: #86efac; }
+    .impact-workflow__stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .impact-workflow__stat {
+        padding: 12px 14px;
+        border-radius: 14px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+    }
+    .impact-workflow__stat--pending { border-color: rgba(234, 88, 12, 0.25); background: #fff7ed; }
+    .impact-workflow__stat--approved { border-color: rgba(0, 165, 68, 0.2); background: #f0fdf4; }
+    .impact-workflow__stat--rejected { border-color: rgba(239, 68, 68, 0.2); background: #fef2f2; }
+    .impact-workflow__stat-value {
+        display: block;
+        font-size: 1.35rem;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--primary);
+    }
+    .impact-workflow__stat--pending .impact-workflow__stat-value { color: #ea580c; }
+    .impact-workflow__stat--approved .impact-workflow__stat-value { color: #016630; }
+    .impact-workflow__stat--rejected .impact-workflow__stat-value { color: #dc2626; }
+    .impact-workflow__stat-label {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #64748b;
+    }
+    @media (max-width: 900px) {
+        .impact-workflow__track { grid-template-columns: 1fr; gap: 0; }
+        .impact-workflow__connector { display: none; }
+        .impact-workflow__step {
+            flex-direction: row;
+            text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+        }
+        .impact-workflow__stats { grid-template-columns: 1fr; }
+    }
+</style>

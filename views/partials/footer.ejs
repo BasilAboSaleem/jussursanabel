@@ -3,44 +3,44 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 60px; margin-bottom: 80px;">
             <div>
                 <a href="/" style="color: white; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; text-decoration: none;">
-                    <img src="/logo-senabil-white.png" alt="<%= __('hero_title') %>" style="height: 56px; width: auto;">
+                    <img src="/logo-senabil-white.png" alt="<%= siteText('hero_title') %>" style="height: 56px; width: auto;">
                     <span style="display: flex; flex-direction: column; gap: 2px;">
-                        <strong style="font-weight: 900; font-size: 1.45rem; color: #fff;"><%= __('hero_title') %></strong>
-                        <small style="font-size: 0.72rem; font-weight: 700; color: #69FF97;"><%= __('brand_affiliation_short') %></small>
+                        <strong style="font-weight: 900; font-size: 1.45rem; color: #fff;"><%= siteText('hero_title') %></strong>
+                        <small style="font-size: 0.72rem; font-weight: 700; color: #69FF97;"><%= siteText('brand_affiliation_short') %></small>
                     </span>
                 </a>
                 <p style="line-height: 1.85; font-size: 1rem; color: rgba(255,255,255,0.55); margin-bottom: 35px;">
-                    <%= __('footer_desc') %>
+                    <%= siteText('footer_desc') %>
                 </p>
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <a href="https://www.facebook.com/senabilcharity?mibextid=wwXIfr&rdid=JHsWhvYJXH3ZokBr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1AraaUdVRC%2F%3Fmibextid%3DwwXIfr#" class="social-btn-lux" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #1877f2;"></i></a>
-                    <a href="https://www.instagram.com/senabilcharity?utm_source=ig_web_button_share_sheet&igsh=MWhrZmxzNnNtdjY3cQ%3D%3D" class="social-btn-lux" aria-label="Instagram"><i class="fab fa-instagram" style="color: #e4405f;"></i></a>
-                    <a href="https://www.youtube.com/@senabilcharity?themeRefresh=1" class="social-btn-lux" aria-label="YouTube"><i class="fab fa-youtube" style="color: #ff0000;"></i></a>
-                    <a href="https://wa.me/970593377319" class="social-btn-lux" aria-label="WhatsApp"><i class="fab fa-whatsapp" style="color: #25d366;"></i></a>
-                    <a href="https://x.com/senabilcharity?t=LzwyuxUTObXuD2N1EgKrSg&s=08" class="social-btn-lux" aria-label="Twitter"><i class="fab fa-twitter" style="color: #1da1f2;"></i></a>
-                    <a href="https://www.tiktok.com/@senabilcharity?_t=ZS-8yrWv3qp8QS&_r=1" class="social-btn-lux" aria-label="TikTok"><i class="fab fa-tiktok" style="color: #ffffff;"></i></a>
+                    <a href="<%= siteText('social_facebook') %>" class="social-btn-lux" aria-label="Facebook" target="_blank" rel="noopener"><i class="fab fa-facebook-f" style="color: #1877f2;"></i></a>
+                    <a href="<%= siteText('social_instagram') %>" class="social-btn-lux" aria-label="Instagram" target="_blank" rel="noopener"><i class="fab fa-instagram" style="color: #e4405f;"></i></a>
+                    <a href="<%= siteText('social_youtube') %>" class="social-btn-lux" aria-label="YouTube" target="_blank" rel="noopener"><i class="fab fa-youtube" style="color: #ff0000;"></i></a>
+                    <a href="<%= siteText('social_whatsapp') %>" class="social-btn-lux" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fab fa-whatsapp" style="color: #25d366;"></i></a>
+                    <a href="<%= siteText('social_twitter') %>" class="social-btn-lux" aria-label="Twitter" target="_blank" rel="noopener"><i class="fab fa-twitter" style="color: #1da1f2;"></i></a>
+                    <a href="<%= siteText('social_tiktok') %>" class="social-btn-lux" aria-label="TikTok" target="_blank" rel="noopener"><i class="fab fa-tiktok" style="color: #ffffff;"></i></a>
                 </div>
             </div>
 
             <div>
                 <h4 class="font-cairo" style="color: white; margin-bottom: 35px; font-size: 1.25rem; font-weight: 800; position: relative; padding-bottom: 12px;">
-                    <%= __('footer_links_title') %>
+                    <%= siteText('footer_links_title') %>
                     <div style="position: absolute; bottom: 0; <%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 0; width: 40px; height: 3px; background: var(--secondary); border-radius: 10px;"></div>
                 </h4>
                 <ul style="list-style: none; padding: 0; display: grid; gap: 18px;">
-                    <li><a href="/about" class="footer-link-lux"><%= __('about_us') %></a></li>
-                    <li><a href="/cases" class="footer-link-lux"><%= __('footer_all_cases') %></a></li>
-                    <li><a href="/cases?type=orphan" class="footer-link-lux"><%= __('footer_orphan_sponsorship') %></a></li>
-                    <li><a href="/cases?type=family" class="footer-link-lux"><%= __('footer_family_support') %></a></li>
-                    <li><a href="/transparency" class="footer-link-lux"><%= __('navbar_transparency') %></a></li>
-                    <li><a href="/about#faq" class="footer-link-lux"><%= __('navbar_faq') %></a></li>
-                    <li><a href="/contact" class="footer-link-lux"><%= __('navbar_contact') %></a></li>
+                    <li><a href="/about" class="footer-link-lux"><%= siteText('about_us') %></a></li>
+                    <li><a href="/cases" class="footer-link-lux"><%= siteText('footer_all_cases') %></a></li>
+                    <li><a href="/cases?type=orphan" class="footer-link-lux"><%= siteText('footer_orphan_sponsorship') %></a></li>
+                    <li><a href="/cases?type=family" class="footer-link-lux"><%= siteText('footer_family_support') %></a></li>
+                    <li><a href="/transparency" class="footer-link-lux"><%= siteText('navbar_transparency') %></a></li>
+                    <li><a href="/about#faq" class="footer-link-lux"><%= siteText('navbar_faq') %></a></li>
+                    <li><a href="/contact" class="footer-link-lux"><%= siteText('navbar_contact') %></a></li>
                 </ul>
             </div>
 
             <div>
                 <h4 class="font-cairo" style="color: white; margin-bottom: 35px; font-size: 1.25rem; font-weight: 800; position: relative; padding-bottom: 12px;">
-                    <%= __('footer_contact_title') %>
+                    <%= siteText('footer_contact_title') %>
                     <div style="position: absolute; bottom: 0; <%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 0; width: 40px; height: 3px; background: var(--secondary); border-radius: 10px;"></div>
                 </h4>
                 <div style="display: grid; gap: 25px;">
@@ -48,23 +48,23 @@
                         <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fas fa-location-dot" style="color: var(--secondary); font-size: 0.9rem;"></i>
                         </div>
-                        <span style="font-size: 0.95rem; line-height: 1.6;"><%= __('footer_location') %></span>
+                        <span style="font-size: 0.95rem; line-height: 1.6;"><%= siteText('footer_location') %></span>
                     </div>
                     <div style="display: flex; gap: 15px; align-items: start;">
                         <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fas fa-envelope" style="color: var(--secondary); font-size: 0.9rem;"></i>
                         </div>
-                        <span style="font-size: 0.95rem;">pal-gaza@senabilcharity.org</span>
+                        <span style="font-size: 0.95rem;"><%= siteText('contact_email') %></span>
                     </div>
                     <div style="display: flex; gap: 15px; align-items: start;">
                         <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fab fa-whatsapp" style="color: #25d366; font-size: 0.95rem;"></i>
                         </div>
-                        <a href="https://wa.me/970593377319" style="font-size: 0.95rem; color: rgba(255,255,255,0.8); direction: ltr; unicode-bidi: bidi-override;">+970593377319</a>
+                        <a href="<%= siteText('social_whatsapp') %>" style="font-size: 0.95rem; color: rgba(255,255,255,0.8); direction: ltr; unicode-bidi: bidi-override;"><%= siteText('contact_whatsapp') %></a>
                     </div>
                     <div style="padding: 25px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border-<%= locals.langDir === 'rtl' ? 'right' : 'left' %>: 3px solid var(--secondary); backdrop-filter: blur(10px);">
-                        <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;"><%= __('footer_working_hours_title') %></p>
-                        <p style="margin: 8px 0 0; color: #fff; font-weight: 800; font-size: 1.05rem;"><%= __('footer_working_hours_val') %></p>
+                        <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;"><%= siteText('footer_working_hours_title') %></p>
+                        <p style="margin: 8px 0 0; color: #fff; font-weight: 800; font-size: 1.05rem;"><%= siteText('footer_working_hours_val') %></p>
                     </div>
                 </div>
             </div>

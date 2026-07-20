@@ -1,13 +1,13 @@
 <%- include('../partials/header-top') %>
 
 <main class="nm-contact-page">
-    <section class="nm-page-hero" aria-label="<%= __('navbar_contact') %>">
+    <section class="nm-page-hero" aria-label="<%= siteText('navbar_contact') %>">
         <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
         <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= __('contact_hero_badge') %></p>
-            <h1 class="nm-page-hero__title"><%= __('contact_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= __('contact_hero_desc') %></p>
+            <p class="nm-page-hero__eyebrow"><%= siteText('contact_hero_badge') %></p>
+            <h1 class="nm-page-hero__title"><%= siteText('contact_hero_title') %></h1>
+            <p class="nm-page-hero__desc"><%= siteText('contact_hero_desc') %></p>
         </div>
         <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#f8fafc"/>
@@ -20,17 +20,17 @@
             <div class="nm-contact-layout">
                 <div class="nm-contact-channels reveal-on-scroll">
                     <header class="nm-contact-head">
-                        <span class="nm-contact-head__badge"><i class="fas fa-envelope"></i> <%= __('contact_channels_badge') %></span>
-                        <h2 class="nm-contact-head__title"><%= __('contact_channels_title') %></h2>
-                        <p class="nm-contact-head__desc"><%= __('contact_channels_desc') %></p>
+                        <span class="nm-contact-head__badge"><i class="fas fa-envelope"></i> <%= siteText('contact_channels_badge') %></span>
+                        <h2 class="nm-contact-head__title"><%= siteText('contact_channels_title') %></h2>
+                        <p class="nm-contact-head__desc"><%= siteText('contact_channels_desc') %></p>
                     </header>
 
                     <div class="nm-contact-channels__list">
-                        <a href="https://wa.me/970599000000" target="_blank" rel="noopener" class="nm-contact-card">
+                        <a href="<%= siteText('social_whatsapp') %>" target="_blank" rel="noopener" class="nm-contact-card">
                             <div class="nm-contact-card__icon nm-contact-card__icon--green"><i class="fab fa-whatsapp"></i></div>
                             <div class="nm-contact-card__text">
-                                <h3><%= __('contact_whatsapp_title') %></h3>
-                                <p><%= __('contact_whatsapp_desc') %></p>
+                                <h3><%= siteText('contact_whatsapp_title') %></h3>
+                                <p><%= siteText('contact_whatsapp_desc') %></p>
                             </div>
                             <i class="fas fa-chevron-left nm-contact-card__arrow"></i>
                         </a>
@@ -38,32 +38,32 @@
                         <div class="nm-contact-card">
                             <div class="nm-contact-card__icon nm-contact-card__icon--navy"><i class="fas fa-envelope-open-text"></i></div>
                             <div class="nm-contact-card__text">
-                                <h3><%= __('contact_email_title') %></h3>
-                                <p>pal-gaza@senabilcharity.org</p>
+                                <h3><%= siteText('contact_email_title') %></h3>
+                                <p><%= siteText('contact_email') %></p>
                             </div>
                         </div>
 
                         <div class="nm-contact-card">
                             <div class="nm-contact-card__icon nm-contact-card__icon--navy"><i class="fas fa-location-dot"></i></div>
                             <div class="nm-contact-card__text">
-                                <h3><%= __('contact_office_title') %></h3>
-                                <p><%= __('contact_office_desc') %></p>
+                                <h3><%= siteText('contact_office_title') %></h3>
+                                <p><%= siteText('contact_office_desc') %></p>
                             </div>
                         </div>
                     </div>
 
                     <div class="nm-contact-social">
-                        <a href="https://www.facebook.com/senabilcharity" class="nm-contact-social__btn" aria-label="Facebook" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.instagram.com/senabilcharity" class="nm-contact-social__btn" aria-label="Instagram" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
-                        <a href="https://x.com/senabilcharity" class="nm-contact-social__btn" aria-label="X" target="_blank" rel="noopener"><i class="fab fa-twitter"></i></a>
-                        <a href="https://www.youtube.com/@senabilcharity" class="nm-contact-social__btn" aria-label="YouTube" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
+                        <a href="<%= siteText('social_facebook') %>" class="nm-contact-social__btn" aria-label="Facebook" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                        <a href="<%= siteText('social_instagram') %>" class="nm-contact-social__btn" aria-label="Instagram" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                        <a href="<%= siteText('social_twitter') %>" class="nm-contact-social__btn" aria-label="X" target="_blank" rel="noopener"><i class="fab fa-twitter"></i></a>
+                        <a href="<%= siteText('social_youtube') %>" class="nm-contact-social__btn" aria-label="YouTube" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
 
                 <div class="nm-contact-form-wrap reveal-on-scroll" style="transition-delay: 0.12s">
                     <div class="nm-contact-form-card">
-                        <h3 class="nm-contact-form-card__title"><%= __('contact_form_title') %></h3>
-                        <p class="nm-contact-form-card__desc"><%= __('contact_form_desc') %></p>
+                        <h3 class="nm-contact-form-card__title"><%= siteText('contact_form_title') %></h3>
+                        <p class="nm-contact-form-card__desc"><%= siteText('contact_form_desc') %></p>
 
                         <form action="/contact" method="POST" class="nm-contact-form">
                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -77,7 +77,7 @@
                             </div>
 
                             <div class="nm-contact-field">
-                                <label for="contact-email"><%= __('contact_email_title') %></label>
+                                <label for="contact-email"><%= siteText('contact_email_title') %></label>
                                 <div class="nm-contact-field__input">
                                     <i class="fas fa-at"></i>
                                     <input id="contact-email" type="email" name="email" placeholder="example@mail.com" required>
@@ -118,8 +118,8 @@
             <div class="nm-contact-map__panel reveal-on-scroll">
                 <div class="nm-contact-map__intro">
                     <div class="nm-contact-map__icon"><i class="fas fa-map-location-dot"></i></div>
-                    <h2 class="nm-contact-map__title"><%= __('contact_map_title') %></h2>
-                    <p class="nm-contact-map__desc"><%= __('contact_map_desc') %></p>
+                    <h2 class="nm-contact-map__title"><%= siteText('contact_map_title') %></h2>
+                    <p class="nm-contact-map__desc"><%= siteText('contact_map_desc') %></p>
                     <span class="nm-contact-map__pin">
                         <i class="fas fa-location-arrow"></i>
                         دير البلح، قطاع غزة، فلسطين
@@ -135,7 +135,7 @@
                         allowfullscreen=""
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"
-                        title="<%= __('contact_map_title') %>">
+                        title="<%= siteText('contact_map_title') %>">
                     </iframe>
                 </div>
 

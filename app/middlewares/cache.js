@@ -8,7 +8,7 @@ let invalidationSubscriber = null;
 /** Exact public paths eligible for early cache (before session/csrf/compression). */
 const EARLY_CACHE_PATHS = {
   "/": 90,
-  "/stories": 120,
+  "/stories": 120, 
   "/contact": 300,
   "/transparency": 300,
   "/cases": 60,
@@ -219,10 +219,39 @@ function pageCache(ttlSeconds = 60) {
   };
 }
 
+function buildPublicSiteCacheKeys() {
+  const paths = ["/", "/about", "/contact", "/transparency", "/cases", "/stories"];
+  const locales = ["ar", "en"];
+  const keys = [];
+  for (const pagePath of paths) {
+    for (const locale of locales) {
+      keys.push(`page:${pagePath}:${locale}`);
+    }
+  }
+  return keys;
+}
+
+async function invalidatePublicSiteCaches() {
+  const keys = buildPublicSiteCacheKeys();
+  deleteMemoryCacheKeys(keys);
+
+  if (!redisEnabled || !redisClient) return keys;
+
+  try {
+    if (keys.length) {
+      await redisClient.del(...keys);
+    }
+    await redisClient.publish(PAGE_CACHE_INVALIDATE_CHANNEL, JSON.stringify(keys));
+  } catch (_) {}
+
+  return keys;
+}
+
 module.exports = {
   pageCache,
   earlyPublicPageCache,
   EARLY_CACHE_PATHS,
   invalidatePublicCaseCaches,
+  invalidatePublicSiteCaches,
   initPageCacheInvalidation,
 };

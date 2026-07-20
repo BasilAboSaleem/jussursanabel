@@ -1,10 +1,10 @@
 <header class="premium-nav" id="premiumNav">
     <a href="/" class="logo-luxury">
-        <img src="/logo-senabil-white.png" alt="<%= __('hero_title') %>" class="nav-logo nav-logo--light">
-        <img src="/logo-senabil-dark.png" alt="<%= __('hero_title') %>" class="nav-logo nav-logo--dark">
+        <img src="/logo-senabil-white.png" alt="<%= siteText('hero_title') %>" class="nav-logo nav-logo--light">
+        <img src="/logo-senabil-dark.png" alt="<%= siteText('hero_title') %>" class="nav-logo nav-logo--dark">
         <span class="logo-text-stack">
-            <strong><%= __('hero_title') %></strong>
-            <small><%= __('brand_affiliation_short') %></small>
+            <strong><%= siteText('hero_title') %></strong>
+            <small><%= siteText('brand_affiliation_short') %></small>
         </span>
     </a>
 
@@ -29,12 +29,12 @@
     </div>
 
     <nav class="nav-links-luxury" id="navLinks">
-        <a href="/" class="nav-link-luxury"><%= __('home') %></a>
-        <a href="/about" class="nav-link-luxury"><%= __('about_us') %></a>
-        <a href="/cases" class="nav-link-luxury"><%= __('cases') %></a>
-        <a href="/transparency" class="nav-link-luxury"><%= __('navbar_transparency') %></a>
-        <a href="/contact" class="nav-link-luxury"><%= __('navbar_contact') %></a>
-        <a href="/about#faq" class="nav-link-luxury"><%= __('navbar_faq') %></a>
+        <a href="/" class="nav-link-luxury"><%= siteText('home') %></a>
+        <a href="/about" class="nav-link-luxury"><%= siteText('about_us') %></a>
+        <a href="/cases" class="nav-link-luxury"><%= siteText('cases') %></a>
+        <a href="/transparency" class="nav-link-luxury"><%= siteText('navbar_transparency') %></a>
+        <a href="/contact" class="nav-link-luxury"><%= siteText('navbar_contact') %></a>
+        <a href="/about#faq" class="nav-link-luxury"><%= siteText('navbar_faq') %></a>
         
         <div class="mobile-only-actions">
             <% if (user) { %>
@@ -42,9 +42,9 @@
                 <a href="/auth/logout" class="btn-lux btn-lux-outline"><%= __('navbar_logout') %></a>
             <% } else { %>
                 <a href="/auth/login" class="btn-lux btn-lux-primary nav-login-btn">
-                    <i class="fas fa-right-to-bracket"></i> <%= __('navbar_login') %>
+                    <i class="fas fa-right-to-bracket"></i> <%= siteText('navbar_login') %>
                 </a>
-                <a href="/auth/register" class="btn-lux btn-lux-outline"><%= __('navbar_register') %></a>
+                <a href="/auth/register" class="btn-lux btn-lux-outline"><%= siteText('navbar_register') %></a>
             <% } %>
         </div>
     </nav>
@@ -61,10 +61,10 @@
         <% } else { %>
             <a href="/auth/login" class="nav-login-btn">
                 <i class="fas fa-right-to-bracket"></i>
-                <span><%= __('navbar_login') %></span>
+                <span><%= siteText('navbar_login') %></span>
             </a>
             <a href="/auth/register" class="nav-register-btn">
-                <%= __('navbar_register') %>
+                <%= siteText('navbar_register') %>
             </a>
         <% } %>
 

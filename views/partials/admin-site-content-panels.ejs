@@ -1,0 +1,46 @@
+<% const site = content.site_content || {}; %>
+<% const isAr = langDir === 'rtl'; %>
+
+<% siteContentSections.forEach((section) => { %>
+<section class="content-mgmt-section" data-panel="site-<%= section.id %>" id="panel-site-<%= section.id %>" hidden>
+    <header class="content-mgmt-section__head content-mgmt-section__head--<%= section.theme %>">
+        <div class="content-mgmt-section__icon"><i class="fas <%= section.icon %>"></i></div>
+        <div>
+            <h2 class="font-cairo content-mgmt-section__title"><%= isAr ? section.labelAr : section.labelEn %></h2>
+            <p class="content-mgmt-section__desc"><%= __('admin_site_section_hint') %></p>
+        </div>
+    </header>
+    <div class="content-mgmt-section__body content-mgmt-section__body--fields">
+        <% section.fields.forEach((field) => { %>
+            <% if (field.type === 'bilingual') { %>
+                <div class="content-mgmt-field content-mgmt-field--bilingual">
+                    <label class="content-mgmt-label"><%= isAr ? field.labelAr : field.labelEn %></label>
+                    <div class="content-mgmt-bilingual-grid">
+                        <div>
+                            <span class="content-mgmt-lang-tag">عربي</span>
+                            <% if ((field.rows || 0) > 1) { %>
+                                <textarea name="site_content[<%= field.key %>][ar]" class="form-input content-mgmt-textarea" rows="<%= field.rows %>"><%= (site[field.key] && site[field.key].ar) || '' %></textarea>
+                            <% } else { %>
+                                <input type="text" name="site_content[<%= field.key %>][ar]" class="form-input content-mgmt-input" value="<%= (site[field.key] && site[field.key].ar) || '' %>">
+                            <% } %>
+                        </div>
+                        <div>
+                            <span class="content-mgmt-lang-tag">English</span>
+                            <% if ((field.rows || 0) > 1) { %>
+                                <textarea name="site_content[<%= field.key %>][en]" class="form-input content-mgmt-textarea" rows="<%= field.rows %>"><%= (site[field.key] && site[field.key].en) || '' %></textarea>
+                            <% } else { %>
+                                <input type="text" name="site_content[<%= field.key %>][en]" class="form-input content-mgmt-input" value="<%= (site[field.key] && site[field.key].en) || '' %>">
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="content-mgmt-field">
+                    <label class="content-mgmt-label" for="site_scalar_<%= field.key %>"><%= isAr ? field.labelAr : field.labelEn %></label>
+                    <input type="text" id="site_scalar_<%= field.key %>" name="site_content[<%= field.key %>]" class="form-input content-mgmt-input" value="<%= site[field.key] || '' %>">
+                </div>
+            <% } %>
+        <% }) %>
+    </div>
+</section>
+<% }) %>

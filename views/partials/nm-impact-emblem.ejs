@@ -1,7 +1,7 @@
 <% const prefix = typeof emblemPrefix !== 'undefined' ? emblemPrefix : 'nmImpact'; %>
 <% const showLabels = typeof showEmblemLabels === 'undefined' ? true : showEmblemLabels; %>
 <% const showParticles = typeof showEmblemParticles === 'undefined' ? true : showEmblemParticles; %>
-<svg class="nm-home-give-emblem" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<%= __('hero_tagline') %>">
+<svg class="nm-home-give-emblem" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<%= siteText('hero_tagline') %>">
     <defs>
         <linearGradient id="<%= prefix %>Stream" x1="80" y1="320" x2="320" y2="80" gradientUnits="userSpaceOnUse">
             <stop stop-color="#69FF97" stop-opacity="0.15"/>
@@ -96,9 +96,9 @@
 
     <% if (showLabels) { %>
     <g class="nm-impact-labels" fill="#B8F5C8" font-family="Cairo, sans-serif" font-size="9" font-weight="700" opacity="0.72">
-        <text x="96" y="352" text-anchor="middle"><%= __('hero_emblem_donor') %></text>
-        <text x="200" y="228" text-anchor="middle"><%= __('hero_emblem_verify') %></text>
-        <text x="304" y="148" text-anchor="middle"><%= __('hero_emblem_family') %></text>
+        <text x="96" y="352" text-anchor="middle"><%= siteText('hero_emblem_donor') %></text>
+        <text x="200" y="228" text-anchor="middle"><%= siteText('hero_emblem_verify') %></text>
+        <text x="304" y="148" text-anchor="middle"><%= siteText('hero_emblem_family') %></text>
     </g>
     <% } %>
 </svg>

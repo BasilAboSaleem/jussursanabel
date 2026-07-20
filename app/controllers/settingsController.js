@@ -1,13 +1,11 @@
 const Setting = require('../models/Setting');
 const Notification = require('../models/Notification');
 const { DAY_NAMES_AR } = require('../utils/chatUtils');
-const { loadCaseRegistrationSettings } = require('../utils/caseRegistrationSettings');
 
 exports.getSettings = async (req, res) => {
     try {
         let institutionPercentage = await Setting.findOne({ key: 'institution_fee_percentage' });
         let gatewayPercentage = await Setting.findOne({ key: 'gateway_fee_percentage' });
-        let caseNeedsConfig = await Setting.findOne({ key: 'case_needs' });
         let chatDayConfig = await Setting.findOne({ key: 'chat_day' });
         
         if (!institutionPercentage) {
@@ -25,14 +23,6 @@ exports.getSettings = async (req, res) => {
             });
         }
 
-        if (!caseNeedsConfig) {
-            caseNeedsConfig = await Setting.create({ 
-                key: 'case_needs', 
-                value: 'مساعدة مالية,إيواء,علاج صحي,كفالة,أخرى', 
-                description: 'خيارات الاحتياج المتاحة للمستفيدين عند تسجيل الحالة (مفصولة بفاصلة)' 
-            });
-        }
-
         if (!chatDayConfig) {
             chatDayConfig = await Setting.create({ 
                 key: 'chat_day', 
@@ -41,20 +31,12 @@ exports.getSettings = async (req, res) => {
             });
         }
 
-        const registrationSettings = await loadCaseRegistrationSettings();
-
         res.render('pages/admin/settings', {
-            title: res.__('admin_settings_title'),
+            title: res.__('admin_sidebar_settings'),
             settings: {
                 institution_fee_percentage: institutionPercentage.value,
                 gateway_fee_percentage: gatewayPercentage.value,
-                case_needs: caseNeedsConfig.value,
-                chat_day: chatDayConfig.value,
-                registration_guide_ar: registrationSettings.registrationGuideAr,
-                registration_guide_en: registrationSettings.registrationGuideEn,
-                case_story_examples_ar: registrationSettings.caseStoryExamplesAr,
-                case_template_desc_ar: registrationSettings.caseTemplateDescAr,
-                forbidden_words: registrationSettings.forbiddenWordsRaw
+                chat_day: chatDayConfig.value
             }
         });
     } catch (err) {
@@ -68,13 +50,7 @@ exports.updateSettings = async (req, res) => {
         const {
             institution_fee_percentage,
             gateway_fee_percentage,
-            case_needs,
-            chat_day,
-            registration_guide_ar,
-            registration_guide_en,
-            case_story_examples_ar,
-            case_template_desc_ar,
-            forbidden_words
+            chat_day
         } = req.body;
         
         // 1. Get old settings for comparison and logging
@@ -101,16 +77,7 @@ exports.updateSettings = async (req, res) => {
             { value: totalPercentage, updatedAt: new Date() }
         );
 
-        // 3. Update Case Needs
-        if (case_needs !== undefined) {
-             await Setting.findOneAndUpdate(
-                 { key: 'case_needs' },
-                 { value: case_needs, updatedAt: new Date() },
-                 { upsert: true }
-             );
-        }
-
-        // 4. Update Chat Day & Notify All if changed
+        // 3. Update Chat Day & Notify All if changed
         if (chat_day !== undefined) {
             await Setting.findOneAndUpdate(
                 { key: 'chat_day' },
@@ -140,24 +107,6 @@ exports.updateSettings = async (req, res) => {
                         link: globalNotif.link
                     });
                 }
-            }
-        }
-
-        const registrationFields = [
-            ['registration_guide_ar', registration_guide_ar],
-            ['registration_guide_en', registration_guide_en],
-            ['case_story_examples_ar', case_story_examples_ar],
-            ['case_template_desc_ar', case_template_desc_ar],
-            ['forbidden_words', forbidden_words]
-        ];
-
-        for (const [key, value] of registrationFields) {
-            if (value !== undefined) {
-                await Setting.findOneAndUpdate(
-                    { key },
-                    { value: String(value), updatedAt: new Date() },
-                    { upsert: true }
-                );
             }
         }
 
