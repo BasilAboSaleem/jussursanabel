@@ -35,7 +35,7 @@
                 <div class="nm-support-chat__header <%= isAdmin ? 'nm-support-chat__header--admin' : '' %>">
                     <div class="nm-support-chat__header-info">
                         <% if (isAdmin) { %>
-                            <img src="<%= ticket.user.avatar %>" alt="" class="nm-support-chat__avatar">
+                            <img src="<%= ticket.user ? userAvatar(ticket.user) : userAvatar({}) %>" alt="" class="nm-support-chat__avatar">
                             <div>
                                 <h2 class="font-cairo"><%= ticket.user.name %></h2>
                                 <span><%= ticket.user.role === 'donor' ? __('support_page_role_donor') : __('support_page_role_family') %></span>

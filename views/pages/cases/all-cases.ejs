@@ -1,13 +1,13 @@
 <%- include('../../partials/header-top') %>
 
 <main style="background: #ffffff; min-height: 100vh; overflow: hidden;">
-    <section class="nm-page-hero" aria-label="<%= __('cases') %>">
+    <section class="nm-page-hero" aria-label="<%= siteText('cases') %>">
         <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= __('hero_title') %></div>
+        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
         <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= __('brand_affiliation_short') %></p>
-            <h1 class="nm-page-hero__title"><%= __('cases_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= __('cases_hero_desc') %></p>
+            <p class="nm-page-hero__eyebrow"><%= siteText('brand_affiliation_short') %></p>
+            <h1 class="nm-page-hero__title"><%= siteText('cases_hero_title') %></h1>
+            <p class="nm-page-hero__desc"><%= siteText('cases_hero_desc') %></p>
         </div>
         <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#f8fafc"/>
@@ -18,7 +18,7 @@
     <section class="cases-list-section" id="cases-list" style="background: #f8fafc; padding: 20px 0 100px;">
         <div class="container">
             <div class="cases-controls reveal-on-scroll">
-                <div class="cases-type-filters" role="navigation" aria-label="<%= __('cases') %>">
+                <div class="cases-type-filters" role="navigation" aria-label="<%= siteText('cases') %>">
                     <a href="<%= buildCasesUrl({ type: 'all', page: '' }) %>" class="filter-btn-lux <%= (selectedType || 'all') === 'all' ? 'active' : '' %>" data-filter="all">
                         <i class="fas fa-border-all"></i> <%= __('cases_filter_all') %>
                     </a>

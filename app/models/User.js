@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const {
+    hasCustomAvatar,
+    getDefaultAvatarPath,
+    applyAvatarToUsers,
+    STAFF_ROLES,
+} = require('../utils/userAvatar');
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -14,7 +20,7 @@ const userSchema = new mongoose.Schema({
     phone: { type: String },
     altPhone: { type: String },
     whatsapp: { type: String },
-    avatar: { type: String, default: '/assets/images/default-avatar.png' },
+    avatar: { type: String, default: '' },
     idNumber: { type: String, unique: true, sparse: true },
     address: { type: String },
     status: { type: String, enum: ['active', 'pending', 'suspended'], default: 'active' },
@@ -73,6 +79,8 @@ userSchema.pre('save', async function() {
     if (this.role === 'admin' || this.role === 'super_admin') {
         const adminName = this.role === 'super_admin' ? 'Super Admin' : 'Admin';
         this.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=020617&color=D4AF37&bold=true&size=512`;
+    } else if (!STAFF_ROLES.has(this.role) && !hasCustomAvatar(this.avatar)) {
+        this.avatar = getDefaultAvatarPath(this.role);
     }
 
     if (!this.isModified('password')) return;
@@ -100,5 +108,9 @@ userSchema.statics.findByEmail = function(email) {
     if (!normalized) return this.findOne({ _id: null });
     return this.findOne({ email: normalized }).collation({ locale: 'en', strength: 2 });
 };
+
+userSchema.post(['find', 'findOne', 'findOneAndUpdate'], function(docs) {
+    applyAvatarToUsers(docs);
+});
 
 module.exports = mongoose.model('User', userSchema);

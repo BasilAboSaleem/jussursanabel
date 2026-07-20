@@ -518,7 +518,7 @@
                                             <% if (transaction.isAnonymous || !transaction.donor) { %>
                                                 <i class="fas fa-user-secret"></i>
                                             <% } else { %>
-                                                <img src="<%= transaction.donor.avatar || '/assets/images/placeholder-avatar.jpg' %>" alt="">
+                                                <img src="<%= userAvatar(transaction.donor) %>" alt="">
                                             <% } %>
                                         </div>
                                         <div class="case-donor-body">

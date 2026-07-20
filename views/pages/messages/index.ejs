@@ -22,7 +22,7 @@
                          data-user-id="<%= contact.user._id %>"
                          id="contact-<%= contact.user._id %>">
                         <div class="avatar-wrapper">
-                            <img src="<%= contact.user.avatar || '/assets/images/default-avatar.png' %>" class="avatar-lux">
+                            <img src="<%= userAvatar(contact.user) %>" class="avatar-lux">
                             <span class="online-indicator"></span>
                         </div>
                         <div class="contact-info">
@@ -65,7 +65,7 @@
                     <button type="button" class="chat-back-mobile" id="chatBackBtn" aria-label="العودة لقائمة المحادثات">
                         <i class="fas fa-arrow-right"></i>
                     </button>
-                    <img src="<%= activeContact ? (activeContact.avatar || '/assets/images/default-avatar.png') : '/assets/images/default-avatar.png' %>" class="avatar-sm-lux" id="activeAvatar">
+                    <img src="<%= activeContact ? userAvatar(activeContact) : userAvatar({ role: 'donor' }) %>" class="avatar-sm-lux" id="activeAvatar">
                     <div>
                         <h4 class="font-cairo" id="activeName">
                             <%= activeContact ? ((activeContact.role === 'admin' || activeContact.role === 'super_admin') ? 'الدعم الفني' : activeContact.name) : '' %>
@@ -272,7 +272,7 @@
         const isSupport = data.otherUser.role === 'admin' || data.otherUser.role === 'super_admin';
         const displayName = isSupport ? 'الدعم الفني' : data.otherUser.name;
         document.getElementById('activeName').innerText = displayName;
-        document.getElementById('activeAvatar').src = data.otherUser.avatar || '/assets/images/default-avatar.png';
+        document.getElementById('activeAvatar').src = data.otherUser.avatar || '<%= userAvatar({ role: "donor" }) %>';
         
         const supportBadge = document.getElementById('supportBadge');
         if (supportBadge) supportBadge.style.display = isSupport ? 'inline-flex' : 'none';

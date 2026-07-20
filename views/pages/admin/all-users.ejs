@@ -1,17 +1,53 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header">
-    <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-users"></i> <%= __('admin_all_users_title') %></h3>
-            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_all_users_desc') %></p>
-        </div>
-        <div class="responsive-hide" style="text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
-            <div style="font-size: 0.8rem; color: var(--text-muted);"><%= __('admin_all_users_total_count') %></div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><%= users.length %></div>
-        </div>
+<%
+    const allUsersDonorCount = users.filter(u => u.role === 'donor').length;
+    const allUsersBeneficiaryCount = users.filter(u => ['beneficiary', 'family', 'guardian'].includes(u.role)).length;
+%>
+
+<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--primary">
+    <div class="nm-admin-page-header__icon"><i class="fas fa-users"></i></div>
+    <div class="nm-admin-page-header__text">
+        <h2 class="font-cairo nm-admin-page-header__title"><%= __('admin_sidebar_all_users') %></h2>
+        <p class="nm-admin-page-header__desc"><%= __('admin_all_users_desc') %></p>
     </div>
 </div>
+
+<div class="grid-auto-3" style="margin-bottom: 24px;">
+    <div class="nm-admin-card nm-admin-stat-card">
+        <div style="font-size: 2.2rem; color: var(--primary); margin-bottom: 12px;"><i class="fas fa-users"></i></div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_total_count') %></div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= users.length %></div>
+    </div>
+    <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--green">
+        <div style="font-size: 2.2rem; color: #00A544; margin-bottom: 12px;"><i class="fas fa-hand-holding-heart"></i></div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_stat_donors_short') %></div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= allUsersDonorCount %></div>
+    </div>
+    <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--accent">
+        <div style="font-size: 2.2rem; color: var(--accent); margin-bottom: 12px;"><i class="fas fa-house-chimney-user"></i></div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_stat_beneficiaries_short') %></div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= allUsersBeneficiaryCount %></div>
+    </div>
+</div>
+
+<% if (user && user.role === 'super_admin') { %>
+<a href="/admin/password-recovery" class="all-users-pwd-action nm-admin-card">
+    <div class="all-users-pwd-action__main">
+        <div class="all-users-pwd-action__icon" aria-hidden="true">
+            <i class="fas fa-key"></i>
+        </div>
+        <div class="all-users-pwd-action__text">
+            <span class="all-users-pwd-action__title font-cairo"><%= __('admin_all_users_password_recovery_title') %></span>
+            <span class="all-users-pwd-action__desc"><%= __('admin_all_users_password_recovery_desc') %></span>
+        </div>
+    </div>
+    <span class="all-users-pwd-action__cta btn-lux btn-lux-primary">
+        <span><%= __('admin_all_users_password_recovery_btn') %></span>
+        <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
+    </span>
+</a>
+<% } %>
 
 <!-- Filters Bar -->
 <div class="nm-admin-card nm-admin-filter-bar">
@@ -22,7 +58,6 @@
                 <option value="all" <%= filters.role === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
                 <option value="donor" <%= filters.role === 'donor' ? 'selected' : '' %>><%= __('common_donors') %></option>
                 <option value="beneficiary" <%= filters.role === 'beneficiary' ? 'selected' : '' %>><%= __('common_beneficiaries') %></option>
-                <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>><%= __('common_admins') %></option>
             </select>
         </div>
 
@@ -35,7 +70,7 @@
             </select>
         </div>
 
-        <div id="donorTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' || filters.role === 'admin' ? 'display: none;' : '' %>">
+        <div id="donorTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' ? 'display: none;' : '' %>">
             <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_donor_type') %></label>
             <select name="donorType" class="form-input">
                 <option value="all" <%= filters.donorType === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
@@ -72,8 +107,8 @@
         <thead style="background: rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.05);">
             <tr>
                 <th style="padding: 20px;"><%= __('common_user') %></th>
-                <th style="padding: 20px;"><%= __('common_role_category') %></th>
-                <th style="padding: 20px;"><%= __('common_attached_case') %></th>
+                <th style="padding: 20px;"><%= __('admin_all_users_col_role') %></th>
+                <th style="padding: 20px;"><%= __('admin_all_users_col_case') %></th>
                 <th style="padding: 20px;"><%= __('common_account_status') %></th>
                 <th style="padding: 20px;"><%= __('common_registration_date') %></th>
                 <th style="padding: 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_actions') %></th>
@@ -92,7 +127,7 @@
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
                     <td style="padding: 15px 20px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="<%= u.avatar || '/assets/images/default-avatar.png' %>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
+                            <img src="<%= userAvatar(u) %>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
                             <div>
                                 <div style="font-weight: 700; color: var(--primary);"><%= u.name %></div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);"><%= u.email %></div>
@@ -100,26 +135,15 @@
                         </div>
                     </td>
                     <td style="padding: 15px 20px;">
-                        <% if (u.role === 'admin' || u.role === 'super_admin') { %>
-                            <span class="badge badge-gold" style="font-size: 0.7rem;"><%= __('common_admin_team') %></span>
-                        <% } else if (u.role === 'donor') { %>
-                            <span class="badge badge-teal" style="font-size: 0.7rem;"><%= __('common_donor') %></span>
-                            <% if (u.isVerifiedDonor) { %>
-                                <div style="font-size: 0.65rem; color: #00A544; margin-top: 3px; font-weight: 700;">
-                                    <i class="fas fa-check-circle"></i> <%= __('common_verified') %>
-                                </div>
-                            <% } else { %>
-                                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; font-weight: 700;">
-                                    <%= __('common_new') %>
-                                </div>
-                            <% } %>
+                        <% if (u.role === 'donor') { %>
+                            <span class="badge badge-teal" style="font-size: 0.7rem; display: inline-flex; align-items: center; gap: 5px;">
+                                <%= __('common_donor') %>
+                                <% if (u.isVerifiedDonor) { %>
+                                    <i class="fas fa-star all-users-role-badge__star" title="<%= __('common_verified_donor') %>" aria-label="<%= __('common_verified_donor') %>"></i>
+                                <% } %>
+                            </span>
                         <% } else { %>
-                            <span class="badge badge-navy" style="font-size: 0.7rem;"><%= __('common_beneficiary') %></span>
-                            <% if (u.case) { %>
-                                <div style="font-size: 0.65rem; color: var(--secondary); margin-top: 3px; font-weight: 700;">
-                                    (<%= u.case.type === 'orphan' ? __('common_orphan') : __('common_family') %>)
-                                </div>
-                            <% } %>
+                            <span class="all-users-role-badge all-users-role-badge--beneficiary"><%= __('common_beneficiary') %></span>
                         <% } %>
                     </td>
                     <td style="padding: 15px 20px;">
@@ -241,6 +265,105 @@
     </div>
 </div>
 
+<style>
+    .all-users-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .all-users-role-badge--beneficiary {
+        background: rgba(0, 38, 97, 0.1);
+        color: #002661;
+        border: 1px solid rgba(0, 38, 97, 0.18);
+    }
+    .all-users-role-badge__star {
+        font-size: 0.58rem;
+        color: #f59e0b;
+        line-height: 1;
+    }
+    .all-users-pwd-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        padding: 18px 22px !important;
+        text-decoration: none;
+        color: inherit;
+        border-inline-start: 4px solid #f59e0b !important;
+        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 55%, #f8fafc 100%) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .all-users-pwd-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(245, 158, 11, 0.12);
+        border-inline-start-color: #d97706 !important;
+    }
+    .all-users-pwd-action__main {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+        min-width: 220px;
+    }
+    .all-users-pwd-action__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        color: #b45309;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.22);
+        flex-shrink: 0;
+    }
+    .all-users-pwd-action__text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .all-users-pwd-action__title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    .all-users-pwd-action__desc {
+        font-size: 0.82rem;
+        color: #64748b;
+        line-height: 1.5;
+    }
+    .all-users-pwd-action__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 20px !important;
+        border-radius: 12px !important;
+        font-weight: 800;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+    @media (max-width: 768px) {
+        .all-users-pwd-action {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .all-users-pwd-action__cta {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
 <script>
     let currentModUserId = null;
     let currentModUserName = null;
@@ -257,11 +380,6 @@
             caseTypeContainer.style.display = 'none';
             caseTypeContainer.querySelector('select').value = 'all';
             donorTypeContainer.style.display = 'block';
-        } else if (role === 'admin') {
-            caseTypeContainer.style.display = 'none';
-            caseTypeContainer.querySelector('select').value = 'all';
-            donorTypeContainer.style.display = 'none';
-            donorTypeContainer.querySelector('select').value = 'all';
         } else {
             caseTypeContainer.style.display = 'none';
             caseTypeContainer.querySelector('select').value = 'all';
