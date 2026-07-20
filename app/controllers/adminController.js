@@ -23,8 +23,15 @@ const { applyGoalReachedState, hasReachedFundingGoal, normalizeLegacyCompletedSt
 const { validateCaseContentForRequest, loadCaseRegistrationSettings } = require('../utils/caseRegistrationSettings');
 const { validateCaseTextFields, isLikelyCopiedFromExamples } = require('../utils/contentFilter');
 const { invalidatePublicCaseCaches } = require('../middlewares/cache');
+const { isCustomAvatarUrl } = require('../utils/userAvatar');
 
 const PASSWORD_RECOVERY_ROLES = ['donor', 'beneficiary', 'family', 'guardian'];
+
+function sanitizeAdminReturnPath(value, fallback = '/admin/dashboard') {
+    const path = String(value || '').trim();
+    if (path.startsWith('/admin/') && !path.includes('//')) return path;
+    return fallback;
+}
 
 function caseDetailsSnapshot(caseDoc) {
     const details = caseDoc.details && typeof caseDoc.details.toObject === 'function'
@@ -407,7 +414,7 @@ async function hardDeleteUserCompletely(userId, session = null) {
         .lean();
 
     const mediaAssets = [];
-    if (userDoc && userDoc.avatar) mediaAssets.push(userDoc.avatar);
+    if (userDoc && isCustomAvatarUrl(userDoc.avatar)) mediaAssets.push(userDoc.avatar);
 
     for (const c of ownedCases) {
         if (c.image) mediaAssets.push(c.image);
@@ -507,7 +514,7 @@ exports.getAdminDashboard = async (req, res) => {
         }
 
         res.render('pages/admin/dashboard', { 
-            title: req.user.role === 'super_admin' ? res.__('admin_dashboard_super') : res.__('admin_dashboard_staff'),
+            title: res.__('admin_sidebar_dashboard'),
             pendingCases,
             pendingTransactions,
             recentCases,
@@ -530,7 +537,7 @@ exports.getUsersManager = async (req, res) => {
     try {
         const admins = await User.find({ role: { $in: ['admin', 'super_admin', 'regulator', 'support', 'media'] } }).sort({ createdAt: -1 });
         res.render('pages/admin/users-manager', {
-            title: res.__('admin_nav_users'),
+            title: res.__('admin_sidebar_team_management'),
             admins
         });
     } catch (err) {
@@ -829,7 +836,7 @@ exports.getMediaCaseReview = async (req, res) => {
         const displayStory = storyAr || caseRecord.description || '';
 
         res.render('pages/admin/media-case-review', {
-            title: res.__('admin_media_case_review_title'),
+            title: res.__('admin_sidebar_media_cases'),
             caseRecord,
             displayStory,
             storyUsesDescriptionFallback: !storyAr && Boolean(caseRecord.description),
@@ -1227,7 +1234,7 @@ exports.getCasesManager = async (req, res) => {
         if (updated) cases = await Case.find(filter).sort({ createdAt: -1 });
         
         res.render('pages/admin/cases-manager', {
-            title: res.__('admin_nav_cases'),
+            title: res.__('admin_sidebar_cases_manager'),
             cases,
             currentStatus: status || 'all'
         });
@@ -1359,7 +1366,7 @@ exports.getDonationsLedger = async (req, res) => {
         if (String(q || '').trim()) exportParams.set('q', String(q).trim());
 
         res.render('pages/admin/donations-ledger', {
-            title: 'سجل التبرعات (السوبر أدمن)',
+            title: res.__('admin_sidebar_donations_ledger'),
             rows,
             filters: { ...filters, q, page: pageNum, limit: limitNum },
             totals: {
@@ -1641,7 +1648,7 @@ exports.getChatMonitor = async (req, res) => {
             .sort({ createdAt: -1 });
 
         res.render('pages/admin/chat-monitor', {
-            title: res.__('admin_nav_chat_monitor'),
+            title: res.__('admin_sidebar_chat_monitor'),
             chats: approvedChats
         });
     } catch (err) {
@@ -1910,8 +1917,29 @@ exports.getAnalytics = async (req, res) => {
         thirtyDaysAgo.setDate(now.getDate() - 30);
         const activityVol = await ActivityLog.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
 
+        const CaseUpdate = require('../models/CaseUpdate');
+        const pendingImpactProofs = await CaseUpdate.find({ status: 'pending' })
+            .populate('case', 'title')
+            .populate('guardian', 'name')
+            .sort({ createdAt: -1 })
+            .limit(3);
+        const [pendingImpactProofsCount, approvedImpactProofsCount, rejectedImpactProofsCount] = await Promise.all([
+            CaseUpdate.countDocuments({ status: 'pending' }),
+            CaseUpdate.countDocuments({ status: 'approved' }),
+            CaseUpdate.countDocuments({ status: 'rejected' })
+        ]);
+        const impactWorkflowStats = {
+            pending: pendingImpactProofsCount,
+            approved: approvedImpactProofsCount,
+            rejected: rejectedImpactProofsCount,
+            total: pendingImpactProofsCount + approvedImpactProofsCount + rejectedImpactProofsCount
+        };
+
         res.render('pages/admin/analytics', {
-            title: 'مركز التقارير والتحليلات المتكامل',
+            title: res.__('admin_sidebar_analytics'),
+            pendingImpactProofs,
+            pendingImpactProofsCount,
+            impactWorkflowStats,
             stats: {
                 kpis,
                 activeSponsorships,
@@ -1994,7 +2022,7 @@ exports.getActivityLogs = async (req, res) => {
             .limit(200);
 
         res.render('pages/admin/activity-logs', {
-            title: 'سجل العمليات والرقابة العامة',
+            title: res.__('admin_sidebar_activity_logs'),
             logs,
             query: { search, action, userId, startDate, endDate }
         });
@@ -2007,19 +2035,15 @@ exports.getActivityLogs = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
     try {
         const { role, caseType, status, donorType } = req.query;
+        const publicUserRoles = ['donor', 'beneficiary', 'family', 'guardian'];
         let query = {};
-        
-        if (role && role !== 'all') {
-            if (role === 'beneficiary') {
-                query.role = { $in: ['beneficiary', 'family', 'guardian'] };
-            } else {
-                query.role = role;
-            }
-        }
 
-        // If the requester is an admin, hide other administrative accounts
-        if (req.user.role === 'admin') {
-            query.role = { ...query.role, $nin: ['admin', 'super_admin'] };
+        if (role === 'beneficiary') {
+            query.role = { $in: ['beneficiary', 'family', 'guardian'] };
+        } else if (role === 'donor') {
+            query.role = 'donor';
+        } else {
+            query.role = { $in: publicUserRoles };
         }
         
         if (status && status !== 'all') {
@@ -2057,7 +2081,7 @@ exports.getAllUsers = async (req, res) => {
         }
 
         res.render('pages/admin/all-users', {
-            title: 'إدارة جميع مستخدمي النظام',
+            title: res.__('admin_sidebar_all_users'),
             users: enhancedUsers,
             filters: { role: role || 'all', caseType: caseType || 'all', status: status || 'all', donorType: donorType || 'all' }
         });
@@ -2086,7 +2110,7 @@ exports.getNotificationsManager = async (req, res) => {
         const users = await User.find({ status: 'active' }).select('name email role').sort({ name: 1 });
 
         res.render('pages/admin/notifications/manage', {
-            title: 'إدارة الإشعارات',
+            title: res.__('admin_notif_manage_link'),
             notifications,
             users,
             currentPage: page,
@@ -2202,7 +2226,7 @@ exports.getPendingApprovals = async (req, res) => {
         const pendingUsers = await User.find({ status: 'pending' }).sort({ createdAt: -1 });
         
         res.render('pages/admin/pending-approvals', {
-            title: 'طلبات التفعيل الجديدة',
+            title: res.__('admin_sidebar_pending_approvals'),
             users: pendingUsers
         });
     } catch (err) {
@@ -2219,9 +2243,16 @@ exports.getPendingImpactProofs = async (req, res) => {
             .populate('guardian', 'name email')
             .sort({ createdAt: -1 });
 
+        const [pending, approved, rejected] = await Promise.all([
+            CaseUpdate.countDocuments({ status: 'pending' }),
+            CaseUpdate.countDocuments({ status: 'approved' }),
+            CaseUpdate.countDocuments({ status: 'rejected' })
+        ]);
+
         res.render('pages/admin/pending-impact-proofs', {
-            title: 'مراجعة إثباتات الأثر المستلمة',
-            pendingProofs
+            title: res.__('admin_sidebar_impact_proofs'),
+            pendingProofs,
+            impactWorkflowStats: { pending, approved, rejected, total: pending + approved + rejected }
         });
     } catch (err) {
         console.error(err);
@@ -2279,7 +2310,8 @@ exports.approveImpactProof = async (req, res) => {
         await logActivity(req.user._id, 'impact_proof_approve', 'CaseUpdate', id, `موافقة على إثبات أثر للحالة: ${targetCase.title}`);
 
         req.flash('success', 'تمت الموافقة على الإثبات ونشره بنجاح');
-        res.redirect('/admin/pending-impact-proofs');
+        const returnTo = sanitizeAdminReturnPath(req.body.returnTo, '/admin/pending-impact-proofs');
+        res.redirect(returnTo);
     } catch (err) {
         console.error(err);
         req.flash('error', 'حدث خطأ أثناء معالجة الطلب');
@@ -2315,7 +2347,8 @@ exports.rejectImpactProof = async (req, res) => {
         await logActivity(req.user._id, 'impact_proof_reject', 'CaseUpdate', id, `رفض إثبات أثر للحالة: ${proof.case.title}. السبب: ${rejectionReason}`);
 
         req.flash('success', 'تم رفض الإثبات وإبلاغ الأسرة');
-        res.redirect('/admin/pending-impact-proofs');
+        const returnTo = sanitizeAdminReturnPath(req.body.returnTo, '/admin/pending-impact-proofs');
+        res.redirect(returnTo);
     } catch (err) {
         console.error(err);
         req.flash('error', 'حدث خطأ أثناء معالجة الطلب');
@@ -2342,7 +2375,7 @@ exports.getEscalationsCenter = async (req, res) => {
         }
 
         res.render('pages/admin/escalations-center', {
-            title: 'مركز طلبات الإدارة العليا | غرفة الطوارئ',
+            title: res.__('admin_sidebar_escalations'),
             requests
         });
     } catch (err) {
@@ -2496,7 +2529,7 @@ exports.getPasswordRecovery = async (req, res) => {
         }
 
         res.render('pages/admin/password-recovery', {
-            title: res.__('admin_password_recovery_title'),
+            title: res.__('admin_sidebar_password_recovery'),
             users,
             search
         });

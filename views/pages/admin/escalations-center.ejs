@@ -3,8 +3,7 @@
 <div class="container-fluid" style="padding: 30px; max-width: 1300px; margin: 0 auto;">
     <div class="section-header-luxury" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
         <div>
-            <span class="section-badge"><i class="fas fa-tower-observation"></i> <%= __('admin_escalations_monitor_title') %></span>
-            <h2 class="section-title-luxury"><%= __('admin_escalations_emergency_room') %></h2>
+            <h2 class="section-title-luxury"><%= __('admin_sidebar_escalations') %></h2>
             <p class="section-subtitle-luxury" style="margin-bottom: 0;">
                 <% if (user.role === 'super_admin') { %>
                     <%= __('admin_escalations_super_desc') %>

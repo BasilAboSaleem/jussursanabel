@@ -14,10 +14,15 @@
                 <span class="badge badge-soft-primary" id="notifTotalBadge" style="font-size: 0.7rem;">0 جديد</span>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button type="button" class="btn-clear-lux" id="markAllReadBtn" title="تحديد الكل كمقروء">
+                <button type="button" class="btn-clear-lux" id="markAllReadBtn" title="<%= __('notif_mark_all_read') %>">
                     <i class="fa-solid fa-check-double"></i>
                 </button>
-                <a href="/notifications" class="btn-view-all-lux" title="عرض كافة الإشعارات">
+                <% if (typeof showAdminNotifManage !== 'undefined' && showAdminNotifManage) { %>
+                <a href="/admin/notifications" class="btn-manage-notif-lux" title="<%= __('admin_notif_manage_link') %>" aria-label="<%= __('admin_notif_manage_link') %>">
+                    <i class="fas fa-envelope-open-text" aria-hidden="true"></i>
+                </a>
+                <% } %>
+                <a href="/notifications" class="btn-view-all-lux" title="<%= __('notif_view_all') %>">
                     <i class="fa-solid fa-expand"></i>
                 </a>
             </div>
@@ -141,14 +146,31 @@
     .notif-footer-lux a:hover { opacity: 1; color: var(--secondary); }
 
     /* Action Buttons */
-    .btn-clear-lux, .btn-view-all-lux {
+    .btn-clear-lux, .btn-view-all-lux, .btn-manage-notif-lux {
         width: 34px; height: 34px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
         color: #64748b; background: white; border: 1px solid #f1f5f9;
         transition: var(--transition-fast);
     }
+    .btn-clear-lux i, .btn-view-all-lux i, .btn-manage-notif-lux i {
+        font-size: 0.95rem;
+        color: #64748b;
+        opacity: 1;
+        line-height: 1;
+    }
     .btn-clear-lux:hover { color: #16a34a; border-color: #dcfce7; background: #f0fdf4; }
+    .btn-clear-lux:hover i { color: #16a34a; }
+    .btn-manage-notif-lux {
+        text-decoration: none;
+    }
+    .btn-manage-notif-lux:hover {
+        color: var(--secondary);
+        border-color: rgba(0, 165, 68, 0.25);
+        background: rgba(0, 165, 68, 0.08);
+    }
+    .btn-manage-notif-lux:hover i { color: var(--secondary); }
     .btn-view-all-lux:hover { color: var(--primary); border-color: #e2e8f0; background: #f8fafc; }
+    .btn-view-all-lux:hover i { color: var(--primary); }
 
     /* Notification Item Lux */
     .notif-item-lux {

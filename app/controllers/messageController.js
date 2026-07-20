@@ -36,6 +36,8 @@ const isCommunicationBlocked = (user1, user2) => {
     return { blocked: false };
 };
 
+const { resolveUserAvatar } = require('../utils/userAvatar');
+
 const formatUserForChat = (user, res) => {
     if (!user) return null;
     const userObj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
@@ -43,6 +45,7 @@ const formatUserForChat = (user, res) => {
         userObj.name = res.__('support_team_name');
         userObj.isSupport = true;
     }
+    userObj.avatar = resolveUserAvatar(userObj);
     return userObj;
 };
 
@@ -588,7 +591,7 @@ exports.adminGetRequests = async (req, res) => {
             .sort({ createdAt: -1 });
             
         res.render('pages/admin/chat-requests', {
-            title: res.__('admin_nav_chat_requests'),
+            title: res.__('admin_sidebar_chat_requests'),
             requests
         });
     } catch (err) {

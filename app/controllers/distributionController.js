@@ -630,7 +630,7 @@ exports.getDistributionCenter = async (req, res) => {
         stats.remainingLiquidity = stats.readyBankTotal;
 
         res.render('pages/admin/distribution-center', {
-            title: res.__('admin_nav_distribution'),
+            title: res.__('admin_sidebar_distribution'),
             stats,
             bankFrom: bankFrom || '',
             bankTo: bankTo || '',

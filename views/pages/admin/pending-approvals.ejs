@@ -3,7 +3,7 @@
 <div class="nm-admin-card nm-admin-page-header">
     <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= __('admin_pending_approvals_title') %></h2>
+            <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= __('admin_sidebar_pending_approvals') %></h2>
             <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_pending_approvals_desc') %></p>
         </div>
         <div class="badge badge-gold" style="padding: 10px 20px; font-size: 1rem;">
@@ -38,7 +38,7 @@
                     <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
                         <td style="padding: 20px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <img src="<%= user.avatar || '/assets/images/default-avatar.png' %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary);">
+                                <img src="<%= userAvatar(user) %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary);">
                                 <div>
                                     <div style="font-weight: 800; color: var(--primary);"><%= user.name %></div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);"><%= user.email %></div>

@@ -30,14 +30,21 @@
             sidebarClose.addEventListener('click', closeSidebar);
         }
 
-        // Active Link handling
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.admin-nav-item');
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('active');
-            }
-        });
+        // Scroll the active sidebar item into view
+        const activeNavLink = document.querySelector('.admin-sidebar .admin-nav-item.active');
+        if (activeNavLink) {
+            requestAnimationFrame(() => {
+                activeNavLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            });
+        }
+
+        const adminBackBtn = document.getElementById('adminBackBtn');
+        if (adminBackBtn) {
+            adminBackBtn.addEventListener('click', () => {
+                const target = adminBackBtn.dataset.target || '/admin/dashboard';
+                window.location.assign(target);
+            });
+        }
 
     </script>
     <%- include('./dashboard-table-mobile') %>

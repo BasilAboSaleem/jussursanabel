@@ -7,7 +7,7 @@
     <!-- Header with context -->
     <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
         <div>
-            <h2 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 900; font-size: 2.2rem;"><%= __('admin_analytics_title') %></h2>
+            <h2 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 900; font-size: 2.2rem;"><%= __('admin_sidebar_analytics') %></h2>
             <p style="color: #64748b; margin-top: 5px; font-size: 1.1rem;"><%= __('admin_analytics_desc') %></p>
         </div>
         <div class="responsive-hide" style="background: white; padding: 12px 25px; border-radius: 15px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
@@ -43,6 +43,92 @@
             <div class="kpi-trend text-align-inherit" style="color: #64748b;"><%= __('admin_analytics_admin_interaction') %></div>
         </div>
     </div>
+
+    <!-- Impact Proofs — Reports subsection -->
+    <section class="analytics-impact-section<%= pendingImpactProofsCount > 0 ? ' analytics-impact-section--pending' : '' %>" style="margin-bottom: 40px; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+        <div class="analytics-impact-section__glow" aria-hidden="true"></div>
+        <div class="analytics-impact-section__inner">
+            <div class="analytics-impact-section__header">
+                <div class="analytics-impact-section__intro">
+                    <div class="analytics-impact-section__icon">
+                        <i class="fas fa-file-shield"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-cairo analytics-impact-section__title"><%= __('admin_analytics_impact_title') %></h3>
+                        <p class="analytics-impact-section__desc"><%= __('admin_analytics_impact_desc') %></p>
+                    </div>
+                </div>
+                <div class="analytics-impact-section__meta">
+                    <div class="analytics-impact-section__stat">
+                        <span class="analytics-impact-section__stat-value"><%= pendingImpactProofsCount %></span>
+                        <span class="analytics-impact-section__stat-label"><%= __('admin_analytics_impact_pending_label') %></span>
+                    </div>
+                    <a href="/admin/pending-impact-proofs" class="analytics-impact-section__cta btn-lux btn-lux-primary">
+                        <span><%= __('admin_analytics_impact_view_all') %></span>
+                        <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Impact workflow -->
+            <%- include('../../partials/admin-impact-workflow') %>
+
+            <% if (pendingImpactProofs && pendingImpactProofs.length > 0) { %>
+                <div class="analytics-impact-section__queue-head">
+                    <h4 class="font-cairo analytics-impact-section__queue-title"><%= __('admin_impact_workflow_queue_title') %></h4>
+                    <span class="analytics-impact-section__queue-badge"><%= pendingImpactProofsCount %> <%= __('admin_impact_workflow_queue_badge') %></span>
+                </div>
+                <div class="analytics-impact-section__grid">
+                    <% pendingImpactProofs.forEach(function(proof) { %>
+                        <article class="analytics-impact-card" id="impact-proof-<%= proof._id %>">
+                            <% if (proof.images && proof.images.length > 0) { %>
+                                <div class="analytics-impact-card__media" style="background-image: url('<%= proof.images[0] %>');"></div>
+                            <% } else { %>
+                                <div class="analytics-impact-card__media analytics-impact-card__media--empty">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            <% } %>
+                            <div class="analytics-impact-card__body">
+                                <% if (proof.case && proof.case.title) { %>
+                                    <span class="analytics-impact-card__case"><%= proof.case.title %></span>
+                                <% } %>
+                                <h4 class="font-cairo analytics-impact-card__title"><%= proof.title %></h4>
+                                <p class="analytics-impact-card__excerpt"><%= proof.content %></p>
+                                <div class="analytics-impact-card__footer">
+                                    <span><i class="fas fa-user-shield"></i> <%= proof.guardian ? proof.guardian.name : '—' %></span>
+                                    <span><i class="far fa-clock"></i> <%= new Date(proof.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></span>
+                                </div>
+                                <div class="analytics-impact-card__actions">
+                                    <form action="/admin/impact-proofs/<%= proof._id %>/approve" method="POST" class="analytics-impact-card__action-form">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <input type="hidden" name="returnTo" value="/admin/analytics">
+                                        <button type="submit" class="btn-lux btn-lux-primary analytics-impact-card__btn"><i class="fas fa-check"></i> <%= __('common_approve_publish') %></button>
+                                    </form>
+                                    <button type="button" class="btn-lux btn-lux-outline analytics-impact-card__btn" onclick="toggleImpactReject('<%= proof._id %>')"><i class="fas fa-times"></i> <%= __('common_reject') %></button>
+                                </div>
+                                <div id="impact-reject-<%= proof._id %>" class="analytics-impact-card__reject" hidden>
+                                    <form action="/admin/impact-proofs/<%= proof._id %>/reject" method="POST">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <input type="hidden" name="returnTo" value="/admin/analytics">
+                                        <textarea name="rejectionReason" required class="form-input content-mgmt-textarea" rows="2" placeholder="<%= __('admin_impact_rejection_placeholder') %>"></textarea>
+                                        <button type="submit" class="btn-lux btn-lux-danger analytics-impact-card__btn analytics-impact-card__btn--full"><%= __('admin_impact_confirm_rejection') %></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="analytics-impact-section__empty">
+                    <div class="analytics-impact-section__empty-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div>
+                        <strong class="font-cairo"><%= __('admin_impact_no_pending') %></strong>
+                        <p><%= __('admin_analytics_impact_empty_desc') %></p>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </section>
 
     <!-- Main Charts Section -->
     <div class="grid-auto-2" style="grid-template-columns: 2fr 1fr !important; margin-bottom: 40px;">
@@ -111,7 +197,7 @@
                             <tr>
                                 <td class="px-3">
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <img src="<%= donor.donorDetails.avatar || '/assets/images/placeholder-avatar.jpg' %>" style="width: 35px; height: 35px; border-radius: 10px; object-fit: cover;">
+                                        <img src="<%= userAvatar(donor.donorDetails) %>" style="width: 35px; height: 35px; border-radius: 10px; object-fit: cover;">
                                         <div>
                                             <div style="font-weight: 800; color: var(--primary); font-size: 0.9rem;"><%= donor.donorDetails.name %></div>
                                             <div style="font-size: 0.75rem; color: #94a3b8;"><%= donor.donorDetails.email %></div>
@@ -187,7 +273,303 @@
     
     .badge-soft-primary { background: #eff6ff; color: #1e40af; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; }
     .badge-soft-navy { background: #f1f5f9; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #e2e8f0; }
+
+    .analytics-impact-section {
+        position: relative;
+        border-radius: 28px;
+        overflow: hidden;
+    }
+    .analytics-impact-section__glow {
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 0% 0%, rgba(0, 165, 68, 0.14), transparent 42%),
+            radial-gradient(circle at 100% 100%, rgba(0, 38, 97, 0.12), transparent 40%);
+        pointer-events: none;
+    }
+    .analytics-impact-section--pending .analytics-impact-section__glow {
+        background:
+            radial-gradient(circle at 0% 0%, rgba(0, 165, 68, 0.22), transparent 45%),
+            radial-gradient(circle at 100% 100%, rgba(234, 88, 12, 0.1), transparent 38%);
+    }
+    .analytics-impact-section__inner {
+        position: relative;
+        padding: 28px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #f0fdf4 100%);
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        border-radius: 28px;
+        box-shadow: 0 18px 50px rgba(2, 26, 15, 0.06);
+    }
+    .analytics-impact-section--pending .analytics-impact-section__inner {
+        border-color: rgba(0, 165, 68, 0.18);
+    }
+    .analytics-impact-section__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+        padding-bottom: 20px;
+        border-bottom: 1px dashed rgba(0, 38, 97, 0.1);
+    }
+    .analytics-impact-section__intro {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        flex: 1;
+        min-width: 260px;
+    }
+    .analytics-impact-section__icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #016630;
+        background: linear-gradient(135deg, rgba(0, 165, 68, 0.16), rgba(0, 165, 68, 0.06));
+        border: 1px solid rgba(0, 165, 68, 0.2);
+        flex-shrink: 0;
+    }
+    .analytics-impact-section__title {
+        margin: 0 0 6px;
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: var(--primary);
+    }
+    .analytics-impact-section__desc {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        max-width: 520px;
+    }
+    .analytics-impact-section__meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .analytics-impact-section__stat {
+        min-width: 88px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+    }
+    .analytics-impact-section__stat-value {
+        display: block;
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: var(--secondary);
+        line-height: 1;
+    }
+    .analytics-impact-section__stat-label {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #94a3b8;
+    }
+    .analytics-impact-section__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px !important;
+        border-radius: 14px !important;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .analytics-impact-section__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+    }
+    .analytics-impact-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(0, 38, 97, 0.07);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .analytics-impact-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(0, 165, 68, 0.22);
+        box-shadow: 0 14px 30px rgba(0, 165, 68, 0.1);
+    }
+    .analytics-impact-card {
+        flex-direction: column;
+    }
+    .analytics-impact-card__media {
+        width: 100%;
+        height: 120px;
+        border-radius: 14px;
+        background-size: cover;
+        background-position: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .analytics-impact-card__media--empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8fafc, #eef2f7);
+        color: #cbd5e1;
+        font-size: 1.2rem;
+    }
+    .analytics-impact-card__body {
+        min-width: 0;
+        flex: 1;
+    }
+    .analytics-impact-card__case {
+        display: inline-block;
+        margin-bottom: 6px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(0, 38, 97, 0.06);
+        color: var(--primary);
+        font-size: 0.68rem;
+        font-weight: 800;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .analytics-impact-card__title {
+        margin: 0 0 6px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #0f172a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .analytics-impact-card__excerpt {
+        margin: 0 0 10px;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: #64748b;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .analytics-impact-card__footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #94a3b8;
+    }
+    .analytics-impact-card__footer i {
+        color: var(--secondary);
+        margin-inline-end: 4px;
+    }
+    .impact-workflow { margin-bottom: 22px; padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,38,97,0.08); }
+    .analytics-impact-section__queue-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+    .analytics-impact-section__queue-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--primary);
+    }
+    .analytics-impact-section__queue-badge {
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #ea580c;
+        font-size: 0.75rem;
+        font-weight: 800;
+        border: 1px solid #fed7aa;
+    }
+    .analytics-impact-card__actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+    .analytics-impact-card__action-form { flex: 1; min-width: 120px; }
+    .analytics-impact-card__btn {
+        width: 100%;
+        padding: 8px 12px !important;
+        font-size: 0.78rem !important;
+        border-radius: 10px !important;
+        font-weight: 800;
+    }
+    .analytics-impact-card__btn--full { margin-top: 8px; }
+    .analytics-impact-card__reject {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #e2e8f0;
+    }
+    .analytics-impact-card__reject textarea {
+        width: 100%;
+        font-size: 0.82rem;
+        margin-bottom: 0;
+    }
+    .analytics-impact-section__empty {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 22px 24px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px dashed #dbe3ee;
+    }
+    .analytics-impact-section__empty-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0fdf4;
+        color: #16a34a;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    .analytics-impact-section__empty strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--primary);
+        font-size: 1rem;
+    }
+    .analytics-impact-section__empty p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.86rem;
+    }
+    @media (max-width: 768px) {
+        .analytics-impact-section__inner { padding: 20px; }
+        .analytics-impact-section__meta { width: 100%; }
+        .analytics-impact-section__cta { width: 100%; justify-content: center; }
+    }
 </style>
+
+<script>
+    function toggleImpactReject(id) {
+        const el = document.getElementById('impact-reject-' + id);
+        if (!el) return;
+        el.hidden = !el.hidden;
+    }
+</script>
 
 <script>
     const locale = '<%= lang === "ar" ? "ar-EG" : "en-US" %>';

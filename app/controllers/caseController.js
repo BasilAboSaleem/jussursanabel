@@ -149,7 +149,7 @@ exports.getRegisterCase = async (req, res) => {
             : registrationSettings.registrationGuideAr;
 
         res.render('pages/cases/register-case', {
-            title: res.__('admin_nav_cases_manager'),
+            title: res.__('admin_sidebar_cases_manager'),
             caseNeeds: needsArray,
             registrationGuide,
             caseStoryExamples: registrationSettings.storyExamples,

@@ -43,7 +43,7 @@
 <div class="nm-admin-card nm-admin-page-header">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
         <div style="display: flex; gap: 20px; align-items: center;">
-            <img src="<%= oversightUser.avatar || '/assets/images/default-avatar.png' %>" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+            <img src="<%= userAvatar(oversightUser) %>" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
             <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                 <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= oversightUser.name %></h2>
                 <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
@@ -225,7 +225,7 @@
                         <% discussions.forEach((disc, index) => { %>
                             <div class="monitor-item" id="nav-item-<%= index %>" onclick="showDiscussion('<%= index %>')" style="padding: 15px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; transition: all 0.2s; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
                                 <div style="width: 45px; height: 45px; border-radius: 10px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; flex-shrink: 0; overflow: hidden;">
-                                    <img src="<%= disc.partner.avatar || '/assets/images/default-avatar.png' %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="<%= userAvatar(disc.partner) %>" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b;">

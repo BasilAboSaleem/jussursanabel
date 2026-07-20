@@ -3,7 +3,7 @@
 <div class="nm-admin-card nm-admin-page-header nm-admin-page-header--accent">
     <div class="logs-head-row" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-file-signature"></i> <%= __('admin_activity_logs_title') %></h3>
+            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-binoculars"></i> <%= __('admin_sidebar_activity_logs') %></h3>
             <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_activity_logs_desc') %></p>
         </div>
         <div style="background: rgba(0,0,0,0.03); padding: 10px 20px; border-radius: 12px; text-align: center;">
@@ -93,8 +93,7 @@
                     </td>
                     <td style="padding: 15px 20px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="<%= log.user ? log.user.avatar : 'https://ui-avatars.com/api/?name=System&background=020617&color=fff' %>" 
-                                style="width: 35px; height: 35px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.05); object-fit: cover;">
+                            <img src="<%= log.user ? userAvatar(log.user) : userAvatar({}) %>" style="width: 35px; height: 35px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.05); object-fit: cover;">
                             <div style="overflow: hidden; max-width: 150px;">
                                 <div style="font-weight: 700; font-size: 0.9rem; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.name : __('common_system_auto') %></div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.email : 'system@jussur.org' %></div>

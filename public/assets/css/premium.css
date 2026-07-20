@@ -1733,19 +1733,78 @@ tbody tr:hover {
     border-radius: var(--radius-sm);
     margin-bottom: 5px;
     font-weight: 600;
-    transition: var(--transition-fast);
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    text-decoration: none !important;
+    border: none !important;
 }
 
 .admin-nav-item i {
     width: 20px;
     font-size: 1.1rem;
     text-align: center;
+    flex-shrink: 0;
 }
 
-.admin-nav-item:hover,
+.admin-nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.92);
+    transform: translateX(-2px);
+}
+
+html[dir="ltr"] .admin-nav-item:hover {
+    transform: translateX(2px);
+}
+
 .admin-nav-item.active {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--secondary-light);
+    background: linear-gradient(90deg, rgba(0, 165, 68, 0.28), rgba(255, 255, 255, 0.07));
+    color: #fff;
+    box-shadow: inset 3px 0 0 var(--secondary);
+    animation: adminNavActiveIn 0.35s ease;
+}
+
+html[dir="rtl"] .admin-nav-item.active {
+    box-shadow: inset -3px 0 0 var(--secondary);
+    animation-name: adminNavActiveInRtl;
+}
+
+@keyframes adminNavActiveIn {
+    from {
+        opacity: 0.65;
+        transform: translateX(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes adminNavActiveInRtl {
+    from {
+        opacity: 0.65;
+        transform: translateX(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Keep sidebar isolated when pages load Bootstrap or other global resets */
+.admin-layout .admin-sidebar a,
+.admin-layout .admin-sidebar a:hover,
+.admin-layout .admin-sidebar a:focus,
+.admin-layout .admin-sidebar a:active,
+.admin-layout .admin-sidebar a:visited {
+    text-decoration: none !important;
+}
+
+.admin-layout .admin-sidebar .admin-nav-item {
+    border-bottom: none !important;
+}
+
+.admin-layout .admin-sidebar .logo-luxury {
+    text-decoration: none !important;
+    border: none !important;
 }
 
 .admin-nav-group-label {
@@ -1882,6 +1941,10 @@ html[dir="ltr"] .sidebar-close-btn {
     .admin-top-bar .admin-top-bar-date,
     .admin-top-bar .admin-active-mode-badge {
         display: none !important;
+    }
+
+    .admin-back-btn__label {
+        display: none;
     }
 
     /* Cards should NOT scroll - only table-responsive scrolls */
@@ -5927,6 +5990,47 @@ body:has(.nm-messages-hub) .nm-support-widget {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(0, 38, 97, 0.08);
+}
+
+.admin-top-bar__leading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.admin-top-bar__menu-btn,
+.admin-back-btn {
+    padding: 8px 12px;
+    flex-shrink: 0;
+}
+
+.admin-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    transition: var(--transition);
+}
+
+.admin-back-btn:hover,
+.admin-back-btn:focus-visible {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.admin-top-bar__title {
+    margin: 0;
+    font-weight: 800;
+    color: var(--primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .admin-layout .admin-active-mode-badge {
