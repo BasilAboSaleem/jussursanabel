@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { cloudinary } = require('../utils/cloudinary');
 const fs = require('fs');
 const { logActivity } = require('../utils/logger');
+const { isBrandedStaffAvatar } = require('../utils/adminRoles');
 
 const getDashboardPathByRole = (role) => {
     if (role === 'admin' || role === 'super_admin' || role === 'regulator' || role === 'media') {
@@ -33,7 +34,7 @@ exports.updateProfile = async (req, res) => {
         let updateData = { name, idNumber, phone };
 
         // Phase 8: Admin Branding Lockdown
-        const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+        const isAdmin = isBrandedStaffAvatar(req.user);
         
         if (isAdmin) {
             // Enforce unified admin avatar

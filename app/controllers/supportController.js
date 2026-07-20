@@ -123,7 +123,7 @@ exports.getAdminSupportDashboard = async (req, res) => {
             .sort({ lastMessageAt: -1 });
 
         res.render('admin/support/dashboard', {
-            title: 'لوحة التحكم | الدعم الفني المشترك',
+            title: res.__('admin_sidebar_support_center'),
             tickets,
             user: req.user
         });

@@ -19,6 +19,9 @@ const { cloudinaryEnabled } = require("./app/utils/storyVideo");
 const { metricsMiddleware, metricsHandler } = require("./app/utils/monitoring");
 const { protectMetrics } = require("./app/middlewares/metricsAuth");
 const { sanitizeRequest } = require("./app/middlewares/securitySanitizer");
+const { resolveUserAvatar } = require("./app/utils/userAvatar");
+const { resolveAdminBackUrl } = require("./app/utils/adminNavigation");
+const { usesAdminPanel, isSuperAdmin } = require("./app/utils/adminRoles");
 
 i18n.configure({
   locales: ['ar', 'en'],
@@ -129,6 +132,8 @@ app.use((req, res, next) => {
 });
 app.use(cookieParser());
 app.use(i18n.init);
+const siteContentMiddleware = require("./app/middlewares/siteContent");
+app.use(siteContentMiddleware);
 const { earlyPublicPageCache } = require("./app/middlewares/cache");
 app.use(earlyPublicPageCache);
 app.use(
@@ -221,8 +226,13 @@ app.use((req, res, next) => {
   res.locals.currentLocale = req.getLocale();
   res.locals.langDir = req.getLocale() === 'ar' ? 'rtl' : 'ltr';
   res.locals.title = ""; // Default title to avoid ReferenceError
+  res.locals.currentPath = (req.originalUrl || req.path || "").split("?")[0];
   res.locals.cloudinaryEnabled = cloudinaryEnabled;
   res.locals.asset = app.locals.asset;
+  res.locals.userAvatar = resolveUserAvatar;
+  res.locals.resolveAdminBackUrl = resolveAdminBackUrl;
+  res.locals.usesAdminPanel = usesAdminPanel;
+  res.locals.isSuperAdmin = isSuperAdmin;
   next();
 });
 

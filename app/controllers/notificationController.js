@@ -92,7 +92,7 @@ exports.getUserNotifications = async (req, res) => {
 
         // Render the notifications history page
         res.render('pages/notifications/index', {
-            title: 'مركز الإشعارات',
+            title: res.__('notif_center_title'),
             user,
             notifications: formatted,
             csrfToken: req.csrfToken ? req.csrfToken() : ''
@@ -146,7 +146,7 @@ exports.renderNotificationsManager = async (req, res) => {
         const totalPages = Math.ceil(total / limit);
 
         res.render('pages/admin/notifications/manage', {
-            title: 'إدارة الإشعارات',
+            title: res.__('admin_nav_notifications'),
             notifications,
             currentPage: page,
             totalPages,
