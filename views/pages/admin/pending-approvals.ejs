@@ -1,76 +1,108 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header">
-    <div class="responsive-stack" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h2 class="font-cairo" style="margin: 0; color: var(--primary);"><%= __('admin_sidebar_pending_approvals') %></h2>
-            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_pending_approvals_desc') %></p>
+<%
+const roleFilters = [
+    { key: 'all', href: '/admin/pending-approvals', label: __('common_all'), count: roleCounts.all },
+    { key: 'beneficiary', href: '/admin/pending-approvals?role=beneficiary', label: __('admin_pending_approvals_filter_beneficiary_short'), title: __('common_beneficiary'), count: roleCounts.beneficiary, dot: 'pending' },
+    { key: 'family', href: '/admin/pending-approvals?role=family', label: __('admin_pending_approvals_filter_family_short'), title: __('common_family'), count: roleCounts.family, dot: 'field' },
+    { key: 'guardian', href: '/admin/pending-approvals?role=guardian', label: __('admin_pending_approvals_filter_guardian_short'), title: __('common_orphan_guardian'), count: roleCounts.guardian, dot: 'media' },
+];
+
+function pendingRoleLabel(role) {
+    if (role === 'beneficiary') return __('common_beneficiary');
+    if (role === 'family') return __('common_family');
+    return __('common_orphan_guardian');
+}
+%>
+
+<div class="nm-admin-hub nm-admin-card nm-admin-card--flush">
+    <div class="nm-admin-hub__toolbar">
+        <div class="nm-admin-hub__search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="pendingApprovalSearch" oninput="filterPendingApprovals()" placeholder="<%= __('admin_pending_approvals_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_pending_approvals_search_placeholder') %>">
         </div>
-        <div class="badge badge-gold" style="padding: 10px 20px; font-size: 1rem;">
-            <%= __('admin_pending_approvals_total_prefix') %><%= users.length %>
+
+        <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_pending_approvals_filter_label') %>">
+            <% roleFilters.forEach((f) => { %>
+            <a href="<%= f.href %>"
+               class="nm-admin-hub__filter<%= currentRole === f.key ? ' is-active' : '' %>"
+               role="tab"
+               aria-selected="<%= currentRole === f.key ? 'true' : 'false' %>"
+               <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                <% if (f.key === 'all') { %>
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <% } else { %>
+                    <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                <% } %>
+                <span><%= f.label %></span>
+                <em><%= f.count %></em>
+            </a>
+            <% }) %>
         </div>
     </div>
-</div>
 
-<div class="nm-admin-card nm-admin-card--flush">
-    <div class="table-responsive">
-        <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-            <thead style="background: rgba(0,0,0,0.03);">
+    <div class="table-responsive nm-admin-chat-table-wrap">
+        <table class="nm-admin-chat-table">
+            <thead>
                 <tr>
-                    <th style="padding: 20px;"><%= __('common_user') %></th>
-                    <th style="padding: 20px;"><%= __('common_role') %></th>
-                    <th style="padding: 20px;"><%= __('common_id_number') %></th>
-                    <th style="padding: 20px;"><%= __('common_address') %></th>
-                    <th style="padding: 20px;"><%= __('common_registration_date') %></th>
-                    <th style="padding: 20px; text-align: center;"><%= __('common_actions') %></th>
+                    <th><%= __('common_user') %></th>
+                    <th><%= __('common_role') %></th>
+                    <th><%= __('common_id_number') %></th>
+                    <th><%= __('common_address') %></th>
+                    <th><%= __('common_registration_date') %></th>
+                    <th><%= __('common_actions') %></th>
                 </tr>
             </thead>
-            <tbody>
-                <% if(users.length === 0) { %>
+            <tbody id="pendingApprovalsBody">
+                <% if (users.length === 0) { %>
                     <tr>
-                        <td colspan="6" style="padding: 50px; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-check-circle" style="font-size: 3rem; opacity: 0.1; display: block; margin-bottom: 15px;"></i>
+                        <td colspan="6" class="nm-admin-chat-empty">
+                            <i class="fas fa-check-circle" aria-hidden="true" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 10px;"></i>
                             <%= __('admin_pending_approvals_empty') %>
                         </td>
                     </tr>
                 <% } %>
                 <% users.forEach(user => { %>
-                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
-                        <td style="padding: 20px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <img src="<%= userAvatar(user) %>" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary);">
+                    <tr class="pending-approval-row"
+                        data-name="<%= (user.name || '').toLowerCase() %>"
+                        data-email="<%= (user.email || '').toLowerCase() %>"
+                        data-phone="<%= (user.phone || '').toLowerCase() %>"
+                        data-id="<%= (user.idNumber || '').toLowerCase() %>"
+                        data-address="<%= (user.address || '').toLowerCase() %>">
+                        <td data-label="<%= __('common_user') %>">
+                            <div class="nm-admin-pending-user">
+                                <img src="<%= userAvatar(user) %>" alt="" class="nm-admin-pending-user__avatar">
                                 <div>
-                                    <div style="font-weight: 800; color: var(--primary);"><%= user.name %></div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);"><%= user.email %></div>
-                                    <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 700;"><%= user.phone %></div>
+                                    <div class="nm-admin-chat-name"><%= user.name %></div>
+                                    <div class="nm-admin-chat-meta"><%= user.email %></div>
+                                    <% if (user.phone) { %>
+                                        <div class="nm-admin-chat-meta nm-admin-pending-user__phone"><%= user.phone %></div>
+                                    <% } %>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 20px;">
-                            <span class="badge badge-navy">
-                                <%= user.role === 'beneficiary' ? __('common_beneficiary') : (user.role === 'family' ? __('common_family') : __('common_orphan_guardian')) %>
-                            </span>
+                        <td data-label="<%= __('common_role') %>">
+                            <span class="badge badge-navy"><%= pendingRoleLabel(user.role) %></span>
                         </td>
-                        <td style="padding: 20px; font-family: monospace; font-weight: 700;">
+                        <td data-label="<%= __('common_id_number') %>" class="nm-admin-pending-id">
                             <%= user.idNumber || __('common_not_available') %>
                         </td>
-                        <td style="padding: 20px; font-size: 0.85rem; max-width: 200px;">
+                        <td data-label="<%= __('common_address') %>" class="nm-admin-chat-meta">
                             <%= user.address || __('common_not_available') %>
                         </td>
-                        <td style="padding: 20px; font-size: 0.85rem; color: var(--text-muted);">
-                            <%= new Date(user.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
-                            <br>
-                            <%= new Date(user.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                        <td data-label="<%= __('common_registration_date') %>" class="nm-admin-chat-date">
+                            <div><%= new Date(user.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+                            <div class="nm-admin-chat-meta"><%= new Date(user.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
                         </td>
-                        <td style="padding: 20px;">
-                            <div style="display: flex; gap: 10px; justify-content: center;">
-                                <button onclick="approveUser('<%= user._id %>')" class="btn-lux btn-lux-primary btn-sm" style="background: var(--success); border-color: var(--success);">
+                        <td data-label="<%= __('common_actions') %>">
+                            <div class="nm-admin-pending-actions">
+                                <button type="button" onclick="approveUser('<%= user._id %>')" class="btn-lux btn-lux-primary nm-admin-pending-actions__btn">
                                     <i class="fas fa-check"></i> <%= __('common_activate') %>
                                 </button>
-                                <a href="/admin/users/<%= user._id %>/moderation" class="btn-lux btn-lux-outline btn-sm">
+                                <a href="/admin/users/<%= user._id %>/moderation" class="btn-lux btn-lux-outline nm-admin-pending-actions__btn">
                                     <i class="fas fa-eye"></i> <%= __('common_details') %>
                                 </a>
-                                <button onclick="rejectUser('<%= user._id %>')" class="btn-lux btn-lux-outline btn-sm" style="color: #ef4444; border-color: #ef4444;">
+                                <button type="button" onclick="rejectUser('<%= user._id %>')" class="btn-lux btn-lux-outline nm-admin-pending-actions__btn nm-admin-pending-actions__btn--danger">
                                     <i class="fas fa-times"></i> <%= __('common_reject') %>
                                 </button>
                             </div>
@@ -79,74 +111,150 @@
                 <% }) %>
             </tbody>
         </table>
+        <p class="nm-admin-hub__no-results" id="pendingApprovalsNoResults" hidden><%= __('admin_pending_approvals_no_results') %></p>
     </div>
 </div>
 
 <script>
-async function approveUser(userId) {
-    if(!confirm('<%= __("admin_pending_approvals_js_confirm_approve") %>')) return;
-    
-    try {
-        const res = await fetch(`/admin/users/${userId}/status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': '<%= csrfToken %>'
-            },
-            body: JSON.stringify({ status: 'active' })
+    function filterPendingApprovals() {
+        const query = (document.getElementById('pendingApprovalSearch').value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.pending-approval-row');
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const haystack = [
+                row.dataset.name,
+                row.dataset.email,
+                row.dataset.phone,
+                row.dataset.id,
+                row.dataset.address,
+            ].join(' ');
+            const show = !query || haystack.includes(query);
+            row.hidden = !show;
+            if (show) visible += 1;
         });
-        
-        if(res.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: '<%= __("admin_pending_approvals_js_success_title") %>',
-                text: '<%= __("admin_pending_approvals_js_success_text") %>',
-                confirmButtonText: '<%= __("common_excellent") %>'
-            }).then(() => window.location.reload());
-        } else {
-            alert('<%= __("admin_pending_approvals_js_error_approve") %>');
-        }
-    } catch(err) {
-        console.error(err);
-        alert('<%= __("admin_pending_approvals_js_error_conn") %>');
+
+        const noResults = document.getElementById('pendingApprovalsNoResults');
+        if (noResults) noResults.hidden = visible > 0 || rows.length === 0;
     }
-}
 
-async function rejectUser(userId) {
-    const { value: reason } = await Swal.fire({
-        title: '<%= __("admin_pending_approvals_js_reject_title") %>',
-        input: 'textarea',
-        inputLabel: '<%= __("admin_pending_approvals_js_reject_label") %>',
-        inputPlaceholder: '<%= __("admin_pending_approvals_js_reject_placeholder") %>',
-        showCancelButton: true,
-        confirmButtonText: '<%= __("admin_pending_approvals_js_reject_confirm") %>',
-        cancelButtonText: '<%= __("common_cancel") %>'
-    });
+    async function approveUser(userId) {
+        if (!confirm('<%= __("admin_pending_approvals_js_confirm_approve") %>')) return;
 
-    if (reason) {
         try {
-            const res = await fetch('/admin/moderate-user', {
+            const res = await fetch(`/admin/users/${userId}/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': '<%= csrfToken %>'
                 },
-                body: JSON.stringify({
-                    userId: userId,
-                    action: 'ban',
-                    note: reason
-                })
+                body: JSON.stringify({ status: 'active' })
             });
-            
-            if(res.ok) {
-                Swal.fire('<%= __("admin_pending_approvals_js_reject_success_title") %>', '<%= __("admin_pending_approvals_js_reject_success_text") %>', 'success')
-                .then(() => window.location.reload());
+
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '<%= __("admin_pending_approvals_js_success_title") %>',
+                    text: '<%= __("admin_pending_approvals_js_success_text") %>',
+                    confirmButtonText: '<%= __("common_excellent") %>'
+                }).then(() => window.location.reload());
+            } else {
+                alert('<%= __("admin_pending_approvals_js_error_approve") %>');
             }
-        } catch(err) {
+        } catch (err) {
             console.error(err);
+            alert('<%= __("admin_pending_approvals_js_error_conn") %>');
         }
     }
-}
+
+    async function rejectUser(userId) {
+        const { value: reason } = await Swal.fire({
+            title: '<%= __("admin_pending_approvals_js_reject_title") %>',
+            input: 'textarea',
+            inputLabel: '<%= __("admin_pending_approvals_js_reject_label") %>',
+            inputPlaceholder: '<%= __("admin_pending_approvals_js_reject_placeholder") %>',
+            showCancelButton: true,
+            confirmButtonText: '<%= __("admin_pending_approvals_js_reject_confirm") %>',
+            cancelButtonText: '<%= __("common_cancel") %>'
+        });
+
+        if (reason) {
+            try {
+                const res = await fetch('/admin/moderate-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '<%= csrfToken %>'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        action: 'ban',
+                        note: reason
+                    })
+                });
+
+                if (res.ok) {
+                    Swal.fire('<%= __("admin_pending_approvals_js_reject_success_title") %>', '<%= __("admin_pending_approvals_js_reject_success_text") %>', 'success')
+                        .then(() => window.location.reload());
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
 </script>
+
+<style>
+    .nm-admin-pending-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .nm-admin-pending-user__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .nm-admin-pending-user__phone {
+        color: var(--secondary);
+        font-weight: 700;
+    }
+
+    .nm-admin-pending-id {
+        font-family: monospace;
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    .nm-admin-pending-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .nm-admin-pending-actions__btn {
+        font-size: 0.78rem !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+    }
+
+    .nm-admin-pending-actions__btn--danger {
+        color: #ef4444 !important;
+        border-color: #fecaca !important;
+    }
+
+    @media (max-width: 768px) {
+        .nm-admin-pending-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
 
 <%- include('../../partials/admin-layout-bottom') %>
