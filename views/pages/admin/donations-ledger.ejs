@@ -1,199 +1,630 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header">
-  <div style="display:flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
-    <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-      <h2 class="font-cairo" style="margin: 0; color: var(--primary);">
-        <i class="fas fa-receipt"></i> <%= __('admin_sidebar_donations_ledger') %>
-      </h2>
-      <div style="margin-top: 6px; color: var(--text-muted); font-size: 0.9rem;">
-        يمكنك البحث والفلترة ثم تصدير Excel بنفس النتائج.
-      </div>
+<%
+function t(key, vars) {
+    var text = __(key);
+    if (!vars) return text;
+    Object.keys(vars).forEach(function(k) {
+        var val = vars[k];
+        text = text.split('%{' + k + '}').join(val);
+        text = text.split('{' + k + '}').join(val);
+    });
+    return text;
+}
+
+function ledgerUrl(overrides) {
+    const f = {
+        q: filters.q || '',
+        from: filters.from || '',
+        to: filters.to || '',
+        status: currentStatus || 'verified',
+        type: filters.type || 'all',
+        paymentMethod: filters.paymentMethod || 'all',
+        disbursementStatus: filters.disbursementStatus || 'all',
+        isBankConfirmed: filters.isBankConfirmed || 'all',
+        limit: filters.limit || 50,
+        page: filters.page || 1,
+    };
+    if (overrides) Object.assign(f, overrides);
+    const params = new URLSearchParams();
+    if (f.q) params.set('q', f.q);
+    if (f.from) params.set('from', f.from);
+    if (f.to) params.set('to', f.to);
+    if (f.status && f.status !== 'all') params.set('status', f.status);
+    if (f.type && f.type !== 'all') params.set('type', f.type);
+    if (f.paymentMethod && f.paymentMethod !== 'all') params.set('paymentMethod', f.paymentMethod);
+    if (f.disbursementStatus && f.disbursementStatus !== 'all') params.set('disbursementStatus', f.disbursementStatus);
+    if (f.isBankConfirmed && f.isBankConfirmed !== 'all') params.set('isBankConfirmed', f.isBankConfirmed);
+    if (f.limit && Number(f.limit) !== 50) params.set('limit', String(f.limit));
+    if (f.page && Number(f.page) > 1) params.set('page', String(f.page));
+    const qs = params.toString();
+    return '/admin/donations-ledger' + (qs ? '?' + qs : '');
+}
+
+const statusFilters = [
+    { key: 'all', href: ledgerUrl({ status: 'all', page: 1 }), label: __('common_all'), count: statusCounts.all },
+    { key: 'verified', href: ledgerUrl({ status: 'verified', page: 1 }), label: __('admin_ledger_filter_verified_short'), title: __('admin_ledger_status_verified'), count: statusCounts.verified, dot: 'approved' },
+    { key: 'pending', href: ledgerUrl({ status: 'pending', page: 1 }), label: __('admin_ledger_filter_pending_short'), title: __('common_pending'), count: statusCounts.pending, dot: 'pending' },
+    { key: 'failed', href: ledgerUrl({ status: 'failed', page: 1 }), label: __('admin_ledger_filter_failed_short'), title: __('admin_ledger_status_failed'), count: statusCounts.failed, dot: 'rejected' },
+];
+
+const pageCurrent = pagination.page;
+const pageTotal = pagination.totalPages;
+const totalCount = pagination.totalCount;
+
+function ledgerStatusMeta(status) {
+    if (status === 'verified') return { badge: 'nm-ledger-badge--verified', label: __('admin_ledger_status_verified') };
+    if (status === 'pending') return { badge: 'nm-ledger-badge--pending', label: __('common_pending') };
+    if (status === 'failed') return { badge: 'nm-ledger-badge--failed', label: __('admin_ledger_status_failed') };
+    return { badge: 'nm-ledger-badge--muted', label: status || '—' };
+}
+
+function ledgerTypeLabel(type) {
+    if (type === 'direct') return __('admin_ledger_type_direct');
+    if (type === 'monthly') return __('admin_ledger_type_monthly');
+    return type || '—';
+}
+
+function ledgerPaymentShort(method) {
+    if (method === 'stripe_checkout') return 'Stripe';
+    if (method === 'receipt_upload') return __('admin_ledger_payment_receipt_short');
+    return method || '';
+}
+
+function money(value) {
+    return '$' + Number(value || 0).toFixed(2);
+}
+%>
+
+<div class="nm-ledger-hub" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="nm-analytics-hub__meta nm-ledger-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= __('admin_ledger_desc') %></p>
+        <div class="nm-ledger-hub__meta-aside">
+            <span class="nm-activity-hub__stat" title="<%= __('admin_ledger_stat_count') %>">
+                <strong><%= totals.count.toLocaleString() %></strong>
+                <span><%= __('admin_ledger_stat_count') %></span>
+            </span>
+            <span class="nm-activity-hub__stat nm-ledger-hub__stat--green" title="<%= __('admin_ledger_stat_total') %>">
+                <strong><%= money(totals.sumAmount) %></strong>
+                <span><%= __('admin_ledger_stat_total') %></span>
+            </span>
+            <span class="nm-activity-hub__stat nm-ledger-hub__stat--purple" title="<%= __('admin_ledger_stat_institution') %>">
+                <strong><%= money(totals.sumInstitutionFee) %></strong>
+                <span><%= __('admin_ledger_stat_institution') %></span>
+            </span>
+            <span class="nm-activity-hub__stat nm-ledger-hub__stat--muted" title="<%= __('admin_ledger_stat_stripe') %>">
+                <strong><%= money(totals.sumGatewayFee) %></strong>
+                <span><%= __('admin_ledger_stat_stripe') %></span>
+            </span>
+            <a class="btn-lux btn-lux-outline nm-ledger-hub__export-btn" href="/admin/donations-ledger/export<%= exportQueryString ? ('?' + exportQueryString) : '' %>">
+                <i class="fas fa-file-excel" aria-hidden="true"></i> <%= __('admin_ledger_export') %>
+            </a>
+        </div>
     </div>
 
-    <div style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-      <div class="nm-admin-stat-pill">
-        <div style="font-size: 0.75rem; color: var(--text-muted);">عدد السجلات</div>
-        <div style="font-weight: 900; color: var(--primary); font-size: 1.2rem;"><%= totals.count.toLocaleString() %></div>
-      </div>
-      <div class="nm-admin-stat-pill">
-        <div style="font-size: 0.75rem; color: var(--text-muted);">إجمالي التبرعات</div>
-        <div style="font-weight: 900; color: #00A544; font-size: 1.2rem;">$<%= (totals.sumAmount || 0).toFixed(2) %></div>
-      </div>
-      <div class="nm-admin-stat-pill">
-        <div style="font-size: 0.75rem; color: var(--text-muted);">رسوم المؤسسة (معنا)</div>
-        <div style="font-weight: 900; color: #8b5cf6; font-size: 1.2rem;">$<%= (totals.sumInstitutionFee || 0).toFixed(2) %></div>
-      </div>
-      <div class="nm-admin-stat-pill">
-        <div style="font-size: 0.75rem; color: var(--text-muted);">رسوم Stripe (معلومة)</div>
-        <div style="font-weight: 900; color: #94a3b8; font-size: 1.2rem;">$<%= (totals.sumGatewayFee || 0).toFixed(2) %></div>
-      </div>
-      <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger/export<%= exportQueryString ? ('?' + exportQueryString) : '' %>">
-        <i class="fas fa-file-excel"></i> تصدير Excel
-      </a>
-    </div>
-  </div>
-</div>
+    <section class="nm-ledger-hub__panel nm-admin-card nm-admin-card--flush">
+        <div class="nm-activity-hub__filter-bar">
+            <form action="/admin/donations-ledger" method="GET" class="nm-activity-hub__filter-form" id="ledgerFilterForm">
+                <input type="hidden" name="status" value="<%= currentStatus %>">
+                <div class="nm-activity-hub__search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="search"
+                        name="q"
+                        class="form-input"
+                        placeholder="<%= __('admin_ledger_search_placeholder') %>"
+                        value="<%= filters.q || '' %>"
+                        aria-label="<%= __('admin_ledger_search_placeholder') %>">
+                </div>
 
-<div class="nm-admin-card nm-admin-filter-bar">
-  <form method="GET" action="/admin/donations-ledger" style="display:grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: end;">
-    <div style="grid-column: span 3;">
-      <label style="font-weight:700; font-size:0.85rem;">بحث شامل</label>
-      <input class="form-control" name="q" value="<%= (filters.q || '') %>" placeholder="اسم/إيميل/معرّف/Stripe..." style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-    </div>
+                <div class="nm-activity-hub__filter-field nm-activity-hub__filter-field--date">
+                    <label for="ledgerFrom"><%= __('common_from_date') %></label>
+                    <input type="date" id="ledgerFrom" name="from" class="form-input" value="<%= filters.from || '' %>">
+                </div>
+                <div class="nm-activity-hub__filter-field nm-activity-hub__filter-field--date">
+                    <label for="ledgerTo"><%= __('common_to_date') %></label>
+                    <input type="date" id="ledgerTo" name="to" class="form-input" value="<%= filters.to || '' %>">
+                </div>
 
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">من</label>
-      <input class="form-control" type="date" name="from" value="<%= filters.from || '' %>" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-    </div>
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">إلى</label>
-      <input class="form-control" type="date" name="to" value="<%= filters.to || '' %>" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-    </div>
+                <div class="nm-activity-hub__filter-field">
+                    <label for="ledgerType"><%= __('admin_ledger_col_type') %></label>
+                    <select name="type" id="ledgerType" class="form-input">
+                        <option value="all" <%= filters.type === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                        <option value="direct" <%= filters.type === 'direct' ? 'selected' : '' %>><%= __('admin_ledger_type_direct') %></option>
+                        <option value="monthly" <%= filters.type === 'monthly' ? 'selected' : '' %>><%= __('admin_ledger_type_monthly') %></option>
+                    </select>
+                </div>
 
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">الحالة</label>
-      <select name="status" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>الكل</option>
-        <option value="verified" <%= filters.status === 'verified' ? 'selected' : '' %>>مدقق</option>
-        <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>قيد المراجعة</option>
-        <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>فاشل</option>
-      </select>
-    </div>
+                <div class="nm-activity-hub__filter-field">
+                    <label for="ledgerPayment"><%= __('admin_ledger_col_payment') %></label>
+                    <select name="paymentMethod" id="ledgerPayment" class="form-input">
+                        <option value="all" <%= filters.paymentMethod === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                        <option value="stripe_checkout" <%= filters.paymentMethod === 'stripe_checkout' ? 'selected' : '' %>>Stripe Checkout</option>
+                        <option value="receipt_upload" <%= filters.paymentMethod === 'receipt_upload' ? 'selected' : '' %>><%= __('admin_ledger_payment_receipt') %></option>
+                    </select>
+                </div>
 
-    <div style="grid-column: span 1;">
-      <label style="font-weight:700; font-size:0.85rem;">النوع</label>
-      <select name="type" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <option value="all" <%= filters.type === 'all' ? 'selected' : '' %>>الكل</option>
-        <option value="direct" <%= filters.type === 'direct' ? 'selected' : '' %>>مباشر</option>
-        <option value="monthly" <%= filters.type === 'monthly' ? 'selected' : '' %>>شهري</option>
-      </select>
-    </div>
+                <div class="nm-activity-hub__filter-field">
+                    <label for="ledgerBank"><%= __('admin_ledger_col_bank_match') %></label>
+                    <select name="isBankConfirmed" id="ledgerBank" class="form-input">
+                        <option value="all" <%= filters.isBankConfirmed === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                        <option value="true" <%= filters.isBankConfirmed === 'true' ? 'selected' : '' %>><%= __('yes') %></option>
+                        <option value="false" <%= filters.isBankConfirmed === 'false' ? 'selected' : '' %>><%= __('no') %></option>
+                    </select>
+                </div>
 
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">وسيلة الدفع</label>
-      <select name="paymentMethod" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <option value="all" <%= filters.paymentMethod === 'all' ? 'selected' : '' %>>الكل</option>
-        <option value="stripe_checkout" <%= filters.paymentMethod === 'stripe_checkout' ? 'selected' : '' %>>Stripe Checkout</option>
-        <option value="receipt_upload" <%= filters.paymentMethod === 'receipt_upload' ? 'selected' : '' %>>إيصال بنكي</option>
-      </select>
-    </div>
+                <div class="nm-activity-hub__filter-field">
+                    <label for="ledgerDisbursement"><%= __('admin_ledger_col_disbursement') %></label>
+                    <select name="disbursementStatus" id="ledgerDisbursement" class="form-input">
+                        <option value="all" <%= filters.disbursementStatus === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                        <option value="pending" <%= filters.disbursementStatus === 'pending' ? 'selected' : '' %>><%= __('admin_ledger_disbursement_pending') %></option>
+                        <option value="disbursed" <%= filters.disbursementStatus === 'disbursed' ? 'selected' : '' %>><%= __('admin_ledger_disbursement_done') %></option>
+                    </select>
+                </div>
 
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">مطابقة بنكية</label>
-      <select name="isBankConfirmed" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <option value="all" <%= filters.isBankConfirmed === 'all' ? 'selected' : '' %>>الكل</option>
-        <option value="true" <%= filters.isBankConfirmed === 'true' ? 'selected' : '' %>>نعم</option>
-        <option value="false" <%= filters.isBankConfirmed === 'false' ? 'selected' : '' %>>لا</option>
-      </select>
-    </div>
+                <div class="nm-activity-hub__filter-actions">
+                    <input type="hidden" name="limit" value="<%= filters.limit %>">
+                    <button type="submit" class="btn-lux btn-lux-primary">
+                        <i class="fas fa-filter" aria-hidden="true"></i> <%= __('common_apply_filter') %>
+                    </button>
+                    <a href="/admin/donations-ledger" class="btn-lux btn-lux-outline" title="<%= __('common_reset') %>">
+                        <i class="fas fa-redo" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
 
-    <div style="grid-column: span 2;">
-      <label style="font-weight:700; font-size:0.85rem;">حالة الصرف</label>
-      <select name="disbursementStatus" class="form-control" style="width:100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <option value="all" <%= filters.disbursementStatus === 'all' ? 'selected' : '' %>>الكل</option>
-        <option value="pending" <%= filters.disbursementStatus === 'pending' ? 'selected' : '' %>>قيد الصرف</option>
-        <option value="disbursed" <%= filters.disbursementStatus === 'disbursed' ? 'selected' : '' %>>تم الصرف</option>
-      </select>
-    </div>
+        <div class="nm-ledger-hub__status-bar">
+            <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_ledger_filter_status_label') %>">
+                <% statusFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter<%= currentStatus === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= currentStatus === f.key ? 'true' : 'false' %>"
+                   <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                    <% if (f.key === 'all') { %>
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <% } else { %>
+                        <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                    <% } %>
+                    <span><%= f.label %></span>
+                    <em><%= f.count %></em>
+                </a>
+                <% }) %>
+            </div>
+        </div>
 
-    <div style="grid-column: span 2; display:flex; gap:10px;">
-      <input type="hidden" name="limit" value="<%= filters.limit %>">
-      <button class="btn-lux btn-lux-primary" type="submit" style="width:100%;">
-        <i class="fas fa-filter"></i> تطبيق
-      </button>
-      <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger" style="width:100%; text-align:center;">
-        <i class="fas fa-rotate"></i> مسح
-      </a>
-    </div>
-  </form>
-</div>
+        <div class="nm-activity-hub__table-wrap table-responsive nm-ledger-table-wrap">
+            <table class="nm-admin-chat-table nm-ledger-table">
+                <thead>
+                    <tr>
+                        <th><%= __('common_time_date') %></th>
+                        <th><%= __('admin_ledger_col_donor') %></th>
+                        <th><%= __('admin_ledger_col_case') %></th>
+                        <th><%= __('admin_ledger_col_details') %></th>
+                        <th class="nm-ledger-table__money"><%= __('admin_ledger_col_amounts') %></th>
+                        <th><%= __('admin_ledger_col_stripe') %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (!rows || rows.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="nm-admin-chat-empty">
+                                <i class="fas fa-receipt" aria-hidden="true" style="font-size: 2rem; opacity: 0.15; display: block; margin-bottom: 10px; color: var(--primary);"></i>
+                                <%= __('admin_ledger_empty') %>
+                            </td>
+                        </tr>
+                    <% } %>
+                    <% (rows || []).forEach((row) => { %>
+                        <%
+                            const statusMeta = ledgerStatusMeta(row.status);
+                            const bankExpected = Number(row.amount || 0) + Number(row.institutionFee || 0);
+                            const paymentShort = ledgerPaymentShort(row.paymentMethod);
+                            const stripeRef = row.stripePaymentIntentId || row.stripeSessionId || '';
+                            const stripeTitle = [row.stripeSessionId, row.stripePaymentIntentId].filter(Boolean).join(' | ');
+                        %>
+                        <tr class="nm-ledger-row">
+                            <td data-label="<%= __('common_time_date') %>" class="nm-ledger-date">
+                                <span class="nm-ledger-date__main"><%= fmtDate(row.createdAt) %></span>
+                                <% if (row._idShort) { %>
+                                    <code class="nm-ledger-code"><%= row._idShort %></code>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_ledger_col_donor') %>" class="nm-ledger-donor">
+                                <span class="nm-ledger-donor__name"><%= row.donorName || '—' %></span>
+                                <% if (row.donorEmail) { %>
+                                    <span class="nm-ledger-email"><%= row.donorEmail %></span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_ledger_col_case') %>" class="nm-ledger-case-cell">
+                                <span class="nm-ledger-case" title="<%= row.caseTitle || '' %>"><%= row.caseTitle || '—' %></span>
+                                <% if (row.beneficiaryName) { %>
+                                    <span class="nm-ledger-beneficiary"><i class="fas fa-user" aria-hidden="true"></i> <%= row.beneficiaryName %></span>
+                                <% } %>
+                                <% if (row.teamName) { %>
+                                    <span class="nm-ledger-team"><%= t('admin_ledger_team_label', { name: row.teamName }) %></span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_ledger_col_details') %>" class="nm-ledger-details">
+                                <span class="nm-ledger-details__line">
+                                    <span class="nm-ledger-details__status nm-ledger-details__status--<%= row.status %>"><%= statusMeta.label %></span>
+                                    <span class="nm-ledger-details__sep" aria-hidden="true">·</span>
+                                    <span><%= ledgerTypeLabel(row.type) %></span>
+                                    <% if (paymentShort) { %>
+                                        <span class="nm-ledger-details__sep" aria-hidden="true">·</span>
+                                        <span><%= paymentShort %></span>
+                                    <% } %>
+                                </span>
+                            </td>
+                            <td data-label="<%= __('admin_ledger_col_amounts') %>" class="nm-ledger-table__money nm-ledger-finances">
+                                <div class="nm-ledger-finances__row nm-ledger-finances__row--total">
+                                    <span><%= __('admin_ledger_amt_total_short') %></span>
+                                    <strong><%= money(row.totalAmount) %></strong>
+                                </div>
+                                <div class="nm-ledger-finances__grid">
+                                    <span class="nm-ledger-finances__item">
+                                        <em><%= __('admin_ledger_amt_case_short') %></em>
+                                        <b class="nm-ledger-finances__val--case"><%= money(row.amount) %></b>
+                                    </span>
+                                    <span class="nm-ledger-finances__item">
+                                        <em><%= __('admin_ledger_amt_inst_short') %></em>
+                                        <b class="nm-ledger-finances__val--inst"><%= money(row.institutionFee) %></b>
+                                    </span>
+                                    <span class="nm-ledger-finances__item">
+                                        <em><%= __('admin_ledger_amt_stripe_short') %></em>
+                                        <b class="nm-ledger-finances__val--stripe"><%= money(row.gatewayFee) %></b>
+                                    </span>
+                                    <span class="nm-ledger-finances__item">
+                                        <em><%= __('admin_ledger_amt_bank_short') %></em>
+                                        <b class="nm-ledger-finances__val--bank"><%= money(bankExpected) %></b>
+                                    </span>
+                                </div>
+                            </td>
+                            <td data-label="<%= __('admin_ledger_col_stripe') %>" class="nm-ledger-stripe">
+                                <% if (stripeRef) { %>
+                                    <code class="nm-ledger-stripe__id" title="<%= stripeTitle %>"><%= String(stripeRef).slice(0, 20) %>…</code>
+                                <% } else { %>
+                                    <span class="nm-ledger-stripe__empty">—</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
 
-<div class="nm-admin-card nm-admin-card--flush">
-  <div class="table-responsive">
-    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-      <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
-        <tr>
-          <th style="padding: 14px 16px;">التاريخ</th>
-          <th style="padding: 14px 16px;">المتبرع</th>
-          <th style="padding: 14px 16px;">الحالة</th>
-          <th style="padding: 14px 16px;">الحالة/النوع</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الأساسي</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">Stripe <span style="font-weight:400;font-size:0.7rem;color:#94a3b8;">(معلومة)</span></th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">المؤسسة</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">المتوقع بالبنك</th>
-          <th style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">الإجمالي</th>
-          <th style="padding: 14px 16px;">Stripe</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!rows || rows.length === 0) { %>
-          <tr>
-            <td colspan="10" style="padding: 60px; text-align:center; color: var(--text-muted);">
-              <%= __('common_no_data') %>
-            </td>
-          </tr>
+        <% if (pageTotal > 1) { %>
+            <%
+                const startPage = Math.max(1, pageCurrent - 2);
+                const endPage = Math.min(pageTotal, pageCurrent + 2);
+            %>
+            <nav class="nm-activity-hub__pagination" aria-label="<%= t('admin_ledger_page_summary', { current: pageCurrent, total: pageTotal, totalCount: totalCount.toLocaleString() }) %>">
+                <p class="nm-activity-hub__pagination-summary">
+                    <%= t('admin_ledger_page_summary', { current: pageCurrent, total: pageTotal, totalCount: totalCount.toLocaleString() }) %>
+                </p>
+                <div class="nm-activity-hub__pagination-links">
+                    <% if (pageCurrent > 1) { %>
+                        <a href="<%= ledgerUrl({ page: pageCurrent - 1 }) %>" class="btn-lux btn-lux-outline nm-activity-hub__pagination-btn" aria-label="<%= __('common_prev') %>">
+                            <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i>
+                        </a>
+                    <% } %>
+
+                    <% if (startPage > 1) { %>
+                        <a href="<%= ledgerUrl({ page: 1 }) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === 1 ? ' is-active' : '' %>">1</a>
+                        <% if (startPage > 2) { %>
+                            <span class="nm-activity-hub__pagination-ellipsis">…</span>
+                        <% } %>
+                    <% } %>
+
+                    <% for (let p = startPage; p <= endPage; p++) { %>
+                        <a href="<%= ledgerUrl({ page: p }) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === p ? ' is-active' : '' %>"<%= pageCurrent === p ? ' aria-current="page"' : '' %>><%= p %></a>
+                    <% } %>
+
+                    <% if (endPage < pageTotal) { %>
+                        <% if (endPage < pageTotal - 1) { %>
+                            <span class="nm-activity-hub__pagination-ellipsis">…</span>
+                        <% } %>
+                        <a href="<%= ledgerUrl({ page: pageTotal }) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === pageTotal ? ' is-active' : '' %>"><%= pageTotal %></a>
+                    <% } %>
+
+                    <% if (pageCurrent < pageTotal) { %>
+                        <a href="<%= ledgerUrl({ page: pageCurrent + 1 }) %>" class="btn-lux btn-lux-outline nm-activity-hub__pagination-btn" aria-label="<%= __('common_next') %>">
+                            <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
+                        </a>
+                    <% } %>
+                </div>
+            </nav>
         <% } %>
-
-        <% (rows || []).forEach(t => { %>
-          <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-            <td style="padding: 14px 16px; color:#64748b; font-size:0.85rem;"><%= fmtDate(t.createdAt) %></td>
-            <td style="padding: 14px 16px;">
-              <div style="font-weight: 800; color: var(--primary);"><%= t.donorName || '—' %></div>
-              <div style="font-size: 0.78rem; color:#64748b;"><%= t.donorEmail || '' %></div>
-            </td>
-            <td style="padding: 14px 16px;">
-              <div style="font-weight: 800; color:#334155; max-width: 260px; overflow:hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= t.caseTitle || '' %>">
-                <%= t.caseTitle || '—' %>
-              </div>
-              <div style="font-size: 0.78rem; color:#64748b;"><%= t.teamName ? ('فريق: ' + t.teamName) : '' %></div>
-            </td>
-            <td style="padding: 14px 16px;">
-              <span class="badge badge-navy"><%= t.status %></span>
-              <span class="badge badge-gold" style="margin-<%= langDir === 'rtl' ? 'right' : 'left' %>: 6px;"><%= t.type %></span>
-              <div style="font-size: 0.75rem; color:#64748b; margin-top: 4px;"><%= t.paymentMethod %></div>
-            </td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800;">$<%= Number(t.amount || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; color: #94a3b8;">$<%= Number(t.gatewayFee || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: #8b5cf6;">$<%= Number(t.institutionFee || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 800; color: var(--secondary);">$<%= (Number(t.amount || 0) + Number(t.institutionFee || 0)).toFixed(2) %></td>
-            <td style="padding: 14px 16px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>; font-weight: 900;">$<%= Number(t.totalAmount || 0).toFixed(2) %></td>
-            <td style="padding: 14px 16px; font-size: 0.78rem; color:#64748b;">
-              <div title="<%= t.stripeSessionId || '' %>"><b>S</b>: <%= t.stripeSessionId ? String(t.stripeSessionId).slice(0, 18) : '—' %></div>
-              <div title="<%= t.stripePaymentIntentId || '' %>"><b>P</b>: <%= t.stripePaymentIntentId ? String(t.stripePaymentIntentId).slice(0, 18) : '—' %></div>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+    </section>
 </div>
 
-<div style="display:flex; justify-content: space-between; align-items:center; margin-top: 18px; flex-wrap: wrap; gap: 10px;">
-  <div style="color:#64748b; font-size:0.85rem;">
-    صفحة <b><%= pagination.page %></b> من <b><%= pagination.totalPages %></b> — إجمالي <b><%= pagination.totalCount.toLocaleString() %></b>
-  </div>
+<style>
+    .nm-ledger-hub {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 24px;
+    }
 
-  <div style="display:flex; gap: 8px; flex-wrap: wrap;">
-    <% 
-      const base = new URLSearchParams();
-      ['q','from','to','status','type','paymentMethod','disbursementStatus','isBankConfirmed','limit'].forEach(k => {
-        const v = (filters && filters[k] !== undefined) ? String(filters[k]) : '';
-        if (v && v !== 'all') base.set(k, v);
-      });
-      const prevPage = Math.max(1, pagination.page - 1);
-      const nextPage = Math.min(pagination.totalPages, pagination.page + 1);
-    %>
-    <% base.set('page', String(prevPage)); %>
-    <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger?<%= base.toString() %>">
-      <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i> السابق
-    </a>
-    <% base.set('page', String(nextPage)); %>
-    <a class="btn-lux btn-lux-outline" href="/admin/donations-ledger?<%= base.toString() %>">
-      التالي <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
-    </a>
-  </div>
-</div>
+    .nm-ledger-hub__meta.nm-analytics-hub__meta {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .nm-ledger-hub__meta-aside {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+    }
+
+    .nm-ledger-hub__stat--green strong { color: #00A544; }
+    .nm-ledger-hub__stat--purple strong { color: #8b5cf6; }
+    .nm-ledger-hub__stat--muted strong { color: #94a3b8; }
+
+    .nm-ledger-hub__export-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 10px 14px !important;
+    }
+
+    .nm-ledger-hub__panel {
+        overflow: hidden;
+    }
+
+    .nm-ledger-hub__status-bar {
+        padding: 0 18px 14px;
+        border-bottom: 1px solid rgba(0, 38, 97, 0.06);
+        background: #fafbfd;
+    }
+
+    .nm-ledger-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nm-ledger-table {
+        text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+        min-width: 960px;
+    }
+
+    .nm-ledger-table th,
+    .nm-ledger-table td {
+        padding: 12px 14px;
+        vertical-align: middle;
+    }
+
+    .nm-ledger-table thead th {
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .nm-ledger-table__money {
+        text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;
+        white-space: nowrap;
+    }
+
+    .nm-ledger-date__main {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .nm-ledger-donor {
+        min-width: 150px;
+    }
+
+    .nm-ledger-donor__name {
+        display: block;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.86rem;
+    }
+
+    .nm-ledger-email {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.74rem;
+        color: #64748b;
+        direction: ltr;
+        text-align: start;
+    }
+
+    .nm-ledger-code {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    .nm-ledger-case-cell {
+        min-width: 180px;
+        max-width: 260px;
+    }
+
+    .nm-ledger-case {
+        display: block;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.86rem;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .nm-ledger-beneficiary {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 4px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .nm-ledger-beneficiary i {
+        color: #94a3b8;
+        font-size: 0.7rem;
+    }
+
+    .nm-ledger-team {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.72rem;
+        color: #94a3b8;
+    }
+
+    .nm-ledger-details {
+        min-width: 140px;
+        max-width: 200px;
+    }
+
+    .nm-ledger-details__line {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nm-ledger-details__status--verified { color: #047857; }
+    .nm-ledger-details__status--pending { color: #b45309; }
+    .nm-ledger-details__status--failed { color: #b91c1c; }
+
+    .nm-ledger-details__sep {
+        margin: 0 4px;
+        color: #cbd5e1;
+    }
+
+    .nm-ledger-finances {
+        min-width: 210px;
+        max-width: 240px;
+    }
+
+    .nm-ledger-finances__row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .nm-ledger-finances__row--total {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px dashed rgba(0, 38, 97, 0.1);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .nm-ledger-finances__row--total strong {
+        font-size: 0.92rem;
+        font-weight: 900;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .nm-ledger-finances__grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+    }
+
+    .nm-ledger-finances__item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .nm-ledger-finances__item em {
+        font-style: normal;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #94a3b8;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .nm-ledger-finances__item b {
+        font-size: 0.76rem;
+        font-weight: 800;
+        white-space: nowrap;
+        direction: ltr;
+    }
+
+    .nm-ledger-finances__val--case { color: #334155; }
+    .nm-ledger-finances__val--inst { color: #8b5cf6; }
+    .nm-ledger-finances__val--stripe { color: #94a3b8; }
+    .nm-ledger-finances__val--bank { color: #0d9488; }
+
+    .nm-ledger-stripe {
+        min-width: 120px;
+        max-width: 160px;
+    }
+
+    .nm-ledger-stripe__id {
+        display: block;
+        font-size: 0.72rem;
+        color: #64748b;
+        background: #f8fafc;
+        padding: 4px 6px;
+        border-radius: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        direction: ltr;
+        text-align: start;
+    }
+
+    .nm-ledger-stripe__empty {
+        color: #94a3b8;
+    }
+
+    @media (max-width: 768px) {
+        .nm-ledger-hub__meta.nm-analytics-hub__meta {
+            flex-direction: column;
+        }
+
+        .nm-ledger-table thead {
+            display: table-header-group;
+        }
+
+        .nm-ledger-table tr {
+            display: table-row;
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        .nm-ledger-table td {
+            display: table-cell;
+            padding: 12px 14px;
+        }
+
+        .nm-ledger-table td::before {
+            display: none;
+        }
+    }
+</style>
 
 <%- include('../../partials/admin-layout-bottom') %>
-
