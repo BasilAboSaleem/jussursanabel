@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Global CSS -->
-    <link rel="stylesheet" href="/assets/css/premium.css">
-    <link rel="stylesheet" href="/assets/css/dashboard-mobile.css">
+    <link rel="stylesheet" href="<%= asset('/assets/css/premium.css') %>">
+    <link rel="stylesheet" href="<%= asset('/assets/css/dashboard-mobile.css') %>">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -50,15 +50,22 @@
                     <span class="admin-back-btn__label"><%= __('common_back') %></span>
                 </button>
                 <% } %>
-                <h4 class="font-cairo admin-top-bar__title"><%= __(title) || title %></h4>
+                <%
+                    const pageIcon = (typeof titleIcon !== 'undefined' && titleIcon)
+                        ? titleIcon
+                        : (typeof resolveDashboardPageIcon === 'function'
+                            ? resolveDashboardPageIcon(adminPath, { user: typeof user !== 'undefined' ? user : null })
+                            : null);
+                %>
+                <h4 class="font-cairo admin-top-bar__title">
+                    <% if (pageIcon) { %><i class="<%= pageIcon %> admin-top-bar__title-icon" aria-hidden="true"></i><% } %>
+                    <span class="admin-top-bar__title-text"><%= __(title) || title %></span>
+                </h4>
             </div>
             
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div class="admin-top-bar-date" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
                     <i class="far fa-calendar-alt"></i> <%= new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
-                </div>
-                <div class="admin-active-mode-badge glass-panel" style="padding: 5px 15px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; color: var(--secondary);">
-                    <i class="fas fa-shield-alt"></i> <%= __('admin_active_mode') %>
                 </div>
                 <!-- Notifications -->
                 <%- include('./notifications-dropdown', { showAdminNotifManage: true }) %>
