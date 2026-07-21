@@ -1,182 +1,242 @@
 <%- include('../../partials/admin-layout-top') %>
 
 <%
-    const allUsersDonorCount = users.filter(u => u.role === 'donor').length;
-    const allUsersBeneficiaryCount = users.filter(u => ['beneficiary', 'family', 'guardian'].includes(u.role)).length;
+function allUsersUrl(overrides) {
+    const f = {
+        role: filters.role || 'all',
+        caseType: filters.caseType || 'all',
+        status: filters.status || 'all',
+        donorType: filters.donorType || 'all',
+    };
+    if (overrides) Object.assign(f, overrides);
+    const params = new URLSearchParams();
+    if (f.role !== 'all') params.set('role', f.role);
+    if (f.caseType !== 'all') params.set('caseType', f.caseType);
+    if (f.status !== 'all') params.set('status', f.status);
+    if (f.donorType !== 'all') params.set('donorType', f.donorType);
+    const qs = params.toString();
+    return '/admin/all-users' + (qs ? '?' + qs : '');
+}
+
+const roleFilters = [
+    { key: 'all', href: allUsersUrl({ role: 'all', caseType: 'all', donorType: 'all' }), label: __('common_all'), count: roleCounts.all },
+    { key: 'donor', href: allUsersUrl({ role: 'donor', caseType: 'all' }), label: __('admin_all_users_filter_donor_short'), title: __('common_donors'), count: roleCounts.donor, dot: 'field' },
+    { key: 'beneficiary', href: allUsersUrl({ role: 'beneficiary', donorType: 'all' }), label: __('admin_all_users_filter_beneficiary_short'), title: __('common_beneficiaries'), count: roleCounts.beneficiary, dot: 'media' },
+];
+
+const statusFilters = [
+    { key: 'all', href: allUsersUrl({ status: 'all' }), label: __('common_all'), count: statusCounts.all },
+    { key: 'active', href: allUsersUrl({ status: 'active' }), label: __('common_status_active'), count: statusCounts.active, dot: 'approved' },
+    { key: 'pending', href: allUsersUrl({ status: 'pending' }), label: __('common_status_pending'), count: statusCounts.pending, dot: 'pending' },
+    { key: 'suspended', href: allUsersUrl({ status: 'suspended' }), label: __('common_status_suspended'), count: statusCounts.suspended, dot: 'rejected' },
+];
+
+const caseTypeFilters = [
+    { key: 'all', href: allUsersUrl({ caseType: 'all' }), label: __('common_all') },
+    { key: 'orphan', href: allUsersUrl({ caseType: 'orphan' }), label: __('common_orphans') },
+    { key: 'family', href: allUsersUrl({ caseType: 'family' }), label: __('common_families') },
+];
+
+const donorTypeFilters = [
+    { key: 'all', href: allUsersUrl({ donorType: 'all' }), label: __('common_all') },
+    { key: 'verified', href: allUsersUrl({ role: 'donor', donorType: 'verified', caseType: 'all' }), label: __('admin_all_users_filter_verified_short'), title: __('common_verified_donor') },
+    { key: 'new', href: allUsersUrl({ role: 'donor', donorType: 'new', caseType: 'all' }), label: __('admin_all_users_filter_new_short'), title: __('common_new_donor') },
+];
+
+function allUsersRoleLabel(role) {
+    if (role === 'donor') return __('common_donor');
+    if (role === 'family') return __('common_family');
+    if (role === 'guardian') return __('common_orphan_guardian');
+    return __('common_beneficiary');
+}
+
+function allUsersStatusLabel(status) {
+    if (status === 'active') return __('common_status_active');
+    if (status === 'suspended') return __('common_status_suspended');
+    return __('common_pending');
+}
 %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--primary">
-    <div class="nm-admin-page-header__icon"><i class="fas fa-users"></i></div>
-    <div class="nm-admin-page-header__text">
-        <h2 class="font-cairo nm-admin-page-header__title"><%= __('admin_sidebar_all_users') %></h2>
-        <p class="nm-admin-page-header__desc"><%= __('admin_all_users_desc') %></p>
-    </div>
-</div>
-
-<div class="grid-auto-3" style="margin-bottom: 24px;">
-    <div class="nm-admin-card nm-admin-stat-card">
-        <div style="font-size: 2.2rem; color: var(--primary); margin-bottom: 12px;"><i class="fas fa-users"></i></div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_total_count') %></div>
-        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= users.length %></div>
-    </div>
-    <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--green">
-        <div style="font-size: 2.2rem; color: #00A544; margin-bottom: 12px;"><i class="fas fa-hand-holding-heart"></i></div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_stat_donors_short') %></div>
-        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= allUsersDonorCount %></div>
-    </div>
-    <div class="nm-admin-card nm-admin-stat-card nm-admin-stat-card--accent">
-        <div style="font-size: 2.2rem; color: var(--accent); margin-bottom: 12px;"><i class="fas fa-house-chimney-user"></i></div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;"><%= __('admin_all_users_stat_beneficiaries_short') %></div>
-        <div style="font-size: 1.9rem; font-weight: 800; color: var(--primary);"><%= allUsersBeneficiaryCount %></div>
-    </div>
-</div>
-
-<% if (user && user.role === 'super_admin') { %>
-<a href="/admin/password-recovery" class="all-users-pwd-action nm-admin-card">
-    <div class="all-users-pwd-action__main">
-        <div class="all-users-pwd-action__icon" aria-hidden="true">
-            <i class="fas fa-key"></i>
-        </div>
-        <div class="all-users-pwd-action__text">
-            <span class="all-users-pwd-action__title font-cairo"><%= __('admin_all_users_password_recovery_title') %></span>
-            <span class="all-users-pwd-action__desc"><%= __('admin_all_users_password_recovery_desc') %></span>
-        </div>
-    </div>
-    <span class="all-users-pwd-action__cta btn-lux btn-lux-primary">
-        <span><%= __('admin_all_users_password_recovery_btn') %></span>
-        <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
-    </span>
-</a>
-<% } %>
-
-<!-- Filters Bar -->
-<div class="nm-admin-card nm-admin-filter-bar">
-    <form action="/admin/all-users" method="GET" id="filterForm" class="responsive-stack" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
-        <div class="form-group" style="flex: 1; min-width: 150px;">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_role') %></label>
-            <select name="role" class="form-input" onchange="toggleFiltersVisibility(this.value)">
-                <option value="all" <%= filters.role === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
-                <option value="donor" <%= filters.role === 'donor' ? 'selected' : '' %>><%= __('common_donors') %></option>
-                <option value="beneficiary" <%= filters.role === 'beneficiary' ? 'selected' : '' %>><%= __('common_beneficiaries') %></option>
-            </select>
-        </div>
-
-        <div id="caseTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' ? '' : 'display: none;' %>">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_case_type') %></label>
-            <select name="caseType" class="form-input">
-                <option value="all" <%= filters.caseType === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
-                <option value="orphan" <%= filters.caseType === 'orphan' ? 'selected' : '' %>><%= __('common_orphans') %></option>
-                <option value="family" <%= filters.caseType === 'family' ? 'selected' : '' %>><%= __('common_families') %></option>
-            </select>
-        </div>
-
-        <div id="donorTypeContainer" class="form-group" style="flex: 1; min-width: 150px; <%= filters.role === 'beneficiary' ? 'display: none;' : '' %>">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_all_users_filter_donor_type') %></label>
-            <select name="donorType" class="form-input">
-                <option value="all" <%= filters.donorType === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
-                <option value="verified" <%= filters.donorType === 'verified' ? 'selected' : '' %>><%= __('common_verified_donor') %></option>
-                <option value="new" <%= filters.donorType === 'new' ? 'selected' : '' %>><%= __('common_new_donor') %></option>
-            </select>
-        </div>
-
-        <div class="form-group" style="flex: 1; min-width: 150px;">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_status') %></label>
-            <select name="status" class="form-input">
-                <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
-                <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>><%= __('common_status_active') %></option>
-                <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>><%= __('common_status_pending') %></option>
-                <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>><%= __('common_status_suspended') %></option>
-            </select>
-        </div>
-
-        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px;">
-            <button type="submit" class="btn-lux btn-lux-primary" style="flex: 1; padding: 12px 25px;">
-                <i class="fas fa-filter"></i> <%= __('common_filter') %>
-            </button>
-            <a href="/admin/all-users" class="btn-lux btn-lux-outline-white" style="padding: 12px 15px;">
-                <i class="fas fa-undo"></i>
-            </a>
-        </div>
-    </form>
-</div>
-
-<!-- Users Table -->
-<div class="nm-admin-card nm-admin-card--flush">
-    <div class="table-responsive">
-        <table style="width: 100%; border-collapse: collapse; text-align: right;">
-        <thead style="background: rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.05);">
-            <tr>
-                <th style="padding: 20px;"><%= __('common_user') %></th>
-                <th style="padding: 20px;"><%= __('admin_all_users_col_role') %></th>
-                <th style="padding: 20px;"><%= __('admin_all_users_col_case') %></th>
-                <th style="padding: 20px;"><%= __('common_account_status') %></th>
-                <th style="padding: 20px;"><%= __('common_registration_date') %></th>
-                <th style="padding: 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_actions') %></th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (users.length === 0) { %>
-                <tr>
-                    <td colspan="6" style="padding: 50px; text-align: center; color: var(--text-muted);">
-                        <i class="fas fa-search-minus" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
-                        <%= __('admin_all_users_empty') %>
-                    </td>
-                </tr>
+<div class="nm-all-users-hub">
+    <div class="nm-analytics-hub__meta nm-all-users-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= __('admin_all_users_desc') %></p>
+        <div class="nm-all-users-hub__meta-aside">
+            <span class="nm-activity-hub__stat" title="<%= __('admin_all_users_total_count') %>">
+                <strong><%= roleCounts.all.toLocaleString() %></strong>
+                <span><%= __('common_all') %></span>
+            </span>
+            <span class="nm-activity-hub__stat" title="<%= __('admin_all_users_stat_donors_short') %>">
+                <strong><%= roleCounts.donor.toLocaleString() %></strong>
+                <span><%= __('admin_all_users_stat_donors_short') %></span>
+            </span>
+            <span class="nm-activity-hub__stat" title="<%= __('admin_all_users_stat_beneficiaries_short') %>">
+                <strong><%= roleCounts.beneficiary.toLocaleString() %></strong>
+                <span><%= __('admin_all_users_stat_beneficiaries_short') %></span>
+            </span>
+            <% if (user && user.role === 'super_admin') { %>
+                <a href="/admin/password-recovery" class="nm-all-users-hub__pwd-link btn-lux btn-lux-outline">
+                    <i class="fas fa-key" aria-hidden="true"></i> <%= __('admin_all_users_password_recovery_btn') %>
+                </a>
             <% } %>
-            <% users.forEach(u => { %>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
-                    <td style="padding: 15px 20px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="<%= userAvatar(u) %>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--primary);"><%= u.name %></div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);"><%= u.email %></div>
-                            </div>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <% if (u.role === 'donor') { %>
-                            <span class="badge badge-teal" style="font-size: 0.7rem; display: inline-flex; align-items: center; gap: 5px;">
-                                <%= __('common_donor') %>
-                                <% if (u.isVerifiedDonor) { %>
-                                    <i class="fas fa-star all-users-role-badge__star" title="<%= __('common_verified_donor') %>" aria-label="<%= __('common_verified_donor') %>"></i>
+        </div>
+    </div>
+
+    <div class="nm-admin-hub nm-admin-card nm-admin-card--flush">
+        <div class="nm-admin-hub__toolbar">
+            <div class="nm-admin-hub__search">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="allUsersSearch" oninput="filterAllUsers()" placeholder="<%= __('admin_all_users_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_all_users_search_placeholder') %>">
+            </div>
+
+            <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_all_users_filter_label') %>">
+                <% roleFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter<%= filters.role === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= filters.role === f.key ? 'true' : 'false' %>"
+                   <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                    <% if (f.key === 'all') { %>
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <% } else { %>
+                        <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                    <% } %>
+                    <span><%= f.label %></span>
+                    <em><%= f.count %></em>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="nm-all-users-hub__subfilters">
+            <div class="nm-admin-hub__filters nm-all-users-hub__status-filters" role="tablist" aria-label="<%= __('admin_all_users_filter_status_label') %>">
+                <% statusFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter nm-admin-hub__filter--compact<%= filters.status === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= filters.status === f.key ? 'true' : 'false' %>">
+                    <% if (f.dot) { %><span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span><% } %>
+                    <span><%= f.label %></span>
+                    <em><%= f.count %></em>
+                </a>
+                <% }) %>
+            </div>
+
+            <% if (filters.role === 'beneficiary') { %>
+            <div class="nm-admin-hub__filters nm-all-users-hub__extra-filters" role="tablist" aria-label="<%= __('admin_all_users_filter_case_type') %>">
+                <% caseTypeFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter nm-admin-hub__filter--compact<%= filters.caseType === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= filters.caseType === f.key ? 'true' : 'false' %>">
+                    <span><%= f.label %></span>
+                </a>
+                <% }) %>
+            </div>
+            <% } else if (filters.role === 'donor' || filters.donorType !== 'all') { %>
+            <div class="nm-admin-hub__filters nm-all-users-hub__extra-filters" role="tablist" aria-label="<%= __('admin_all_users_filter_donor_type') %>">
+                <% donorTypeFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter nm-admin-hub__filter--compact<%= filters.donorType === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= filters.donorType === f.key ? 'true' : 'false' %>"
+                   <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                    <span><%= f.label %></span>
+                </a>
+                <% }) %>
+            </div>
+            <% } %>
+        </div>
+
+        <div class="table-responsive nm-admin-chat-table-wrap">
+            <table class="nm-admin-chat-table nm-all-users-table">
+                <thead>
+                    <tr>
+                        <th><%= __('common_user') %></th>
+                        <th><%= __('admin_all_users_col_role') %></th>
+                        <th><%= __('admin_all_users_col_case') %></th>
+                        <th><%= __('common_account_status') %></th>
+                        <th><%= __('common_registration_date') %></th>
+                        <th><%= __('common_actions') %></th>
+                    </tr>
+                </thead>
+                <tbody id="allUsersBody">
+                    <% if (users.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="nm-admin-chat-empty">
+                                <i class="fas fa-search-minus" aria-hidden="true" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 10px;"></i>
+                                <%= __('admin_all_users_empty') %>
+                            </td>
+                        </tr>
+                    <% } %>
+                    <% users.forEach(u => { %>
+                        <tr class="all-users-row"
+                            data-name="<%= (u.name || '').toLowerCase() %>"
+                            data-email="<%= (u.email || '').toLowerCase() %>"
+                            data-phone="<%= (u.phone || '').toLowerCase() %>"
+                            data-id="<%= (u.idNumber || '').toLowerCase() %>"
+                            data-case="<%= u.case ? (u.case.title || '').toLowerCase() : '' %>">
+                            <td data-label="<%= __('common_user') %>">
+                                <div class="nm-admin-pending-user">
+                                    <img src="<%= userAvatar(u) %>" alt="" class="nm-admin-pending-user__avatar">
+                                    <div>
+                                        <div class="nm-admin-chat-name"><%= u.name %></div>
+                                        <div class="nm-admin-chat-meta"><%= u.email %></div>
+                                        <% if (u.phone) { %>
+                                            <div class="nm-admin-chat-meta"><%= u.phone %></div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="<%= __('admin_all_users_col_role') %>">
+                                <% if (u.role === 'donor') { %>
+                                    <span class="badge badge-teal nm-all-users-role">
+                                        <%= __('common_donor') %>
+                                        <% if (u.isVerifiedDonor) { %>
+                                            <i class="fas fa-star all-users-role-badge__star" title="<%= __('common_verified_donor') %>" aria-label="<%= __('common_verified_donor') %>"></i>
+                                        <% } %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="all-users-role-badge all-users-role-badge--beneficiary"><%= allUsersRoleLabel(u.role) %></span>
                                 <% } %>
-                            </span>
-                        <% } else { %>
-                            <span class="all-users-role-badge all-users-role-badge--beneficiary"><%= __('common_beneficiary') %></span>
-                        <% } %>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <% if (u.case) { %>
-                            <a href="/cases/<%= u.case._id %>" style="font-size: 0.85rem; color: var(--primary); text-decoration: underline; font-weight: 600;">
-                                <%= u.case.title.substring(0, 20) %>...
-                            </a>
-                        <% } else { %>
-                            <span style="font-size: 0.8rem; color: var(--text-muted); opacity: 0.5;">-</span>
-                        <% } %>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <span class="badge <%= u.status === 'active' ? 'badge-teal' : (u.status === 'suspended' ? 'badge-danger' : 'badge-gold') %>" style="font-size: 0.7rem;">
-                            <%= u.status === 'active' ? __('common_status_active') : (u.status === 'suspended' ? __('common_status_suspended') : __('common_pending')) %>
-                        </span>
-                    </td>
-                    <td style="padding: 15px 20px; font-size: 0.8rem; color: var(--text-muted);">
-                        <%= u.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
-                    </td>
-                    <td style="padding: 15px 20px; text-align: left;">
-                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                <button class="btn-lux btn-lux-danger btn-sm" style="padding: 5px 10px; font-size: 0.7rem;" onclick="openModDialog('<%= u._id %>', '<%= u.name %>')">
-                                    <i class="fas fa-gavel"></i> <%= __('admin_all_users_btn_mod') %>
-                                </button>
-                                <a href="/admin/users/<%= u._id %>/moderation" class="btn-lux btn-lux-navy btn-sm" style="padding: 5px 10px; font-size: 0.7rem; text-decoration: none;">
-                                    <i class="fas fa-shield-halved"></i> <%= __('admin_all_users_btn_full_mod') %>
-                                </a>
-                            </div>
-                    </td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
+                            </td>
+                            <td data-label="<%= __('admin_all_users_col_case') %>">
+                                <% if (u.case) { %>
+                                    <a href="/cases/<%= u.case._id %>" class="nm-all-users-case-link">
+                                        <%= u.case.title.length > 28 ? u.case.title.substring(0, 28) + '…' : u.case.title %>
+                                    </a>
+                                <% } else { %>
+                                    <span class="nm-admin-chat-meta">—</span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('common_account_status') %>">
+                                <span class="badge <%= u.status === 'active' ? 'badge-teal' : (u.status === 'suspended' ? 'badge-danger' : 'badge-gold') %>">
+                                    <%= allUsersStatusLabel(u.status) %>
+                                </span>
+                            </td>
+                            <td data-label="<%= __('common_registration_date') %>" class="nm-admin-chat-date">
+                                <div><%= u.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+                                <div class="nm-admin-chat-meta"><%= u.createdAt.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                            </td>
+                            <td data-label="<%= __('common_actions') %>">
+                                <div class="nm-admin-pending-actions">
+                                    <button type="button"
+                                        class="btn-lux btn-lux-outline nm-admin-pending-actions__btn nm-admin-pending-actions__btn--danger all-users-mod-btn"
+                                        data-user-id="<%= u._id %>"
+                                        data-user-name="<%= encodeURIComponent(u.name || '') %>">
+                                        <i class="fas fa-gavel"></i> <%= __('admin_all_users_btn_mod') %>
+                                    </button>
+                                    <a href="/admin/users/<%= u._id %>/moderation" class="btn-lux btn-lux-navy nm-admin-pending-actions__btn">
+                                        <i class="fas fa-shield-halved"></i> <%= __('admin_all_users_btn_full_mod') %>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            <p class="nm-admin-hub__no-results" id="allUsersNoResults" hidden><%= __('admin_all_users_no_results') %></p>
+        </div>
+    </div>
 </div>
 
 <!-- Moderation Dialog -->
@@ -191,7 +251,7 @@
                 <option value="note"><%= __('admin_mod_action_note') %></option>
                 <option value="warning"><%= __('admin_mod_action_warning') %></option>
                 <option value="ban_user_specific" id="opt-ban-specific"><%= __('admin_mod_action_ban_specific') %></option>
-                <% if (user.role === 'super_admin') { %>
+                <% if (user && user.role === 'super_admin') { %>
                     <option value="ban_global_comm" class="full-mod"><%= __('admin_mod_action_ban_global') %></option>
                     <option value="ban" class="full-mod"><%= __('admin_mod_action_suspend') %></option>
                     <option value="soft_delete" class="full-mod"><%= __('admin_mod_action_soft_delete') %></option>
@@ -213,7 +273,7 @@
             <button class="btn-lux btn-lux-primary" id="confirmModBtn" onclick="submitModeration()"><%= __('common_confirm_action') %></button>
         </div>
 
-        <% if (user.role !== 'super_admin') { %>
+        <% if (user && user.role !== 'super_admin') { %>
         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
             <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; margin-bottom: 12px;"><%= __('admin_all_users_mod_super_admin_notice') %></div>
             <button class="btn-lux btn-lux-danger" style="width: 100%; opacity: 0.8;" onclick="openEscalationForm()">
@@ -266,6 +326,124 @@
 </div>
 
 <style>
+    .nm-all-users-hub {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 24px;
+        text-align: start;
+    }
+
+    .nm-all-users-hub__meta.nm-analytics-hub__meta {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .nm-all-users-hub__meta-aside {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .nm-all-users-hub__pwd-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 8px 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .nm-all-users-hub__subfilters {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 18px 16px;
+        border-bottom: 1px solid rgba(0, 38, 97, 0.06);
+        background: #fafbfd;
+    }
+
+    .nm-all-users-hub__status-filters,
+    .nm-all-users-hub__extra-filters {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .nm-all-users-table {
+        text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+    }
+
+    .nm-admin-pending-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .nm-admin-pending-user__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .nm-admin-pending-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+
+    .nm-admin-pending-actions__btn {
+        font-size: 0.78rem !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .nm-admin-pending-actions__btn--danger {
+        color: #ef4444 !important;
+        border-color: #fecaca !important;
+    }
+
+    .nm-all-users-hub__subfilter-group {
+        display: none;
+    }
+
+    .nm-admin-hub__filter--compact {
+        padding: 6px 12px;
+        font-size: 0.78rem;
+    }
+
+    .nm-admin-hub__filter--compact em {
+        min-width: 1.4rem;
+        height: 1.4rem;
+        font-size: 0.68rem;
+    }
+
+    .nm-all-users-case-link {
+        font-size: 0.85rem;
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .nm-all-users-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.7rem;
+    }
+
     .all-users-role-badge {
         display: inline-flex;
         align-items: center;
@@ -287,79 +465,19 @@
         color: #f59e0b;
         line-height: 1;
     }
-    .all-users-pwd-action {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-        padding: 18px 22px !important;
-        text-decoration: none;
-        color: inherit;
-        border-inline-start: 4px solid #f59e0b !important;
-        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 55%, #f8fafc 100%) !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-    .all-users-pwd-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 32px rgba(245, 158, 11, 0.12);
-        border-inline-start-color: #d97706 !important;
-    }
-    .all-users-pwd-action__main {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-        min-width: 220px;
-    }
-    .all-users-pwd-action__icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.15rem;
-        color: #b45309;
-        background: rgba(245, 158, 11, 0.15);
-        border: 1px solid rgba(245, 158, 11, 0.22);
-        flex-shrink: 0;
-    }
-    .all-users-pwd-action__text {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-width: 0;
-    }
-    .all-users-pwd-action__title {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--primary);
-    }
-    .all-users-pwd-action__desc {
-        font-size: 0.82rem;
-        color: #64748b;
-        line-height: 1.5;
-    }
-    .all-users-pwd-action__cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 20px !important;
-        border-radius: 12px !important;
-        font-weight: 800;
-        white-space: nowrap;
-        pointer-events: none;
-    }
+
     @media (max-width: 768px) {
-        .all-users-pwd-action {
+        .nm-all-users-hub__meta.nm-analytics-hub__meta {
             flex-direction: column;
             align-items: stretch;
         }
-        .all-users-pwd-action__cta {
+
+        .nm-all-users-hub__meta-aside {
             width: 100%;
-            justify-content: center;
+        }
+
+        .nm-admin-pending-actions {
+            justify-content: flex-start;
         }
     }
 </style>
@@ -368,24 +486,33 @@
     let currentModUserId = null;
     let currentModUserName = null;
 
-    function toggleFiltersVisibility(role) {
-        const caseTypeContainer = document.getElementById('caseTypeContainer');
-        const donorTypeContainer = document.getElementById('donorTypeContainer');
-        
-        if (role === 'beneficiary') {
-            caseTypeContainer.style.display = 'block';
-            donorTypeContainer.style.display = 'none';
-            donorTypeContainer.querySelector('select').value = 'all';
-        } else if (role === 'donor') {
-            caseTypeContainer.style.display = 'none';
-            caseTypeContainer.querySelector('select').value = 'all';
-            donorTypeContainer.style.display = 'block';
-        } else {
-            caseTypeContainer.style.display = 'none';
-            caseTypeContainer.querySelector('select').value = 'all';
-            donorTypeContainer.style.display = 'block';
-        }
+    function filterAllUsers() {
+        const query = (document.getElementById('allUsersSearch').value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.all-users-row');
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const haystack = [
+                row.dataset.name,
+                row.dataset.email,
+                row.dataset.phone,
+                row.dataset.id,
+                row.dataset.case,
+            ].join(' ');
+            const show = !query || haystack.includes(query);
+            row.hidden = !show;
+            if (show) visible += 1;
+        });
+
+        const noResults = document.getElementById('allUsersNoResults');
+        if (noResults) noResults.hidden = visible > 0 || rows.length === 0;
     }
+
+    document.querySelectorAll('.all-users-mod-btn').forEach((btn) => {
+        btn.addEventListener('click', function () {
+            openModDialog(this.dataset.userId, decodeURIComponent(this.dataset.userName || ''));
+        });
+    });
 
     function openModDialog(userId, userName) {
         currentModUserId = userId;
@@ -420,23 +547,25 @@
         const confirmBtn = document.getElementById('confirmModBtn');
         const warningText = document.getElementById('userInfoShort');
         const noteLabel = document.getElementById('noteLabel');
-        
+        const baseLabel = '<%= __("common_user_label") %>' + (currentModUserName || '');
+
         confirmBtn.className = 'btn-lux btn-lux-primary';
-        
+
         if (action === 'ban') {
             confirmBtn.className = 'btn-lux btn-lux-gold';
             noteLabel.textContent = '<%= __("common_status_suspended") %>';
+            warningText.textContent = baseLabel;
         } else if (action === 'soft_delete') {
             confirmBtn.className = 'btn-lux btn-lux-danger';
             noteLabel.textContent = '<%= __("admin_mod_action_soft_delete") %>';
+            warningText.textContent = baseLabel;
         } else if (action === 'hard_delete') {
             confirmBtn.className = 'btn-lux btn-lux-danger';
             noteLabel.textContent = '<%= __("admin_mod_action_hard_delete") %>';
-            warningText.innerHTML += `<div id="hard-alert" style="color: #ef4444; margin-top: 10px; font-weight: 800;"><i class="fas fa-radiation"></i> <%= __("admin_mod_js_warning_hard_delete") %></div>`;
+            warningText.innerHTML = baseLabel + '<div id="hard-alert" style="color: #ef4444; margin-top: 10px; font-weight: 800;"><i class="fas fa-radiation"></i> <%= __("admin_mod_js_warning_hard_delete") %></div>';
         } else {
             noteLabel.textContent = '<%= __("common_details_reason") %>';
-            const alert = document.getElementById('hard-alert');
-            if(alert) alert.remove();
+            warningText.textContent = baseLabel;
         }
     }
 
