@@ -1,523 +1,1018 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<style>
-    .monitor-wrapper {
-        display: grid;
-        grid-template-columns: 350px 1fr;
-        height: calc(100vh - 120px);
-        gap: 20px;
-        background: #f8fafc;
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-    }
+<%
+const monitorFilterLabels = {
+    active: __('admin_monitor_filter_active_short'),
+    warnings: __('admin_monitor_filter_warnings_short'),
+    suspended: __('admin_monitor_filter_suspended_short'),
+    empty: __('admin_monitor_filter_empty_short'),
+};
+%>
 
-    /* Left Sidebar: Conversations List */
-    .monitor-sidebar {
-        background: white;
-        border-<%= langDir === 'rtl' ? 'left' : 'right' %>: 1px solid #e2e8f0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
+<div class="nm-support-admin nm-monitor-hub">
+    <div class="nm-support-admin__workspace" id="monitorWorkspace">
+        <aside class="nm-support-admin__sidebar" id="monitorSidebar">
+            <div class="nm-support-admin__sidebar-head">
+                <div class="nm-support-admin__sidebar-top">
+                    <h5 class="font-cairo"><%= __('admin_monitor_list_title') %></h5>
+                    <span class="nm-support-admin__total-pill" id="stat-all-pill"><%= filterCounts.all %></span>
+                </div>
 
-    .monitor-sidebar-header {
-        padding: 20px;
-        border-bottom: 1px solid #f1f5f9;
-        background: #fff;
-    }
+                <div class="nm-support-admin__search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="search" id="chatSearch" placeholder="<%= __('admin_monitor_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_monitor_search_placeholder') %>">
+                </div>
 
-    .monitor-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px;
-    }
+                <div class="nm-support-admin__filters" role="tablist" aria-label="<%= __('admin_monitor_filter_label') %>">
+                    <button type="button" class="nm-support-admin__filter is-active" data-filter="all" role="tab" aria-selected="true" title="<%= __('admin_support_filter_all') %>">
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                        <span><%= __('admin_support_filter_all') %></span>
+                        <em id="stat-all"><%= filterCounts.all %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="active" role="tab" aria-selected="false" title="<%= __('admin_monitor_filter_active_short') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--active" aria-hidden="true"></span>
+                        <span><%= __('admin_monitor_filter_active_short') %></span>
+                        <em id="stat-active"><%= filterCounts.active %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="warnings" role="tab" aria-selected="false" title="<%= __('admin_monitor_filter_warnings_short') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--warnings" aria-hidden="true"></span>
+                        <span><%= __('admin_monitor_filter_warnings_short') %></span>
+                        <em id="stat-warnings"><%= filterCounts.warnings %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="suspended" role="tab" aria-selected="false" title="<%= __('admin_monitor_filter_suspended_short') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--suspended" aria-hidden="true"></span>
+                        <span><%= __('admin_monitor_filter_suspended_short') %></span>
+                        <em id="stat-suspended"><%= filterCounts.suspended %></em>
+                    </button>
+                </div>
+            </div>
 
-    .monitor-item {
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 1px solid transparent;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .monitor-item:hover {
-        background: #f8fafc;
-        border-color: #e2e8f0;
-    }
-
-    .monitor-item.active {
-        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
-        border-color: #00A544;
-    }
-
-    .monitor-item.active .avatar {
-        background: var(--secondary);
-        color: white;
-    }
-
-    .monitor-item.active .active-text {
-        color: var(--secondary) !important;
-    }
-
-    .monitor-item .avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 10px;
-        background: #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        color: #64748b;
-        flex-shrink: 0;
-    }
-
-    /* Main Content: Chat View */
-    .monitor-content {
-        display: flex;
-        flex-direction: column;
-        background: white;
-        position: relative;
-        min-height: 0; /* CRITICAL for internal scrolling */
-        min-width: 0;  /* Protect grid bounds */
-        overflow: hidden;
-    }
-
-    .monitor-placeholder {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #94a3b8;
-        background: #fcfdfe;
-    }
-
-    .chat-header {
-        padding: 15px 25px;
-        border-bottom: 1px solid #f1f5f9;
-        display: none;
-        justify-content: space-between;
-        align-items: center;
-        background: white;
-        z-index: 10;
-        flex-shrink: 0;
-    }
-
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 25px;
-        display: none;
-        flex-direction: column;
-        gap: 15px;
-        background: #fdfdfd;
-        min-height: 0;
-    }
-
-    .msg-bubble {
-        max-width: 70%;
-        padding: 12px 18px;
-        border-radius: 18px;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        position: relative;
-        word-break: break-word; /* Prevent long unbroken strings from causing shift */
-    }
-
-    .msg-donor {
-        align-self: flex-start;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-bottom-right-radius: 4px;
-        color: #1e293b;
-    }
-
-    .msg-family {
-        align-self: flex-end;
-        background: var(--primary);
-        color: white;
-        border-bottom-left-radius: 4px;
-    }
-
-    .msg-info {
-        font-size: 0.7rem;
-        margin-top: 5px;
-        opacity: 0.7;
-    }
-
-    /* Moderation Controls */
-    .moderation-panel {
-        padding: 20px 25px;
-        border-top: 1px solid #f1f5f9;
-        background: white;
-        display: none;
-        gap: 20px;
-        flex-direction: column;
-        max-height: 400px;
-        overflow-y: auto;
-        flex-shrink: 0;
-    }
-
-    .mod-user-box {
-        background: #f8fafc;
-        border-radius: 15px;
-        padding: 15px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .mod-history {
-        margin-top: 10px;
-        font-size: 0.75rem;
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #f1f5f9;
-        max-height: 120px;
-        overflow-y: auto;
-    }
-
-    .mod-history-item {
-        padding: 8px 12px;
-        border-bottom: 1px solid #f8fafc;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .user-tag {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 700;
-    }
-    .tag-donor { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-    .tag-family { background: rgba(0, 165, 68, 0.1); color: #016630; }
-
-    /* Modal Styles */
-    #moderationModal {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
-    @media (max-width: 992px) {
-        .monitor-wrapper {
-            grid-template-columns: 1fr;
-            height: auto;
-            min-height: calc(100vh - 120px);
-        }
-
-        .monitor-sidebar {
-            max-height: 300px;
-            border-left: none !important;
-            border-right: none !important;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .moderation-panel > div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .chat-header,
-        .chat-messages,
-        .moderation-panel {
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-        }
-
-        #moderationModal .nm-admin-card {
-            width: calc(100vw - 24px) !important;
-            max-width: 420px;
-        }
-    }
-</style>
-
-<div class="monitor-wrapper">
-    <!-- Sidebar -->
-    <div class="monitor-sidebar" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-        <div class="monitor-sidebar-header">
-            <h5 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= __('admin_sidebar_chat_monitor') %></h5>
-            <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;"><%= __('admin_chat_monitor_total_prefix') %><%= chats.length %><%= __('admin_chat_monitor_active_suffix') %></p>
-        </div>
-        <div class="monitor-list">
-            <% chats.forEach(chat => { %>
-                <div class="monitor-item" onclick="loadConversation('<%= chat._id %>')">
-                    <div class="avatar">
+            <div class="nm-support-admin__ticket-list" id="chatList">
+                <% if (chats.length === 0) { %>
+                    <div class="nm-support-admin__empty-list">
+                        <i class="fas fa-inbox"></i>
+                        <p><%= __('admin_monitor_no_results') %></p>
+                    </div>
+                <% } %>
+                <% chats.forEach((chat, idx) => {
+                    const chatId = chat._id.toString();
+                    const meta = chatsMeta[idx];
+                    const caseTitle = chat.case ? chat.case.title : __('common_case');
+                    const donorName = chat.donor ? chat.donor.name : __('common_donor');
+                    const familyName = chat.family ? chat.family.name : __('common_family');
+                    const msgCountLabel = __('admin_monitor_msgs_count').replace('{count}', String(meta.messageCount));
+                    const filterKey = meta.monitorFilter;
+                %>
+                <button type="button"
+                    class="nm-support-admin__ticket<%= selectedChatId === chatId ? ' is-active' : '' %>"
+                    data-chat-id="<%= chatId %>"
+                    data-filter="<%= filterKey %>"
+                    data-case="<%= caseTitle.toLowerCase() %>"
+                    data-donor="<%= donorName.toLowerCase() %>"
+                    data-family="<%= familyName.toLowerCase() %>">
+                    <div class="nm-support-admin__ticket-avatar nm-support-admin__ticket-avatar--icon" aria-hidden="true">
                         <i class="fas fa-comments"></i>
                     </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div class="active-text" style="font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b;">
-                            <%= chat.case ? chat.case.title : __('common_case') %>
+                    <div class="nm-support-admin__ticket-body">
+                        <div class="nm-support-admin__ticket-top">
+                            <strong><%= caseTitle %></strong>
+                            <time><%= msgCountLabel %></time>
                         </div>
-                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
-                            <%= chat.donor ? chat.donor.name : __('common_donor') %> ↔ <%= chat.family ? chat.family.name : __('common_family') %>
-                        </div>
+                        <span class="nm-support-admin__ticket-meta"><%= donorName %> ↔ <%= familyName %></span>
+                        <span class="nm-support-admin__badge nm-support-admin__badge--<%= filterKey %>">
+                            <%= monitorFilterLabels[filterKey] || filterKey %>
+                        </span>
                     </div>
-                </div>
-            <% }) %>
-        </div>
-    </div>
+                </button>
+                <% }) %>
+                <p class="nm-support-admin__no-results" id="noFilterResults" hidden><%= __('admin_monitor_no_results') %></p>
+            </div>
+        </aside>
 
-    <!-- Content -->
-    <div class="monitor-content" id="monitorContent">
-        <!-- Placeholder -->
-        <div class="monitor-placeholder" id="placeholder" style="text-align: center;">
-            <i class="fas fa-shield-halved" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px;"></i>
-            <h6 class="font-cairo"><%= __('admin_chat_monitor_placeholder_title') %></h6>
-            <p style="font-size: 0.8rem; opacity: 0.6;"><%= __('admin_chat_monitor_placeholder_desc') %></p>
-        </div>
+        <section class="nm-support-admin__chat" id="monitorChatPanel">
+            <div class="nm-support-admin__placeholder" id="chatPlaceholder">
+                <i class="fas fa-shield-halved"></i>
+                <h4 class="font-cairo"><%= __('admin_chat_monitor_placeholder_title') %></h4>
+                <p><%= __('admin_chat_monitor_placeholder_desc') %></p>
+            </div>
 
-        <!-- Chat Header -->
-        <div class="chat-header" id="chatHeader">
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <div style="line-height: 1.2;">
-                    <h6 id="headerCaseTitle" style="margin: 0; font-weight: 800; color: #1e293b;"></h6>
-                    <div style="font-size: 0.75rem; margin-top: 4px;">
-                        <span class="user-tag tag-donor" id="donorNameDisplay"></span>
-                        <span style="margin: 0 5px; color: #cbd5e1;">↔</span>
-                        <span class="user-tag tag-family" id="familyNameDisplay"></span>
+            <div class="nm-support-admin__chat-inner" id="chatInner" hidden>
+                <div class="nm-support-admin__chat-box">
+                    <header class="nm-support-admin__chat-header">
+                        <div class="nm-support-admin__chat-header-main">
+                            <button type="button" class="nm-support-admin__back-btn" id="chatBackBtn" aria-label="<%= __('common_back') %>">
+                                <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i>
+                            </button>
+                            <div class="nm-support-admin__chat-avatar nm-monitor-hub__header-icon" aria-hidden="true">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="nm-support-admin__chat-user">
+                                <h2 class="font-cairo" id="headerCaseTitle"></h2>
+                                <p id="headerParticipants"></p>
+                            </div>
+                        </div>
+                        <div class="nm-support-admin__chat-header-end">
+                            <span class="nm-support-admin__chat-status" id="headerMsgCount"></span>
+                        </div>
+                    </header>
+
+                    <div class="nm-support-admin__chat-body">
+                        <div id="chatLoading" class="nm-support-admin__loading" hidden>
+                            <i class="fas fa-spinner fa-spin"></i> <%= __('admin_support_loading') %>
+                        </div>
+
+                        <div id="chatMessages" class="nm-support-admin__messages" hidden></div>
+
+                        <div class="nm-monitor-hub__moderation" id="moderationPanel" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+                            <h6 class="font-cairo nm-monitor-hub__mod-title"><%= __('admin_chat_monitor_mod_title') %></h6>
+                            <div class="nm-monitor-hub__mod-grid">
+                                <div class="nm-monitor-hub__mod-box">
+                                    <div class="nm-monitor-hub__mod-head">
+                                        <span><i class="fas fa-user-tie"></i> <%= __('admin_chat_monitor_donor_label') %><span id="donorLabel"></span></span>
+                                        <div id="donorStatusBadge"></div>
+                                    </div>
+                                    <p class="nm-monitor-hub__mod-warnings"><%= __('admin_chat_monitor_warnings_label') %><strong id="donorWarningCount">0</strong></p>
+                                    <div class="nm-monitor-hub__mod-actions">
+                                        <button type="button" class="btn-lux btn-lux-outline btn-sm" data-mod-target="donor" data-mod-type="note"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
+                                        <button type="button" class="btn-lux btn-lux-gold btn-sm" data-mod-target="donor" data-mod-type="warning"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
+                                        <button type="button" class="btn-lux btn-lux-danger btn-sm" data-mod-target="donor" data-mod-type="ban"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
+                                    </div>
+                                    <div class="nm-monitor-hub__mod-history" id="donorModHistory">
+                                        <div class="nm-monitor-hub__mod-history-empty"><%= __('admin_chat_monitor_mod_history_empty') %></div>
+                                    </div>
+                                </div>
+                                <div class="nm-monitor-hub__mod-box">
+                                    <div class="nm-monitor-hub__mod-head">
+                                        <span><i class="fas fa-house-chimney-user"></i> <%= __('admin_chat_monitor_family_label') %><span id="familyLabel"></span></span>
+                                        <div id="familyStatusBadge"></div>
+                                    </div>
+                                    <p class="nm-monitor-hub__mod-warnings"><%= __('admin_chat_monitor_warnings_label') %><strong id="familyWarningCount">0</strong></p>
+                                    <div class="nm-monitor-hub__mod-actions">
+                                        <button type="button" class="btn-lux btn-lux-outline btn-sm" data-mod-target="family" data-mod-type="note"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
+                                        <button type="button" class="btn-lux btn-lux-gold btn-sm" data-mod-target="family" data-mod-type="warning"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
+                                        <button type="button" class="btn-lux btn-lux-danger btn-sm" data-mod-target="family" data-mod-type="ban"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
+                                    </div>
+                                    <div class="nm-monitor-hub__mod-history" id="familyModHistory">
+                                        <div class="nm-monitor-hub__mod-history-empty"><%= __('admin_chat_monitor_mod_history_empty') %></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div id="caseStatusBadge"></div>
-        </div>
-
-        <!-- Chat Area -->
-        <div class="chat-messages" id="chatMessages"></div>
-
-        <!-- Moderation Panel -->
-        <div class="moderation-panel" id="moderationPanel" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-            <h6 class="font-cairo" style="margin-bottom: 5px; font-weight: 800; color: var(--primary);"><%= __('admin_chat_monitor_mod_title') %></h6>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- Donor Moderation -->
-                <div class="mod-user-box">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="font-weight: 800; color: #1e293b;"><i class="fas fa-user-tie"></i> <%= __('admin_chat_monitor_donor_label') %><span id="donorLabel"></span></span>
-                        <div id="donorStatusBadge"></div>
-                    </div>
-                    
-                    <div style="margin-bottom: 10px; font-size: 0.8rem; color: #64748b;">
-                        <%= __('admin_chat_monitor_warnings_label') %><span id="donorWarningCount" style="font-weight: 800; color: var(--secondary);">0</span>
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                        <button class="btn-lux btn-lux-outline btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'note')"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
-                        <button class="btn-lux btn-lux-gold btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'warning')"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
-                        <button class="btn-lux btn-lux-danger btn-sm" style="flex: 1;" onclick="openModDialog('donor', 'ban')"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
-                    </div>
-
-                    <div class="mod-history" id="donorModHistory">
-                        <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_chat_monitor_mod_history_empty') %></div>
-                    </div>
-                </div>
-
-                <!-- Family Moderation -->
-                <div class="mod-user-box">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="font-weight: 800; color: #1e293b;"><i class="fas fa-house-chimney-user"></i> <%= __('admin_chat_monitor_family_label') %><span id="familyLabel"></span></span>
-                        <div id="familyStatusBadge"></div>
-                    </div>
-
-                    <div style="margin-bottom: 10px; font-size: 0.8rem; color: #64748b;">
-                        <%= __('admin_chat_monitor_warnings_label') %><span id="familyWarningCount" style="font-weight: 800; color: var(--secondary);">0</span>
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                        <button class="btn-lux btn-lux-outline btn-sm" style="flex: 1;" onclick="openModDialog('family', 'note')"><i class="fas fa-note-sticky"></i> <%= __('admin_mod_action_note') %></button>
-                        <button class="btn-lux btn-lux-gold btn-sm" style="flex: 1;" onclick="openModDialog('family', 'warning')"><i class="fas fa-triangle-exclamation"></i> <%= __('admin_mod_action_warning') %></button>
-                        <button class="btn-lux btn-lux-danger btn-sm" style="flex: 1;" onclick="openModDialog('family', 'ban')"><i class="fas fa-user-slash"></i> <%= __('admin_mod_action_suspend') %></button>
-                    </div>
-
-                    <div class="mod-history" id="familyModHistory">
-                        <div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;"><%= __('admin_chat_monitor_mod_history_empty') %></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
 </div>
 
 <!-- Moderation Dialog -->
-<div id="moderationModal" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+<div id="moderationModal" class="nm-monitor-hub__modal" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;" hidden>
     <div class="nm-admin-card nm-admin-modal-card">
         <h5 class="font-cairo" style="margin-bottom: 15px; font-weight: 800;" id="modTitle"><%= __('admin_chat_monitor_modal_title') %></h5>
         <div id="userInfoShort" style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 12px; font-size: 0.85rem; font-weight: 700;"></div>
-        
         <div style="margin-bottom: 20px;">
             <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;"><%= __('common_details_reason') %></label>
             <textarea id="modNote" rows="4" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; resize: none;" placeholder="<%= __('admin_chat_monitor_modal_placeholder_note') %>"></textarea>
         </div>
-
         <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn-lux btn-lux-outline" onclick="closeModDialog()"><%= __('common_cancel') %></button>
-            <button class="btn-lux btn-lux-primary" id="confirmModBtn" onclick="submitModeration()"><%= __('common_confirm_action') %></button>
+            <button type="button" class="btn-lux btn-lux-outline" id="modCancelBtn"><%= __('common_cancel') %></button>
+            <button type="button" class="btn-lux btn-lux-primary" id="confirmModBtn"><%= __('common_confirm_action') %></button>
         </div>
     </div>
 </div>
 
+<style>
+    .admin-page-content:has(.nm-monitor-hub) {
+        padding: 14px 18px !important;
+        overflow: hidden !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .nm-monitor-hub.nm-support-admin {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nm-monitor-hub .nm-support-admin__workspace {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+        gap: 0;
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        box-shadow: 0 12px 40px rgba(2, 26, 15, 0.07);
+        overflow: hidden;
+    }
+
+    .nm-monitor-hub .nm-support-admin__sidebar,
+    .nm-monitor-hub .nm-support-admin__chat {
+        min-height: 0;
+        min-width: 0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__sidebar {
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        border-inline-end: 1px solid #e2e8f0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__sidebar-head {
+        flex-shrink: 0;
+        padding: 14px 14px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__sidebar-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__sidebar-top h5 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: var(--primary);
+    }
+
+    .nm-monitor-hub .nm-support-admin__total-pill {
+        flex-shrink: 0;
+        min-width: 28px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: rgba(0, 38, 97, 0.08);
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filters {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: #e8edf4;
+        border-radius: 12px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filter {
+        flex: 1;
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        background: transparent;
+        border-radius: 9px;
+        padding: 7px 6px;
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+        font-family: inherit;
+        color: #64748b;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filter > span:not(.nm-support-admin__filter-dot) {
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filter em {
+        font-style: normal;
+        font-size: 0.68rem;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filter-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__filter-dot--active { background: #00a544; }
+    .nm-monitor-hub .nm-support-admin__filter-dot--warnings { background: #eab308; }
+    .nm-monitor-hub .nm-support-admin__filter-dot--suspended { background: #ef4444; }
+
+    .nm-monitor-hub .nm-support-admin__filter.is-active {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(2, 26, 15, 0.08);
+    }
+
+    .nm-monitor-hub .nm-support-admin__search { position: relative; }
+    .nm-monitor-hub .nm-support-admin__search i {
+        position: absolute;
+        top: 50%;
+        inset-inline-start: 12px;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .nm-monitor-hub .nm-support-admin__search input {
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 9px 12px 9px 34px;
+        font-family: inherit;
+        font-size: 0.84rem;
+        background: #fff;
+    }
+
+    html[dir="rtl"] .nm-monitor-hub .nm-support-admin__search input {
+        padding: 9px 34px 9px 12px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+        padding: 14px 16px;
+        display: flex;
+        gap: 12px;
+        text-align: start;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        font-family: inherit;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket:hover { background: #f8fafc; }
+    .nm-monitor-hub .nm-support-admin__ticket.is-active {
+        background: #eef2ff;
+        box-shadow: inset 4px 0 0 var(--primary);
+    }
+
+    html[dir="rtl"] .nm-monitor-hub .nm-support-admin__ticket.is-active {
+        box-shadow: inset -4px 0 0 var(--primary);
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket[hidden] { display: none !important; }
+
+    .nm-monitor-hub .nm-support-admin__ticket-avatar--icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e2e8f0;
+        color: #64748b;
+        border-radius: 12px;
+        font-size: 0.95rem;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket-body { flex: 1; min-width: 0; }
+
+    .nm-monitor-hub .nm-support-admin__ticket-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket-top strong {
+        font-size: 0.92rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket-top time {
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__ticket-meta {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin: 2px 0 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .nm-monitor-hub .nm-support-admin__badge {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__badge--active { background: rgba(0, 165, 68, 0.12); color: var(--secondary); }
+    .nm-monitor-hub .nm-support-admin__badge--warnings { background: rgba(234, 179, 8, 0.15); color: #a16207; }
+    .nm-monitor-hub .nm-support-admin__badge--suspended { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+    .nm-monitor-hub .nm-support-admin__badge--empty { background: #f1f5f9; color: #64748b; }
+
+    .nm-monitor-hub .nm-support-admin__no-results,
+    .nm-monitor-hub .nm-support-admin__empty-list {
+        text-align: center;
+        padding: 32px 20px;
+        color: var(--text-muted);
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: #fff;
+    }
+
+    .nm-monitor-hub .nm-support-admin__placeholder {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: var(--text-muted);
+        padding: 40px;
+        background: #fff;
+    }
+
+    .nm-monitor-hub .nm-support-admin__placeholder[hidden],
+    .nm-monitor-hub .nm-support-admin__chat-inner[hidden],
+    .nm-monitor-hub .nm-support-admin__messages[hidden],
+    .nm-monitor-hub .nm-support-admin__loading[hidden],
+    .nm-monitor-hub__modal[hidden] {
+        display: none !important;
+    }
+
+    .nm-monitor-hub .nm-support-admin__placeholder h4 { margin: 0 0 8px; color: var(--primary); }
+    .nm-monitor-hub .nm-support-admin__placeholder i { font-size: 3rem; margin-bottom: 16px; opacity: 0.35; }
+
+    .nm-monitor-hub .nm-support-admin__chat.is-open .nm-support-admin__placeholder { display: none !important; }
+
+    .nm-monitor-hub .nm-support-admin__chat-inner {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat:not(.is-open) .nm-support-admin__chat-inner { display: none !important; }
+
+    .nm-monitor-hub .nm-support-admin__chat-box {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, #002661 0%, #01407a 100%);
+        color: #fff;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-header-main {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .nm-monitor-hub__header-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.12);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-user h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-user p {
+        margin: 4px 0 0;
+        font-size: 0.76rem;
+        opacity: 0.85;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nm-monitor-hub .nm-support-admin__back-btn {
+        display: none;
+        border: 0;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .nm-monitor-hub .nm-support-admin__chat-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages {
+        flex: 1;
+        min-height: 100px;
+        padding: 20px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg {
+        display: flex;
+        flex-direction: column;
+        max-width: min(78%, 520px);
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg--sent {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg--received {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg__bubble {
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg--sent .nm-support-msg__bubble {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg__sender {
+        font-size: 0.68rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+        opacity: 0.85;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg__bubble p {
+        margin: 0;
+        line-height: 1.55;
+        word-break: break-word;
+    }
+
+    .nm-monitor-hub .nm-support-admin__messages .nm-support-msg__time {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .nm-monitor-hub .nm-support-admin__loading {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-muted);
+    }
+
+    .nm-monitor-hub__moderation {
+        flex-shrink: 0;
+        max-height: 42%;
+        overflow-y: auto;
+        border-top: 1px solid #e2e8f0;
+        padding: 14px 16px;
+        background: #fff;
+    }
+
+    .nm-monitor-hub__mod-title {
+        margin: 0 0 12px;
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .nm-monitor-hub__mod-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .nm-monitor-hub__mod-box {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .nm-monitor-hub__mod-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: #1e293b;
+    }
+
+    .nm-monitor-hub__mod-warnings {
+        margin: 0 0 10px;
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .nm-monitor-hub__mod-actions {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .nm-monitor-hub__mod-actions .btn-sm { flex: 1; min-width: 0; font-size: 0.72rem; padding: 6px 8px; }
+
+    .nm-monitor-hub__mod-history {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #f1f5f9;
+        max-height: 110px;
+        overflow-y: auto;
+    }
+
+    .nm-monitor-hub__mod-history-empty {
+        padding: 10px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.7rem;
+    }
+
+    .nm-monitor-hub__mod-history-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.75rem;
+    }
+
+    .nm-monitor-hub__modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 1100px) {
+        .nm-monitor-hub .nm-support-admin__filters {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+        .nm-monitor-hub .nm-support-admin__filter { flex-shrink: 0; }
+    }
+
+    @media (max-width: 992px) {
+        .admin-page-content:has(.nm-monitor-hub) { padding: 10px !important; }
+        .nm-monitor-hub .nm-support-admin__workspace { grid-template-columns: 1fr; }
+        .nm-monitor-hub .nm-support-admin__workspace.has-selection .nm-support-admin__sidebar { display: none; }
+        .nm-monitor-hub .nm-support-admin__workspace.has-selection .nm-support-admin__back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nm-monitor-hub__mod-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
 <script>
-    const lang = document.documentElement.lang;
+document.addEventListener('DOMContentLoaded', () => {
+    const I18N = {
+        donor: '<%= __('common_donor') %>',
+        family: '<%= __('common_family') %>',
+        noMessages: '<%= __('admin_chat_monitor_no_messages') %>',
+        modHistoryEmpty: '<%= __('admin_chat_monitor_mod_history_empty') %>',
+        modNote: '<%= __('admin_mod_action_note') %>',
+        modWarning: '<%= __('admin_mod_action_warning') %>',
+        modBan: '<%= __('admin_mod_action_suspend') %>',
+        statusActive: '<%= __('common_status_active') %>',
+        statusSuspended: '<%= __('common_status_suspended') %>',
+        statusPending: '<%= __('common_pending_review') %>',
+        timeLocale: '<%= lang === "ar" ? "ar-SA" : "en-US" %>',
+        msgsCount: '<%= __('admin_monitor_msgs_count') %>',
+        actionNote: '<%= __('admin_chat_monitor_js_action_note') %>',
+        actionWarning: '<%= __('admin_chat_monitor_js_action_warning') %>',
+        actionBan: '<%= __('admin_chat_monitor_js_action_ban') %>',
+        targetPrefix: '<%= __('admin_chat_monitor_js_target_prefix') %>',
+        banWarning: '<%= __('admin_chat_monitor_js_ban_warning') %>',
+        noteRequired: '<%= __('admin_chat_monitor_js_note_required') %>',
+        loadError: '<%= __('admin_chat_monitor_js_load_error') %>',
+        modSuccess: '<%= __('admin_mod_js_success') %>',
+        modError: '<%= __('admin_mod_js_error') %>',
+        modConnError: '<%= __('admin_mod_js_conn_error') %>',
+    };
+
+    const csrfToken = '<%= csrfToken %>';
+    const initialChatId = '<%= selectedChatId %>';
+
+    const workspace = document.getElementById('monitorWorkspace');
+    const chatList = document.getElementById('chatList');
+    const chatSearch = document.getElementById('chatSearch');
+    const noFilterResults = document.getElementById('noFilterResults');
+    const chatPlaceholder = document.getElementById('chatPlaceholder');
+    const chatPanel = document.getElementById('monitorChatPanel');
+    const chatInner = document.getElementById('chatInner');
+    const chatLoading = document.getElementById('chatLoading');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatBackBtn = document.getElementById('chatBackBtn');
+    const moderationModal = document.getElementById('moderationModal');
+
+    let currentFilter = 'all';
+    let currentChatId = '';
     let currentDonorId = null;
     let currentFamilyId = null;
-    let currentActionTarget = null; // 'donor' or 'family'
-    let currentActionType = null;   // 'note', 'warning', 'ban'
+    let currentActionTarget = null;
+    let currentActionType = null;
 
-    async function loadConversation(requestId) {
-        // Toggle UI
-        document.getElementById('placeholder').style.display = 'none';
-        document.getElementById('chatHeader').style.display = 'flex';
-        document.getElementById('chatMessages').style.display = 'flex';
-        document.getElementById('moderationPanel').style.display = 'flex';
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
-        // Set active item
-        document.querySelectorAll('.monitor-item').forEach(el => el.classList.remove('active'));
-        const activeItem = document.querySelector(`.monitor-item[onclick="loadConversation('${requestId}')"]`);
-        if(activeItem) activeItem.classList.add('active');
+    function matchesFilter(filterKey) {
+        if (currentFilter === 'all') return true;
+        return filterKey === currentFilter;
+    }
 
-        // Fetch data
-        try {
-            const res = await fetch(`/admin/monitor-chats/${requestId}/messages`);
-            const data = await res.json();
+    function applyFilters() {
+        const query = (chatSearch.value || '').trim().toLowerCase();
+        let visible = 0;
 
-            if (data.success) {
-                const { chatRequest, messages } = data;
-                
-                // Update Header
-                document.getElementById('headerCaseTitle').textContent = chatRequest.case.title;
-                document.getElementById('donorNameDisplay').textContent = chatRequest.donor.name;
-                document.getElementById('familyNameDisplay').textContent = chatRequest.family.name;
-                
-                document.getElementById('donorLabel').textContent = chatRequest.donor.name;
-                document.getElementById('familyLabel').textContent = chatRequest.family.name;
+        chatList.querySelectorAll('.nm-support-admin__ticket').forEach((item) => {
+            const haystack = [item.dataset.case, item.dataset.donor, item.dataset.family].join(' ');
+            const show = matchesFilter(item.dataset.filter) && (!query || haystack.includes(query));
+            item.hidden = !show;
+            if (show) visible += 1;
+        });
 
-                // Update Moderation Stats
-                document.getElementById('donorWarningCount').textContent = chatRequest.donor.warningsCount || 0;
-                document.getElementById('familyWarningCount').textContent = chatRequest.family.warningsCount || 0;
+        noFilterResults.hidden = visible > 0;
+    }
 
-                // Status Badges
-                renderStatusBadge('donor', chatRequest.donor.status);
-                renderStatusBadge('family', chatRequest.family.status);
+    function setActiveFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.nm-monitor-hub .nm-support-admin__filter').forEach((btn) => {
+            const isActive = btn.dataset.filter === filter;
+            btn.classList.toggle('is-active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        applyFilters();
+    }
 
-                // Moderation History
-                renderModHistory('donor', chatRequest.donor.moderationNotes);
-                renderModHistory('family', chatRequest.family.moderationNotes);
+    function setActiveChat(chatId) {
+        chatList.querySelectorAll('.nm-support-admin__ticket').forEach((item) => {
+            item.classList.toggle('is-active', item.dataset.chatId === chatId);
+        });
+    }
 
-                currentDonorId = chatRequest.donor._id;
-                currentFamilyId = chatRequest.family._id;
+    function updateUrl(chatId) {
+        const url = new URL(window.location.href);
+        if (chatId) url.searchParams.set('chat', chatId);
+        else url.searchParams.delete('chat');
+        window.history.replaceState({}, '', url);
+    }
 
-                // Render Messages
-                const chatArea = document.getElementById('chatMessages');
-                chatArea.innerHTML = '';
-                
-                if (messages.length === 0) {
-                    chatArea.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 20px;"><%= __("admin_chat_monitor_no_messages") %></div>';
-                }
+    function openChatPanel() {
+        chatPanel.classList.add('is-open');
+        chatPlaceholder.hidden = true;
+        chatInner.hidden = false;
+    }
 
-                messages.forEach(msg => {
-                    const isDonor = msg.sender._id === chatRequest.donor._id;
-                    const bubble = document.createElement('div');
-                    bubble.className = `msg-bubble ${isDonor ? 'msg-donor' : 'msg-family'}`;
-                    
-                    let content = '';
-                    if (msg.imageUrl) {
-                        content += `<img src="${msg.imageUrl}" style="width: 100%; border-radius: 10px; margin-bottom: 8px; cursor: pointer;" onclick="window.open(this.src)">`;
-                    }
-                    if (msg.content) {
-                        content += `<div>${msg.content}</div>`;
-                    }
+    function closeChatPanel() {
+        chatPanel.classList.remove('is-open');
+        chatPlaceholder.hidden = false;
+        chatInner.hidden = true;
+        workspace.classList.remove('has-selection');
+        currentChatId = '';
+        updateUrl('');
+        setActiveChat('');
+    }
 
-                    const time = new Date(msg.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-                    bubble.innerHTML = `
-                        <div style="font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; opacity: 0.8;">${isDonor ? '<%= __("common_donor") %>' : '<%= __("common_family") %>'}</div>
-                        ${content}
-                        <div class="msg-info">${time}</div>
-                    `;
-                    chatArea.appendChild(bubble);
-                });
-
-                // Force scroll after images load or just delay slightly
-                setTimeout(() => {
-                    chatArea.scrollTop = chatArea.scrollHeight;
-                }, 100);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('<%= __("admin_chat_monitor_js_load_error") %>');
-        }
+    function scrollChatToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     function renderStatusBadge(target, status) {
         const container = document.getElementById(`${target}StatusBadge`);
         const statusMap = {
-            'active': { text: '<%= __("common_status_active") %>', class: 'badge-teal' },
-            'suspended': { text: '<%= __("common_status_suspended") %>', class: 'badge-danger' },
-            'pending': { text: '<%= __("common_pending_review") %>', class: 'badge-gold' }
+            active: { text: I18N.statusActive, class: 'badge-teal' },
+            suspended: { text: I18N.statusSuspended, class: 'badge-danger' },
+            pending: { text: I18N.statusPending, class: 'badge-gold' },
         };
         const st = statusMap[status] || { text: status, class: 'badge-outline' };
-        container.innerHTML = `<span class="badge ${st.class}" style="font-size: 0.7rem;">${st.text}</span>`;
+        container.innerHTML = `<span class="badge ${st.class}" style="font-size: 0.7rem;">${escapeHtml(st.text)}</span>`;
     }
 
     function renderModHistory(target, notes) {
         const container = document.getElementById(`${target}ModHistory`);
         if (!notes || notes.length === 0) {
-            container.innerHTML = '<div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 0.7rem;">سجل الإشراف فارغ</div>';
+            container.innerHTML = `<div class="nm-monitor-hub__mod-history-empty">${escapeHtml(I18N.modHistoryEmpty)}</div>`;
             return;
         }
 
-        const typeMap = { 'note': '<%= __("admin_mod_action_note") %>', 'warning': '<%= __("admin_mod_action_warning") %>', 'ban': '<%= __("admin_mod_action_suspend") %>' };
-        const typeClasses = { 'note': 'color: #64748b', 'warning': 'color: var(--secondary)', 'ban': 'color: #ef4444' };
+        const typeMap = { note: I18N.modNote, warning: I18N.modWarning, ban: I18N.modBan };
+        const typeClasses = { note: 'color:#64748b', warning: 'color:var(--secondary)', ban: 'color:#ef4444' };
 
-        container.innerHTML = notes.slice(-10).reverse().map(n => `
-            <div class="mod-history-item">
-                <div style="flex: 1;">
-                    <div style="font-weight: 800; ${typeClasses[n.type]}">${typeMap[n.type] || n.type}</div>
-                    <div style="margin-top: 2px;">${n.note}</div>
+        container.innerHTML = notes.slice(-10).reverse().map((n) => `
+            <div class="nm-monitor-hub__mod-history-item">
+                <div style="flex:1;">
+                    <div style="font-weight:800;${typeClasses[n.type] || ''}">${escapeHtml(typeMap[n.type] || n.type)}</div>
+                    <div style="margin-top:2px;">${escapeHtml(n.note || '')}</div>
                 </div>
-                <div style="font-size: 0.65rem; color: #94a3b8; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
-                    ${new Date(n.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US')}
-                </div>
+                <time style="font-size:0.65rem;color:#94a3b8;white-space:nowrap;">
+                    ${new Date(n.createdAt).toLocaleDateString(I18N.timeLocale)}
+                </time>
             </div>
         `).join('');
+    }
+
+    function renderMessage(msg, donorId) {
+        const isDonor = String(msg.sender._id) === String(donorId);
+        const time = new Date(msg.createdAt).toLocaleTimeString(I18N.timeLocale, { hour: '2-digit', minute: '2-digit' });
+        const roleLabel = isDonor ? I18N.donor : I18N.family;
+        let body = '';
+        if (msg.imageUrl) {
+            body += `<img src="${escapeHtml(msg.imageUrl)}" alt="" style="width:100%;border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="window.open(this.src)">`;
+        }
+        if (msg.content) {
+            body += `<p>${escapeHtml(msg.content)}</p>`;
+        }
+
+        return `
+            <div class="nm-support-msg ${isDonor ? 'nm-support-msg--received' : 'nm-support-msg--sent'}">
+                <div class="nm-support-msg__bubble">
+                    <div class="nm-support-msg__sender">${escapeHtml(roleLabel)}</div>
+                    ${body}
+                </div>
+                <time class="nm-support-msg__time">${time}</time>
+            </div>
+        `;
+    }
+
+    async function loadConversation(chatId) {
+        if (!chatId) return;
+
+        currentChatId = chatId;
+        setActiveChat(chatId);
+        updateUrl(chatId);
+        workspace.classList.add('has-selection');
+        openChatPanel();
+
+        chatLoading.hidden = false;
+        chatMessages.hidden = true;
+
+        try {
+            const res = await fetch(`/admin/monitor-chats/${chatId}/messages`);
+            const data = await res.json();
+
+            if (!data.success) throw new Error(data.error || I18N.loadError);
+
+            const { chatRequest, messages } = data;
+
+            document.getElementById('headerCaseTitle').textContent = chatRequest.case?.title || '';
+            document.getElementById('headerParticipants').textContent = `${chatRequest.donor?.name || I18N.donor} ↔ ${chatRequest.family?.name || I18N.family}`;
+            document.getElementById('headerMsgCount').textContent = I18N.msgsCount.replace('{count}', String(messages.length));
+
+            document.getElementById('donorLabel').textContent = chatRequest.donor?.name || '';
+            document.getElementById('familyLabel').textContent = chatRequest.family?.name || '';
+            document.getElementById('donorWarningCount').textContent = chatRequest.donor?.warningsCount || 0;
+            document.getElementById('familyWarningCount').textContent = chatRequest.family?.warningsCount || 0;
+
+            renderStatusBadge('donor', chatRequest.donor?.status);
+            renderStatusBadge('family', chatRequest.family?.status);
+            renderModHistory('donor', chatRequest.donor?.moderationNotes);
+            renderModHistory('family', chatRequest.family?.moderationNotes);
+
+            currentDonorId = chatRequest.donor?._id;
+            currentFamilyId = chatRequest.family?._id;
+
+            if (!messages.length) {
+                chatMessages.innerHTML = `<div class="nm-support-chat__empty"><i class="fas fa-comment-slash"></i><p>${escapeHtml(I18N.noMessages)}</p></div>`;
+            } else {
+                chatMessages.innerHTML = messages.map((msg) => renderMessage(msg, currentDonorId)).join('');
+            }
+
+            chatLoading.hidden = true;
+            chatMessages.hidden = false;
+            setTimeout(scrollChatToBottom, 80);
+        } catch (err) {
+            console.error(err);
+            chatLoading.hidden = true;
+            chatMessages.hidden = false;
+            chatMessages.innerHTML = `<div class="nm-support-chat__empty"><p>${escapeHtml(I18N.loadError)}</p></div>`;
+        }
     }
 
     function openModDialog(target, type) {
         currentActionTarget = target;
         currentActionType = type;
-        
-        const name = target === 'donor' ? document.getElementById('donorLabel').textContent : document.getElementById('familyLabel').textContent;
-        const typeAr = { 
-            'note': '<%= __("admin_chat_monitor_js_action_note") %>', 
-            'warning': '<%= __("admin_chat_monitor_js_action_warning") %>', 
-            'ban': '<%= __("admin_chat_monitor_js_action_ban") %>' 
-        };
-        
-        document.getElementById('modTitle').textContent = typeAr[type];
-        document.getElementById('userInfoShort').textContent = `<%= __("admin_chat_monitor_js_target_prefix") %>${name}`;
-        
+
+        const name = target === 'donor'
+            ? document.getElementById('donorLabel').textContent
+            : document.getElementById('familyLabel').textContent;
+        const typeLabels = { note: I18N.actionNote, warning: I18N.actionWarning, ban: I18N.actionBan };
+
+        document.getElementById('modTitle').textContent = typeLabels[type] || I18N.actionNote;
+        document.getElementById('userInfoShort').textContent = `${I18N.targetPrefix}${name}`;
+
         if (type === 'ban') {
-            document.getElementById('userInfoShort').innerHTML += ` <span style="color: #ef4444; display: block; margin-top: 5px; font-weight: 800;"><i class="fas fa-exclamation-triangle"></i><%= __("admin_chat_monitor_js_ban_warning") %></span>`;
+            document.getElementById('userInfoShort').innerHTML += `<span style="color:#ef4444;display:block;margin-top:5px;font-weight:800;"><i class="fas fa-exclamation-triangle"></i>${escapeHtml(I18N.banWarning)}</span>`;
         }
-        
-        document.getElementById('moderationModal').style.display = 'flex';
-        
+
+        moderationModal.hidden = false;
+
         const confirmBtn = document.getElementById('confirmModBtn');
-        confirmBtn.className = type === 'ban' ? 'btn-lux btn-lux-danger' : (type === 'warning' ? 'btn-lux btn-lux-gold' : 'btn-lux btn-lux-primary');
+        confirmBtn.className = type === 'ban'
+            ? 'btn-lux btn-lux-danger'
+            : (type === 'warning' ? 'btn-lux btn-lux-gold' : 'btn-lux btn-lux-primary');
     }
 
     function closeModDialog() {
-        document.getElementById('moderationModal').style.display = 'none';
+        moderationModal.hidden = true;
         document.getElementById('modNote').value = '';
     }
 
@@ -527,38 +1022,64 @@
         const action = currentActionType;
 
         if (!note && action !== 'ban') {
-            alert('<%= __("admin_chat_monitor_js_note_required") %>');
+            alert(I18N.noteRequired);
             return;
         }
 
         try {
             const res = await fetch('/admin/moderate-user', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': '<%= csrfToken %>'
+                    'X-CSRF-Token': csrfToken,
                 },
-                body: JSON.stringify({ userId, action, note })
+                body: JSON.stringify({ userId, action, note }),
             });
             const data = await res.json();
 
             if (data.success) {
-                alert('<%= __("admin_mod_js_success") %>');
+                alert(I18N.modSuccess);
                 closeModDialog();
-                // Refresh the view
-                const activeItem = document.querySelector('.monitor-item.active');
-                if (activeItem) {
-                    const requestId = activeItem.getAttribute('onclick').match(/'([^']+)'/)[1];
-                    loadConversation(requestId);
-                }
+                if (currentChatId) loadConversation(currentChatId);
             } else {
-                alert(data.error || '<%= __("admin_mod_js_error") %>');
+                alert(data.error || I18N.modError);
             }
         } catch (err) {
             console.error(err);
-            alert('<%= __("admin_mod_js_conn_error") %>');
+            alert(I18N.modConnError);
         }
     }
+
+    document.querySelectorAll('.nm-monitor-hub .nm-support-admin__filter').forEach((btn) => {
+        btn.addEventListener('click', () => setActiveFilter(btn.dataset.filter));
+    });
+
+    chatSearch.addEventListener('input', applyFilters);
+
+    chatList.addEventListener('click', (e) => {
+        const item = e.target.closest('[data-chat-id]');
+        if (!item) return;
+        loadConversation(item.dataset.chatId);
+    });
+
+    chatBackBtn.addEventListener('click', closeChatPanel);
+
+    document.querySelectorAll('[data-mod-target]').forEach((btn) => {
+        btn.addEventListener('click', () => openModDialog(btn.dataset.modTarget, btn.dataset.modType));
+    });
+
+    document.getElementById('modCancelBtn').addEventListener('click', closeModDialog);
+    document.getElementById('confirmModBtn').addEventListener('click', submitModeration);
+
+    moderationModal.addEventListener('click', (e) => {
+        if (e.target === moderationModal) closeModDialog();
+    });
+
+    if (initialChatId) {
+        const exists = chatList.querySelector(`[data-chat-id="${initialChatId}"]`);
+        if (exists) loadConversation(initialChatId);
+    }
+});
 </script>
 
 <%- include('../../partials/admin-layout-bottom') %>
