@@ -1,70 +1,50 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--primary settings-page-header">
-    <div class="nm-admin-page-header__text">
-        <span class="section-badge" style="margin-bottom: 10px;"><i class="fas fa-cogs"></i> <%= __('common_control_center') %></span>
-        <h2 class="font-cairo nm-admin-page-header__title"><%= __('admin_sidebar_settings') %></h2>
-        <p class="nm-admin-page-header__desc"><%= __('admin_settings_desc') %></p>
+<div class="nm-activity-hub" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="nm-analytics-hub__meta nm-activity-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= __('admin_settings_desc') %></p>
     </div>
-</div>
 
-<div class="settings-page-shell">
-    <div class="nm-admin-card">
-            <form action="/admin/settings/update" method="POST">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <section class="nm-activity-hub__panel nm-admin-card nm-admin-card--flush">
+        <form action="/admin/settings/update" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-                <div style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
-                        <div style="width: 50px; height: 50px; border-radius: 15px; background: rgba(0, 165, 68, 0.12); display: flex; align-items: center; justify-content: center; color: var(--secondary); font-size: 1.5rem;">
-                            <i class="fas fa-percent"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 800;"><%= __('admin_settings_fee_label') %></h4>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);"><%= __('admin_settings_fee_desc_split') %></p>
-                        </div>
+            <div class="nm-activity-hub__filter-bar">
+                <div>
+                    <div class="nm-admin-form-hub__title"><%= __('admin_settings_fee_label') %></div>
+                    <p class="nm-admin-form-hub__desc"><%= __('admin_settings_fee_desc_split') %></p>
+                </div>
+            </div>
+            <div class="nm-admin-form-hub__body">
+                <div class="nm-activity-hub__filter-form">
+                    <div class="nm-activity-hub__filter-field">
+                        <label for="institutionFee"><%= __('admin_settings_institution_fee_label') %></label>
+                        <input type="number" step="0.01" id="institutionFee" name="institution_fee_percentage" class="form-input"
+                               value="<%= settings.institution_fee_percentage %>" required>
                     </div>
-
-                    <div class="settings-fee-grid">
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury"><%= __('admin_settings_institution_fee_label') %></label>
-                            <div style="position: relative;">
-                                <input type="number" step="0.01" name="institution_fee_percentage" class="form-input" 
-                                       value="<%= settings.institution_fee_percentage %>" 
-                                       style="padding-<%= langDir === 'rtl' ? 'right' : 'left' %>: 50px; font-size: 1.2rem; font-weight: 700; color: var(--secondary);" required>
-                                <span style="position: absolute; <%= langDir === 'rtl' ? 'left' : 'right' %>: 20px; top: 50%; transform: translateY(-50%); font-weight: 800; color: var(--text-muted);">%</span>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label class="form-label-luxury"><%= __('admin_settings_gateway_fee_label') %></label>
-                            <div style="position: relative;">
-                                <input type="number" step="0.01" name="gateway_fee_percentage" class="form-input" 
-                                       value="<%= settings.gateway_fee_percentage %>" 
-                                       style="padding-<%= langDir === 'rtl' ? 'right' : 'left' %>: 50px; font-size: 1.2rem; font-weight: 700; color: var(--secondary);" required>
-                                <span style="position: absolute; <%= langDir === 'rtl' ? 'left' : 'right' %>: 20px; top: 50%; transform: translateY(-50%); font-weight: 800; color: var(--text-muted);">%</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 5px; padding: 12px; background: #fffcf0; border-radius: 10px; border: 1px dashed #f0e68c; display: flex; gap: 10px; align-items: center;">
-                        <i class="fas fa-info-circle" style="color: #b8860b;"></i>
-                        <span style="font-size: 0.8rem; color: #856404;"><%= __('admin_settings_fee_breakdown_help') %></span>
+                    <div class="nm-activity-hub__filter-field">
+                        <label for="gatewayFee"><%= __('admin_settings_gateway_fee_label') %></label>
+                        <input type="number" step="0.01" id="gatewayFee" name="gateway_fee_percentage" class="form-input"
+                               value="<%= settings.gateway_fee_percentage %>" required>
                     </div>
                 </div>
+                <p class="nm-admin-form-hub__note">
+                    <i class="fas fa-circle-info" aria-hidden="true"></i>
+                    <%= __('admin_settings_fee_breakdown_help') %>
+                </p>
+            </div>
 
-                <div style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
-                        <div style="width: 50px; height: 50px; border-radius: 15px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: #6366f1; font-size: 1.5rem;">
-                            <i class="fas fa-calendar-day"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-cairo" style="margin: 0; color: var(--primary); font-weight: 800;"><%= __('admin_settings_chat_day_label') %></h4>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);"><%= __('admin_settings_chat_day_desc') %></p>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label-luxury"><%= __('admin_settings_chat_day_select_label') %></label>
-                        <select name="chat_day" class="form-input" style="font-size: 1rem; font-weight: 700; color: var(--secondary);">
+            <div class="nm-activity-hub__filter-bar">
+                <div>
+                    <div class="nm-admin-form-hub__title"><%= __('admin_settings_chat_day_label') %></div>
+                    <p class="nm-admin-form-hub__desc"><%= __('admin_settings_chat_day_desc') %></p>
+                </div>
+            </div>
+            <div class="nm-admin-form-hub__body">
+                <div class="nm-activity-hub__filter-form">
+                    <div class="nm-activity-hub__filter-field nm-activity-hub__filter-field--date">
+                        <label for="chatDay"><%= __('admin_settings_chat_day_select_label') %></label>
+                        <select id="chatDay" name="chat_day" class="form-input">
                             <option value="0" <%= settings.chat_day == 0 ? 'selected' : '' %>><%= __('common_day_0') %></option>
                             <option value="1" <%= settings.chat_day == 1 ? 'selected' : '' %>><%= __('common_day_1') %></option>
                             <option value="2" <%= settings.chat_day == 2 ? 'selected' : '' %>><%= __('common_day_2') %></option>
@@ -73,47 +53,57 @@
                             <option value="5" <%= settings.chat_day == 5 ? 'selected' : '' %>><%= __('common_day_5') %></option>
                             <option value="6" <%= settings.chat_day == 6 ? 'selected' : '' %>><%= __('common_day_6') %></option>
                         </select>
-                        <div style="margin-top: 15px; padding: 12px; background: #eef2ff; border-radius: 10px; border: 1px dashed #a5b4fc; display: flex; gap: 10px; align-items: center;">
-                            <i class="fas fa-info-circle" style="color: #4338ca;"></i>
-                            <span style="font-size: 0.8rem; color: #312e81;"><%= __('admin_settings_chat_day_info') %></span>
-                        </div>
                     </div>
                 </div>
+                <p class="nm-admin-form-hub__note">
+                    <i class="fas fa-circle-info" aria-hidden="true"></i>
+                    <%= __('admin_settings_chat_day_info') %>
+                </p>
+            </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 15px;">
-                    <button type="submit" class="btn-lux btn-lux-primary" style="padding: 15px 40px; border-radius: 15px; font-weight: 800;">
-                        <i class="fas fa-save"></i> <%= __('common_save_settings') %>
-                    </button>
-                </div>
-            </form>
-    </div>
+            <div class="nm-admin-form-hub__footer">
+                <button type="submit" class="btn-lux btn-lux-primary">
+                    <i class="fas fa-save" aria-hidden="true"></i> <%= __('common_save_settings') %>
+                </button>
+            </div>
+        </form>
+    </section>
 </div>
 
 <style>
-    .settings-page-header {
-        max-width: 1000px;
-        margin: 0 auto 32px;
-    }
-    .settings-page-shell {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
-    .settings-fee-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
-    }
-    @media (max-width: 768px) {
-        .settings-fee-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    .form-label-luxury {
-        display: block;
-        margin-bottom: 12px;
+    .nm-admin-form-hub__title {
+        font-size: 0.9rem;
         font-weight: 800;
         color: var(--primary);
-        font-size: 0.95rem;
+    }
+    .nm-admin-form-hub__desc {
+        margin: 4px 0 0;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+    .nm-admin-form-hub__body {
+        padding: 18px;
+    }
+    .nm-admin-form-hub__note {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 14px 0 0;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: var(--text-muted);
+    }
+    .nm-admin-form-hub__note i {
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    .nm-admin-form-hub__footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 14px 18px;
+        border-top: 1px solid rgba(0, 38, 97, 0.06);
+        background: #fafbfc;
     }
 </style>
 
