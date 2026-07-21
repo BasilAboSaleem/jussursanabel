@@ -1,133 +1,163 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="container-fluid" style="padding: 30px; max-width: 1300px; margin: 0 auto;">
-    <div class="section-header-luxury" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-        <div>
-            <h2 class="section-title-luxury"><%= __('admin_sidebar_escalations') %></h2>
-            <p class="section-subtitle-luxury" style="margin-bottom: 0;">
-                <% if (user.role === 'super_admin') { %>
-                    <%= __('admin_escalations_super_desc') %>
-                <% } else { %>
-                    <%= __('admin_escalations_admin_desc') %>
-                <% } %>
-            </p>
-        </div>
+<%
+const escFilters = [
+    { key: 'all', href: '/admin/escalations', label: __('common_all'), count: statusCounts.all },
+    { key: 'pending', href: '/admin/escalations?status=pending', label: __('common_pending'), title: __('common_pending_review'), count: statusCounts.pending, dot: 'pending' },
+    { key: 'approved', href: '/admin/escalations?status=approved', label: __('admin_escalations_filter_approved_short'), title: __('admin_escalations_approved_exec'), count: statusCounts.approved, dot: 'approved' },
+    { key: 'rejected', href: '/admin/escalations?status=rejected', label: __('admin_escalations_filter_rejected_short'), title: __('common_rejected'), count: statusCounts.rejected, dot: 'rejected' },
+];
+
+function escTypeLabel(type) {
+    if (type === 'hard_delete_user') return __('admin_escalations_hard_delete_user');
+    const translated = __(type);
+    return translated !== type ? translated : type;
+}
+%>
+
+<div class="nm-escalations-hub">
+    <div class="nm-analytics-hub__meta nm-escalations-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= pageDesc %></p>
         <% if (user.role !== 'super_admin') { %>
-            <button class="btn-lux btn-lux-danger" onclick="openNewRequestModal()" style="padding: 14px 28px; border-radius: 14px; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-plus-circle"></i> <%= lang === 'ar' ? 'طلب جديد للإدارة العليا' : 'New Super Admin Request' %>
+            <button type="button" class="btn-lux btn-lux-danger nm-escalations-hub__new-btn" onclick="openNewRequestModal()">
+                <i class="fas fa-plus-circle"></i> <%= __('admin_escalations_new_request_btn') %>
             </button>
         <% } %>
     </div>
 
-    <div class="nm-admin-card nm-admin-card--flush">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-                <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-bottom: 2px solid #e2e8f0;">
+    <div class="nm-admin-hub nm-admin-card nm-admin-card--flush">
+        <div class="nm-admin-hub__toolbar">
+            <div class="nm-admin-hub__search">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="escalationSearch" oninput="filterEscalations()" placeholder="<%= __('admin_escalations_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_escalations_search_placeholder') %>">
+            </div>
+
+            <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_escalations_filter_label') %>">
+                <% escFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter<%= currentStatus === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= currentStatus === f.key ? 'true' : 'false' %>"
+                   <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                    <% if (f.key === 'all') { %>
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <% } else { %>
+                        <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                    <% } %>
+                    <span><%= f.label %></span>
+                    <em><%= f.count %></em>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="table-responsive nm-admin-chat-table-wrap">
+            <table class="nm-admin-chat-table nm-escalations-table">
+                <thead>
                     <tr>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_req_type') %></th>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_requester') %></th>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_target') %></th>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_submit_date') %></th>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;"><%= __('admin_escalations_decision') %></th>
-                        <th style="padding: 18px 20px; font-weight: 800; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;"><%= __('common_actions') %></th>
+                        <th><%= __('admin_escalations_req_type') %></th>
+                        <th><%= __('admin_escalations_requester') %></th>
+                        <th><%= __('admin_escalations_target') %></th>
+                        <th><%= __('admin_escalations_submit_date') %></th>
+                        <th><%= __('admin_escalations_decision') %></th>
+                        <th><%= __('common_actions') %></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <% if (requests && requests.length > 0) { %>
-                        <% requests.forEach(reqObj => { %>
-                            <tr class="esc-table-row">
-                                <td style="padding: 18px 20px; vertical-align: middle;">
-                                    <% if (reqObj.type === 'hard_delete_user') { %>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block; flex-shrink: 0;"></span>
-                                            <span style="font-weight: 800; color: var(--danger); font-size: 0.88rem;"><%= __('admin_escalations_hard_delete_user') %></span>
-                                        </div>
-                                    <% } else { %>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary); display: inline-block; flex-shrink: 0;"></span>
-                                            <span style="font-weight: 700; color: var(--primary); font-size: 0.88rem;"><%= __(reqObj.type) || reqObj.type %></span>
-                                        </div>
-                                    <% } %>
-                                </td>
-
-                                <td style="padding: 18px 20px; vertical-align: middle;">
-                                    <% if (reqObj.requester) { %>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--grad-navy); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 2px 8px rgba(15,23,42,0.2);">
-                                                <%= reqObj.requester.name ? reqObj.requester.name.charAt(0) : '?' %>
-                                            </div>
-                                            <div>
-                                                <div style="font-weight: 700; color: var(--primary); font-size: 0.88rem; line-height: 1.2;"><%= reqObj.requester.name || '---' %></div>
-                                                <div style="font-size: 0.72rem; color: var(--text-muted);"><%= reqObj.requester.email || '' %></div>
-                                            </div>
-                                        </div>
-                                    <% } else { %>
-                                        <span style="color: var(--text-muted);">—</span>
-                                    <% } %>
-                                </td>
-
-                                <td style="padding: 18px 20px; vertical-align: middle; font-size: 0.88rem;">
-                                    <% if (reqObj.targetUser) { %>
-                                        <a href="/admin/users/<%= reqObj.targetUser._id %>/moderation" style="font-weight: 700; color: var(--accent); text-decoration: none;">
-                                            <i class="fas fa-user" style="opacity: 0.5;"></i> <%= reqObj.targetUser.name %>
-                                        </a>
-                                    <% } else if (reqObj.targetCase) { %>
-                                        <span style="font-weight: 700;"><i class="fas fa-folder" style="opacity: 0.5;"></i> <%= reqObj.targetCase.title %></span>
-                                    <% } else { %>
-                                        <span style="color: var(--text-muted);">—</span>
-                                    <% } %>
-                                </td>
-
-                                <td style="padding: 18px 20px; vertical-align: middle;">
-                                    <div style="font-weight: 600; color: var(--primary); font-size: 0.88rem;">
-                                        <%= new Date(reqObj.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
-                                    </div>
-                                    <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 2px;">
-                                        <%= new Date(reqObj.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %>
-                                    </div>
-                                </td>
-
-                                <td style="padding: 18px 20px; vertical-align: middle;">
-                                    <% if (reqObj.status === 'pending') { %>
-                                        <span class="esc-badge pending"><i class="fas fa-hourglass-half"></i> <%= __('common_pending_review') %></span>
-                                    <% } else if (reqObj.status === 'approved') { %>
-                                        <span class="esc-badge approved"><i class="fas fa-check-circle"></i> <%= __('admin_escalations_approved_exec') %></span>
-                                    <% } else { %>
-                                        <span class="esc-badge rejected"><i class="fas fa-times-circle"></i> <%= __('common_rejected') %></span>
-                                    <% } %>
-                                </td>
-
-                                <td style="padding: 18px 20px; vertical-align: middle; text-align: center;">
-                                    <button class="esc-details-btn" onclick="openDetailsModal(this)"
-                                        data-id="<%= reqObj._id %>"
-                                        data-type="<%= reqObj.type %>"
-                                        data-status="<%= reqObj.status %>"
-                                        data-reason="<%= encodeURIComponent(reqObj.reason || '') %>"
-                                        data-requester-name="<%= reqObj.requester ? (reqObj.requester.name || '') : '' %>"
-                                        data-requester-email="<%= reqObj.requester ? (reqObj.requester.email || '') : '' %>"
-                                        data-target="<%= reqObj.targetUser ? reqObj.targetUser.name : (reqObj.targetCase ? reqObj.targetCase.title : '') %>"
-                                        data-date="<%= new Date(reqObj.createdAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %>"
-                                        data-reply="<%= encodeURIComponent(reqObj.superAdminReply || '') %>"
-                                        data-resolved-by="<%= reqObj.resolvedBy ? reqObj.resolvedBy.name : '' %>"
-                                        data-csrf="<%= csrfToken %>"
-                                        data-is-super="<%= user.role === 'super_admin' %>"
-                                        data-type-label="<%= reqObj.type === 'hard_delete_user' ? (lang === 'ar' ? 'حذف كلي للمستخدم' : 'Hard Delete User') : (__(reqObj.type) || reqObj.type) %>">
-                                        <i class="fas fa-eye"></i>
-                                        <%= lang === 'ar' ? 'عرض التفاصيل' : 'View Details' %>
-                                    </button>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
+                <tbody id="escalationsBody">
+                    <% if (!requests || requests.length === 0) { %>
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-muted);">
-                                <i class="fas fa-check-double fa-3x" style="opacity: 0.12; margin-bottom: 20px; display: block; color: #00A544;"></i>
-                                <div style="font-size: 1.05rem; font-weight: 600;"><%= __('admin_escalations_no_requests') %></div>
+                            <td colspan="6" class="nm-admin-chat-empty">
+                                <i class="fas fa-check-double" aria-hidden="true" style="font-size: 2rem; opacity: 0.15; display: block; margin-bottom: 10px; color: #00A544;"></i>
+                                <%= __('admin_escalations_no_requests') %>
                             </td>
                         </tr>
                     <% } %>
+                    <% (requests || []).forEach(reqObj => { %>
+                        <%
+                            const typeLabel = escTypeLabel(reqObj.type);
+                            const requesterName = reqObj.requester ? (reqObj.requester.name || '') : '';
+                            const requesterEmail = reqObj.requester ? (reqObj.requester.email || '') : '';
+                            const targetLabel = reqObj.targetUser
+                                ? reqObj.targetUser.name
+                                : (reqObj.targetCase ? reqObj.targetCase.title : '');
+                        %>
+                        <tr class="escalation-row esc-table-row"
+                            data-type="<%= typeLabel.toLowerCase() %>"
+                            data-requester="<%= requesterName.toLowerCase() %>"
+                            data-email="<%= requesterEmail.toLowerCase() %>"
+                            data-target="<%= (targetLabel || '').toLowerCase() %>"
+                            data-reason="<%= (reqObj.reason || '').toLowerCase() %>">
+                            <td data-label="<%= __('admin_escalations_req_type') %>">
+                                <% if (reqObj.type === 'hard_delete_user') { %>
+                                    <span class="nm-escalations-type nm-escalations-type--danger">
+                                        <i class="fas fa-user-slash" aria-hidden="true"></i> <%= typeLabel %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="nm-escalations-type">
+                                        <i class="fas fa-file-signature" aria-hidden="true"></i> <%= typeLabel %>
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_escalations_requester') %>">
+                                <% if (reqObj.requester) { %>
+                                    <div class="nm-escalations-user">
+                                        <span class="nm-escalations-user__avatar" aria-hidden="true"><%= requesterName ? requesterName.charAt(0) : '?' %></span>
+                                        <div>
+                                            <div class="nm-admin-chat-name"><%= requesterName || '---' %></div>
+                                            <div class="nm-admin-chat-meta"><%= requesterEmail %></div>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <span class="nm-admin-chat-meta">—</span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_escalations_target') %>">
+                                <% if (reqObj.targetUser) { %>
+                                    <a href="/admin/users/<%= reqObj.targetUser._id %>/moderation" class="nm-escalations-target-link">
+                                        <i class="fas fa-user" aria-hidden="true"></i> <%= reqObj.targetUser.name %>
+                                    </a>
+                                <% } else if (reqObj.targetCase) { %>
+                                    <span class="nm-escalations-target"><i class="fas fa-folder" aria-hidden="true"></i> <%= reqObj.targetCase.title %></span>
+                                <% } else { %>
+                                    <span class="nm-admin-chat-meta">—</span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_escalations_submit_date') %>" class="nm-admin-chat-date">
+                                <div><%= new Date(reqObj.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
+                                <div class="nm-admin-chat-meta"><%= new Date(reqObj.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                            </td>
+                            <td data-label="<%= __('admin_escalations_decision') %>">
+                                <% if (reqObj.status === 'pending') { %>
+                                    <span class="esc-badge pending"><i class="fas fa-hourglass-half"></i> <%= __('common_pending_review') %></span>
+                                <% } else if (reqObj.status === 'approved') { %>
+                                    <span class="esc-badge approved"><i class="fas fa-check-circle"></i> <%= __('admin_escalations_approved_exec') %></span>
+                                <% } else { %>
+                                    <span class="esc-badge rejected"><i class="fas fa-times-circle"></i> <%= __('common_rejected') %></span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('common_actions') %>">
+                                <button type="button" class="esc-details-btn" onclick="openDetailsModal(this)"
+                                    data-id="<%= reqObj._id %>"
+                                    data-type="<%= reqObj.type %>"
+                                    data-status="<%= reqObj.status %>"
+                                    data-reason="<%= encodeURIComponent(reqObj.reason || '') %>"
+                                    data-requester-name="<%= requesterName %>"
+                                    data-requester-email="<%= requesterEmail %>"
+                                    data-target="<%= targetLabel %>"
+                                    data-date="<%= new Date(reqObj.createdAt).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') %>"
+                                    data-reply="<%= encodeURIComponent(reqObj.superAdminReply || '') %>"
+                                    data-resolved-by="<%= reqObj.resolvedBy ? reqObj.resolvedBy.name : '' %>"
+                                    data-csrf="<%= csrfToken %>"
+                                    data-is-super="<%= user.role === 'super_admin' %>"
+                                    data-type-label="<%= typeLabel %>">
+                                    <i class="fas fa-eye"></i> <%= __('common_details') %>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
                 </tbody>
             </table>
+            <p class="nm-admin-hub__no-results" id="escalationsNoResults" hidden><%= __('admin_escalations_no_results') %></p>
         </div>
     </div>
 </div>
@@ -236,6 +266,92 @@
 <% } %>
 
 <style>
+    .nm-escalations-hub {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 24px;
+        text-align: start;
+    }
+
+    .nm-escalations-hub__meta.nm-analytics-hub__meta {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .nm-escalations-hub__new-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .nm-escalations-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.88rem;
+    }
+
+    .nm-escalations-type--danger {
+        color: var(--danger);
+        font-weight: 800;
+    }
+
+    .nm-escalations-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .nm-escalations-user__avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--grad-navy);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    }
+
+    .nm-escalations-target-link {
+        font-weight: 700;
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .nm-escalations-target-link:hover {
+        text-decoration: underline;
+    }
+
+    .nm-escalations-target {
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    @media (max-width: 768px) {
+        .nm-escalations-hub__meta.nm-analytics-hub__meta {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .nm-escalations-hub__new-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
     .esc-table-row { transition: background 0.15s; }
     .esc-table-row:hover { background: #f8fafc; }
 
@@ -372,6 +488,30 @@
         resolvedByPfx:  '<%= __("admin_escalations_resolved_by") %>',
         reasonLabel:    '<%= __("admin_escalations_reasons_label") %>',
     };
+
+    function filterEscalations() {
+        const query = (document.getElementById('escalationSearch').value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('#escalationsBody .escalation-row');
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const haystack = [
+                row.dataset.type,
+                row.dataset.requester,
+                row.dataset.email,
+                row.dataset.target,
+                row.dataset.reason,
+            ].join(' ');
+            const match = !query || haystack.includes(query);
+            row.hidden = !match;
+            if (match) visible++;
+        });
+
+        const noResults = document.getElementById('escalationsNoResults');
+        if (noResults) {
+            noResults.hidden = visible > 0 || rows.length === 0;
+        }
+    }
 
     function openDetailsModal(btn) {
         const d = btn.dataset;
