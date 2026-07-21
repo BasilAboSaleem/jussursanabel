@@ -1,120 +1,1203 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--accent">
-    <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-headset"></i> <%= __('admin_sidebar_support_center') %></h3>
-    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_support_center_desc') %></p>
-</div>
+<%
+const statusLabels = {
+    open: __('admin_support_status_new'),
+    in_progress: __('admin_support_status_in_progress'),
+    resolved: __('admin_support_status_resolved'),
+    closed: __('admin_support_status_closed'),
+};
+const countNew = tickets.filter(t => t.status === 'open').length;
+const countInProgress = tickets.filter(t => t.status === 'in_progress').length;
+const countResolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+%>
 
-<div class="support-head-row" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 24px;">
-    <div class="support-stats-row" style="display: flex; gap: 15px;">
-        <div class="stat-card" style="padding: 15px 25px; min-width: 150px; text-align: center;">
-            <span style="display: block; font-size: 0.85rem; color: var(--text-light);"><%= __('admin_support_total_tickets') %></span>
-            <strong style="font-size: 1.5rem;"><%= tickets.length %></strong>
-        </div>
-        <div class="stat-card" style="padding: 15px 25px; min-width: 150px; text-align: center; border-<%= langDir === 'rtl' ? 'right' : 'left' %>: 4px solid var(--secondary);">
-            <span style="display: block; font-size: 0.85rem; color: var(--text-light);"><%= __('admin_support_active_tickets') %></span>
-            <strong style="font-size: 1.5rem;"><%= tickets.filter(t => t.status !== 'closed' && t.status !== 'resolved').length %></strong>
-        </div>
-    </div>
-</div>
-
-<div class="grid-4 support-layout-grid" style="grid-template-columns: 350px 1fr; gap: 30px; height: 700px; align-items: stretch;">
-    <div class="luxury-card" style="padding: 0; background: white; overflow: hidden; display: flex; flex-direction: column;">
-        <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
-            <h5 class="font-cairo" style="margin: 0; font-weight: 800;"><%= __('admin_support_tickets_list') %></h5>
-        </div>
-        <div style="flex: 1; overflow-y: auto;">
-            <% if (tickets.length === 0) { %>
-                <div style="text-align: center; padding: 40px; opacity: 0.5;">
-                    <p><%= __('admin_support_no_tickets') %></p>
+<div class="nm-support-admin">
+    <div class="nm-support-admin__workspace" id="supportWorkspace">
+        <aside class="nm-support-admin__sidebar" id="supportSidebar">
+            <div class="nm-support-admin__sidebar-head">
+                <div class="nm-support-admin__sidebar-top">
+                    <h5 class="font-cairo"><%= __('admin_support_tickets_list') %></h5>
+                    <span class="nm-support-admin__total-pill" id="stat-all-pill"><%= tickets.length %></span>
                 </div>
-            <% } %>
-            <% tickets.forEach(t => { %>
-                <div class="ticket-item <%= t.status %>" onclick="loadTicketMessages('<%= t._id %>')" style="
-                    padding: 20px;
-                    border-bottom: 1px solid #f1f5f9;
-                    cursor: pointer;
-                    transition: var(--transition-fast);
-                    position: relative;
-                ">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <img src="<%= t.user ? userAvatar(t.user) : userAvatar({}) %>" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-                        <div style="flex: 1; overflow: hidden;">
-                            <h6 style="margin: 0; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= t.user.name %></h6>
-                            <span style="font-size: 0.75rem; color: var(--text-light);"><%= t.user.role === 'donor' ? __('common_donor') : __('common_family') %></span>
+
+                <div class="nm-support-admin__search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="search" id="ticketSearch" placeholder="<%= __('admin_support_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_support_search_placeholder') %>">
+                </div>
+
+                <div class="nm-support-admin__filters" role="tablist" aria-label="<%= __('admin_support_filter_label') %>">
+                    <button type="button" class="nm-support-admin__filter is-active" data-filter="all" role="tab" aria-selected="true" title="<%= __('admin_support_filter_all') %>">
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                        <span><%= __('admin_support_filter_all') %></span>
+                        <em id="stat-all"><%= tickets.length %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="open" role="tab" aria-selected="false" title="<%= __('admin_support_status_new') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--open" aria-hidden="true"></span>
+                        <span><%= __('admin_support_status_new') %></span>
+                        <em id="stat-open"><%= countNew %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="in_progress" role="tab" aria-selected="false" title="<%= __('admin_support_status_in_progress') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--in_progress" aria-hidden="true"></span>
+                        <span><%= __('admin_support_status_in_progress_short') %></span>
+                        <em id="stat-in_progress"><%= countInProgress %></em>
+                    </button>
+                    <button type="button" class="nm-support-admin__filter" data-filter="resolved" role="tab" aria-selected="false" title="<%= __('admin_support_status_resolved') %>">
+                        <span class="nm-support-admin__filter-dot nm-support-admin__filter-dot--resolved" aria-hidden="true"></span>
+                        <span><%= __('admin_support_status_resolved_short') %></span>
+                        <em id="stat-resolved"><%= countResolved %></em>
+                    </button>
+                </div>
+            </div>
+
+            <div class="nm-support-admin__ticket-list" id="ticketList">
+                <% if (tickets.length === 0) { %>
+                    <div class="nm-support-admin__empty-list">
+                        <i class="fas fa-inbox"></i>
+                        <p><%= __('admin_support_no_tickets') %></p>
+                    </div>
+                <% } %>
+                <% tickets.forEach(t => {
+                    const ticketId = t._id.toString();
+                    const userName = t.user ? t.user.name : __('common_user');
+                    const userEmail = t.user ? (t.user.email || '') : '';
+                    const userRole = t.user ? (t.user.role === 'donor' ? __('common_donor') : __('common_family')) : '';
+                    const avatar = t.user ? userAvatar(t.user) : userAvatar({});
+                    const shortId = ticketId.slice(-6).toUpperCase();
+                %>
+                <button type="button"
+                    class="nm-support-admin__ticket<%= selectedTicketId === ticketId ? ' is-active' : '' %>"
+                    data-ticket-id="<%= ticketId %>"
+                    data-status="<%= t.status %>"
+                    data-name="<%= userName.toLowerCase() %>"
+                    data-email="<%= userEmail.toLowerCase() %>"
+                    data-id="<%= shortId.toLowerCase() %>"
+                    data-subject="<%= (t.subject || '').toLowerCase() %>">
+                    <img src="<%= avatar %>" alt="" class="nm-support-admin__ticket-avatar">
+                    <div class="nm-support-admin__ticket-body">
+                        <div class="nm-support-admin__ticket-top">
+                            <strong><%= userName %></strong>
+                            <time><%= new Date(t.lastMessageAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' }) %></time>
                         </div>
-                        <span style="font-size: 0.65rem; color: var(--text-light);">
-                            <%= new Date(t.lastMessageAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US') %>
+                        <span class="nm-support-admin__ticket-meta">#<%= shortId %> · <%= userRole %></span>
+                        <p class="nm-support-admin__ticket-subject"><%= t.subject || __('admin_support_default_subject') %></p>
+                        <span class="nm-support-admin__badge nm-support-admin__badge--<%= t.status %>">
+                            <%= statusLabels[t.status] || t.status %>
                         </span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="badge <%= t.status === 'open' ? 'badge-gold' : (t.status === 'in_progress' ? 'badge-teal' : (t.status === 'resolved' ? 'badge-success' : 'badge-navy')) %>" style="font-size: 0.65rem;">
-                            <%= t.status === 'open' ? __('admin_support_status_new') : (t.status === 'in_progress' ? __('admin_support_status_in_progress') : (t.status === 'resolved' ? __('admin_support_status_resolved') : __('admin_support_status_closed'))) %>
-                        </span>
+                </button>
+                <% }) %>
+                <p class="nm-support-admin__no-results" id="noFilterResults" hidden><%= __('admin_support_no_results') %></p>
+            </div>
+        </aside>
+
+        <section class="nm-support-admin__chat" id="supportChatPanel">
+            <div class="nm-support-admin__placeholder" id="chatPlaceholder">
+                <i class="fas fa-comments"></i>
+                <h4 class="font-cairo"><%= __('admin_support_select_ticket') %></h4>
+                <p><%= __('admin_support_select_ticket_hint') %></p>
+            </div>
+
+            <div class="nm-support-admin__chat-inner" id="chatInner" hidden>
+                <div class="nm-support-admin__chat-box">
+                    <header class="nm-support-admin__chat-header">
+                        <div class="nm-support-admin__chat-header-main">
+                            <button type="button" class="nm-support-admin__back-btn" id="chatBackBtn" aria-label="<%= __('common_back') %>">
+                                <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i>
+                            </button>
+                            <img src="" alt="" class="nm-support-admin__chat-avatar" id="chatUserAvatar">
+                            <div class="nm-support-admin__chat-user">
+                                <h2 class="font-cairo" id="chatUserName"></h2>
+                                <p id="chatUserMeta"></p>
+                            </div>
+                        </div>
+                        <div class="nm-support-admin__chat-header-end">
+                            <span class="nm-support-admin__chat-status" id="chatStatusBadge"></span>
+                            <button type="button" id="resolveBtn" class="nm-support-admin__resolve-btn">
+                                <i class="fas fa-check-circle"></i>
+                                <span><%= __('support_page_resolve_btn') %></span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="nm-support-admin__chat-body">
+                        <div id="chatLoading" class="nm-support-admin__loading">
+                            <i class="fas fa-spinner fa-spin"></i> <%= __('admin_support_loading') %>
+                        </div>
+
+                        <div id="chat-messages" class="nm-support-admin__messages" hidden></div>
+
+                        <div class="nm-support-admin__composer" id="chatInputRow">
+                            <input type="text" id="chat-input" placeholder="<%= __('support_page_input_placeholder') %>">
+                            <button type="button" id="sendBtn" class="nm-support-admin__send-btn" aria-label="<%= __('support_page_send') %>">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            <% }) %>
-        </div>
-    </div>
-
-    <div id="chat-window-container" style="display: none;"></div>
-
-    <div id="chat-placeholder" class="luxury-card" style="display: flex; align-items: center; justify-content: center; background: white; opacity: 0.6;">
-        <div style="text-align: center;">
-            <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 20px; color: var(--text-light);"></i>
-            <h4 class="font-cairo"><%= __('admin_support_select_ticket') %></h4>
-        </div>
+            </div>
+        </section>
     </div>
 </div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
-    const socket = io();
-
-    socket.on('newSupportMessage', (data) => {
-        const ticketItem = document.querySelector(`.ticket-item[onclick*="${data.ticketId}"]`);
-        if (ticketItem) {
-            const container = ticketItem.parentElement;
-            container.prepend(ticketItem);
-
-            if (!data.isAdminTeam) {
-                const badge = ticketItem.querySelector('.badge');
-                badge.className = 'badge badge-gold';
-                badge.innerText = '<%= __('admin_support_status_new') %>';
-            }
-        }
-    });
-
-    function loadTicketMessages(ticketId) {
-        window.location.href = '/support/chat?adminTicketId=' + ticketId;
-    }
-</script>
 
 <style>
-    .ticket-item:hover { background: #f8fafc; }
-    .ticket-item.active { background: #eef2ff; border-right: 4px solid var(--primary); }
-    .badge-gold { background: rgba(0, 165, 68, 0.12); color: var(--secondary); border: 1px solid rgba(0, 165, 68, 0.22); }
-    .badge-teal { background: #f0fdfa; color: #016630; }
-    .badge-success { background: #f0fdf4; color: #166534; }
-    .badge-navy { background: #f1f5f9; color: #475569; }
+    /* Full-height hub: page does not scroll — only ticket list + messages */
+    .admin-page-content:has(.nm-support-admin) {
+        padding: 14px 18px !important;
+        overflow: hidden !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .nm-support-admin {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nm-support-admin__workspace {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+        gap: 0;
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 38, 97, 0.08);
+        box-shadow: 0 12px 40px rgba(2, 26, 15, 0.07);
+        overflow: hidden;
+    }
+
+    .nm-support-admin__sidebar,
+    .nm-support-admin__chat {
+        min-height: 0;
+        min-width: 0;
+    }
+
+    .nm-support-admin__sidebar {
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        border-inline-end: 1px solid #e2e8f0;
+    }
+
+    .nm-support-admin__chat {
+        background: #fff;
+    }
+
+    .nm-support-admin__sidebar-head {
+        flex-shrink: 0;
+        padding: 14px 14px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nm-support-admin__sidebar-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .nm-support-admin__sidebar-top h5 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: var(--primary);
+    }
+
+    .nm-support-admin__total-pill {
+        flex-shrink: 0;
+        min-width: 28px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: rgba(0, 38, 97, 0.08);
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nm-support-admin__filters {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: #e8edf4;
+        border-radius: 12px;
+    }
+
+    .nm-support-admin__filter {
+        flex: 1;
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        background: transparent;
+        border-radius: 9px;
+        padding: 7px 6px;
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+        font-family: inherit;
+        color: #64748b;
+    }
+
+    .nm-support-admin__filter i {
+        font-size: 0.68rem;
+        opacity: 0.85;
+    }
+
+    .nm-support-admin__filter > span:not(.nm-support-admin__filter-dot) {
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .nm-support-admin__filter em {
+        font-style: normal;
+        font-size: 0.68rem;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        color: inherit;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .nm-support-admin__filter-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__filter-dot--open { background: #00a544; }
+    .nm-support-admin__filter-dot--in_progress { background: #0ea5e9; }
+    .nm-support-admin__filter-dot--resolved { background: #16a34a; }
+    .nm-support-admin__filter-dot--closed { background: #94a3b8; }
+
+    .nm-support-admin__filter.is-active {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(2, 26, 15, 0.08);
+    }
+
+    .nm-support-admin__filter.is-active em {
+        background: rgba(0, 38, 97, 0.08);
+        color: var(--primary);
+    }
+
+    .nm-support-admin__filter:hover:not(.is-active) {
+        background: rgba(255, 255, 255, 0.55);
+        color: var(--primary);
+    }
+
+    .nm-support-admin__filter:focus-visible {
+        outline: 2px solid rgba(0, 165, 68, 0.45);
+        outline-offset: 1px;
+    }
+
+    .nm-support-admin__search {
+        position: relative;
+    }
+
+    .nm-support-admin__search i {
+        position: absolute;
+        top: 50%;
+        inset-inline-start: 12px;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .nm-support-admin__search input {
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 9px 12px 9px 34px;
+        font-family: inherit;
+        font-size: 0.84rem;
+        background: #fff;
+    }
+
+    .nm-support-admin__search input:focus {
+        outline: none;
+        border-color: rgba(0, 165, 68, 0.4);
+        box-shadow: 0 0 0 3px rgba(0, 165, 68, 0.1);
+    }
+
+    html[dir="rtl"] .nm-support-admin__search input {
+        padding: 9px 34px 9px 12px;
+    }
+
+    .nm-support-admin__ticket-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nm-support-admin__ticket {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+        padding: 14px 16px;
+        display: flex;
+        gap: 12px;
+        text-align: start;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .nm-support-admin__ticket:hover {
+        background: #f8fafc;
+    }
+
+    .nm-support-admin__ticket.is-active {
+        background: #eef2ff;
+        box-shadow: inset 4px 0 0 var(--primary);
+    }
+
+    html[dir="rtl"] .nm-support-admin__ticket.is-active {
+        box-shadow: inset -4px 0 0 var(--primary);
+    }
+
+    .nm-support-admin__ticket[hidden] {
+        display: none !important;
+    }
+
+    .nm-support-admin__ticket-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__ticket-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nm-support-admin__ticket-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+    }
+
+    .nm-support-admin__ticket-top strong {
+        font-size: 0.92rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nm-support-admin__ticket-top time {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__ticket-meta,
+    .nm-support-admin__ticket-subject {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin: 2px 0 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nm-support-admin__badge {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+    }
+
+    .nm-support-admin__badge--open {
+        background: rgba(0, 165, 68, 0.12);
+        color: var(--secondary);
+    }
+
+    .nm-support-admin__badge--in_progress {
+        background: #f0fdfa;
+        color: #016630;
+    }
+
+    .nm-support-admin__badge--resolved,
+    .nm-support-admin__badge--closed {
+        background: #f0fdf4;
+        color: #166534;
+    }
+
+    .nm-support-admin__no-results,
+    .nm-support-admin__empty-list {
+        text-align: center;
+        padding: 32px 20px;
+        color: var(--text-muted);
+    }
+
+    .nm-support-admin__chat {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .nm-support-admin__placeholder {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: var(--text-muted);
+        padding: 40px;
+        background: #fff;
+    }
+
+    .nm-support-admin__placeholder[hidden],
+    .nm-support-admin__chat-inner[hidden],
+    .nm-support-admin__messages[hidden],
+    .nm-support-admin__loading[hidden] {
+        display: none !important;
+    }
+
+    .nm-support-admin__placeholder h4 {
+        margin: 0 0 8px;
+        color: var(--primary);
+    }
+
+    .nm-support-admin__placeholder p {
+        margin: 0;
+        max-width: 320px;
+        line-height: 1.6;
+        font-size: 0.9rem;
+    }
+
+    .nm-support-admin__placeholder i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.4;
+    }
+
+    .nm-support-admin__chat.is-open .nm-support-admin__placeholder {
+        display: none !important;
+    }
+
+    .nm-support-admin__chat-inner {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .nm-support-admin__chat:not(.is-open) .nm-support-admin__chat-inner {
+        display: none !important;
+    }
+
+    .nm-support-admin__chat-box {
+        flex: 1;
+        min-height: 0;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+    }
+
+    .nm-support-admin__chat-header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, #002661 0%, #01407a 100%);
+        color: #fff;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nm-support-admin__chat-header-main {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .nm-support-admin__chat-header-end {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__chat-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__chat-user {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .nm-support-admin__chat-user h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .nm-support-admin__chat-user p {
+        margin: 4px 0 0;
+        font-size: 0.76rem;
+        opacity: 0.85;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .nm-support-admin__chat-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
+
+    .nm-support-admin__chat-status--open {
+        background: rgba(0, 165, 68, 0.22);
+        border-color: rgba(0, 165, 68, 0.45);
+    }
+
+    .nm-support-admin__chat-status--in_progress {
+        background: rgba(14, 165, 233, 0.22);
+        border-color: rgba(14, 165, 233, 0.45);
+    }
+
+    .nm-support-admin__chat-status--resolved,
+    .nm-support-admin__chat-status--closed {
+        background: rgba(34, 197, 94, 0.22);
+        border-color: rgba(34, 197, 94, 0.45);
+    }
+
+    .nm-support-admin__resolve-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s ease, transform 0.15s ease;
+        font-family: inherit;
+    }
+
+    .nm-support-admin__resolve-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nm-support-admin__resolve-btn[hidden] {
+        display: none !important;
+    }
+
+    .nm-support-admin__chat-body {
+        flex: 1;
+        min-height: 0;
+        min-width: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .nm-support-admin__messages {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        padding: 20px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .nm-support-admin__messages .nm-support-msg {
+        display: flex;
+        flex-direction: column;
+        max-width: min(78%, 520px);
+    }
+
+    .nm-support-admin__messages .nm-support-msg--sent {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .nm-support-admin__messages .nm-support-msg--received {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .nm-support-admin__messages .nm-support-msg__bubble {
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .nm-support-admin__messages .nm-support-msg--sent .nm-support-msg__bubble {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    .nm-support-admin__messages .nm-support-msg__bubble p {
+        margin: 0;
+        line-height: 1.55;
+        word-break: break-word;
+    }
+
+    .nm-support-admin__messages .nm-support-msg__time {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .nm-support-admin__composer {
+        flex-shrink: 0;
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 14px 16px;
+        border-top: 1px solid #e2e8f0;
+        background: #fff;
+    }
+
+    .nm-support-admin__composer input {
+        flex: 1;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-family: inherit;
+        font-size: 0.92rem;
+    }
+
+    .nm-support-admin__composer input:focus {
+        outline: none;
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 3px rgba(0, 165, 68, 0.12);
+    }
+
+    .nm-support-admin__send-btn {
+        width: 46px;
+        height: 46px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--primary);
+        color: #fff;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .nm-support-admin__send-btn:hover {
+        opacity: 0.9;
+    }
+
+    .nm-support-admin__send-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .nm-support-admin__back-btn {
+        display: none;
+        border: 0;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .nm-support-admin__loading {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-muted);
+    }
+
+    .nm-support-admin__messages .nm-support-chat__empty {
+        text-align: center;
+        margin: auto;
+        opacity: 0.5;
+        padding: 40px 20px;
+    }
+
+    .nm-support-admin__messages .nm-support-chat__empty i {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    @media (max-width: 1100px) {
+        .nm-support-admin__toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .nm-support-admin__filters {
+            justify-content: flex-start;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 4px;
+        }
+
+        .nm-support-admin__filter {
+            flex-shrink: 0;
+        }
+    }
 
     @media (max-width: 992px) {
-        .support-head-row {
+        .admin-page-content:has(.nm-support-admin) {
+            padding: 10px !important;
+        }
+
+        .nm-support-admin__workspace {
+            grid-template-columns: 1fr;
+        }
+
+        .nm-support-admin__workspace.has-selection .nm-support-admin__sidebar {
+            display: none;
+        }
+
+        .nm-support-admin__workspace.has-selection .nm-support-admin__back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nm-support-admin__chat-header {
             flex-direction: column;
-            align-items: stretch !important;
-            gap: 15px;
-            margin-bottom: 20px !important;
+            align-items: stretch;
         }
 
-        .support-stats-row {
-            flex-wrap: wrap;
-        }
-
-        .support-layout-grid {
-            grid-template-columns: 1fr !important;
-            height: auto !important;
+        .nm-support-admin__chat-header-end {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const I18N = {
+        status: {
+            open: '<%= __('admin_support_status_new') %>',
+            in_progress: '<%= __('admin_support_status_in_progress') %>',
+            resolved: '<%= __('admin_support_status_resolved') %>',
+            closed: '<%= __('admin_support_status_closed') %>',
+        },
+        roleDonor: '<%= __('support_page_role_donor') %>',
+        roleFamily: '<%= __('support_page_role_family') %>',
+        teamLabel: '<%= __('support_team_label') %>',
+        noMessages: '<%= __('support_page_no_messages') %>',
+        inputClosed: '<%= __('support_page_input_closed') %>',
+        resolveConfirm: '<%= __('admin_support_resolve_confirm') %>',
+        resolveFail: '<%= __('admin_support_resolve_fail') %>',
+        ticketLabel: '<%= __('support_page_ticket_id') %>',
+        timeLocale: '<%= lang === "ar" ? "ar-SA" : "en-US" %>',
+    };
+
+    const currentUserId = '<%= user._id %>';
+    const csrfToken = '<%= csrfToken %>';
+    const initialTicketId = '<%= selectedTicketId %>';
+
+    const workspace = document.getElementById('supportWorkspace');
+    const sidebar = document.getElementById('supportSidebar');
+    const ticketList = document.getElementById('ticketList');
+    const ticketSearch = document.getElementById('ticketSearch');
+    const noFilterResults = document.getElementById('noFilterResults');
+    const chatPlaceholder = document.getElementById('chatPlaceholder');
+    const chatPanel = document.getElementById('supportChatPanel');
+    const chatInner = document.getElementById('chatInner');
+    const chatLoading = document.getElementById('chatLoading');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('sendBtn');
+    const resolveBtn = document.getElementById('resolveBtn');
+    const chatBackBtn = document.getElementById('chatBackBtn');
+
+    let currentFilter = 'all';
+    let currentTicketId = '';
+    let currentTicketStatus = '';
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function statusLabel(status) {
+        return I18N.status[status] || status;
+    }
+
+    function roleLabel(role) {
+        return role === 'donor' ? I18N.roleDonor : I18N.roleFamily;
+    }
+
+    function matchesFilter(status) {
+        if (currentFilter === 'all') return true;
+        if (currentFilter === 'resolved') return status === 'resolved' || status === 'closed';
+        return status === currentFilter;
+    }
+
+    function recalculateStats() {
+        const counts = { all: 0, open: 0, in_progress: 0, resolved: 0 };
+        ticketList.querySelectorAll('.nm-support-admin__ticket').forEach((item) => {
+            counts.all += 1;
+            const status = item.dataset.status;
+            if (status === 'open') counts.open += 1;
+            else if (status === 'in_progress') counts.in_progress += 1;
+            else if (status === 'resolved' || status === 'closed') counts.resolved += 1;
+        });
+
+        Object.entries(counts).forEach(([key, value]) => {
+            const el = document.getElementById(`stat-${key}`);
+            if (el) el.textContent = value;
+        });
+
+        const pill = document.getElementById('stat-all-pill');
+        if (pill) pill.textContent = counts.all;
+    }
+
+    function applyFilters() {
+        const query = (ticketSearch.value || '').trim().toLowerCase();
+        let visible = 0;
+
+        ticketList.querySelectorAll('.nm-support-admin__ticket').forEach((item) => {
+            const status = item.dataset.status;
+            const haystack = [
+                item.dataset.name,
+                item.dataset.email,
+                item.dataset.id,
+                item.dataset.subject,
+            ].join(' ');
+            const show = matchesFilter(status) && (!query || haystack.includes(query));
+            item.hidden = !show;
+            if (show) visible += 1;
+        });
+
+        noFilterResults.hidden = visible > 0;
+    }
+
+    function setActiveFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.nm-support-admin__filter').forEach((btn) => {
+            const isActive = btn.dataset.filter === filter;
+            btn.classList.toggle('is-active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        applyFilters();
+    }
+
+    function setActiveTicket(ticketId) {
+        ticketList.querySelectorAll('.nm-support-admin__ticket').forEach((item) => {
+            item.classList.toggle('is-active', item.dataset.ticketId === ticketId);
+        });
+    }
+
+    function updateUrl(ticketId) {
+        const url = new URL(window.location.href);
+        if (ticketId) url.searchParams.set('ticket', ticketId);
+        else url.searchParams.delete('ticket');
+        window.history.replaceState({}, '', url);
+    }
+
+    function scrollChatToBottom() {
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderMessage(msg) {
+        const isMe = String(msg.sender._id) === currentUserId;
+        const isStaff = ['admin', 'super_admin', 'support'].includes(msg.sender.role);
+        const time = new Date(msg.createdAt).toLocaleTimeString(I18N.timeLocale, { hour: '2-digit', minute: '2-digit' });
+        const senderLine = isStaff
+            ? `<div class="nm-support-msg__sender">${escapeHtml(I18N.teamLabel)} (${escapeHtml(msg.sender.name)})</div>`
+            : '';
+
+        return `
+            <div class="nm-support-msg ${isMe ? 'nm-support-msg--sent' : 'nm-support-msg--received'}">
+                <div class="nm-support-msg__bubble">
+                    ${senderLine}
+                    <p>${escapeHtml(msg.content)}</p>
+                </div>
+                <time class="nm-support-msg__time">${time}</time>
+            </div>
+        `;
+    }
+
+    function updateTicketStatusInList(ticketId, status) {
+        const item = ticketList.querySelector(`[data-ticket-id="${ticketId}"]`);
+        if (!item) return;
+        item.dataset.status = status;
+        const badge = item.querySelector('.nm-support-admin__badge');
+        if (badge) {
+            badge.className = `nm-support-admin__badge nm-support-admin__badge--${status}`;
+            badge.textContent = statusLabel(status);
+        }
+        recalculateStats();
+        applyFilters();
+    }
+
+    function setChatStatusBadge(status) {
+        const badge = document.getElementById('chatStatusBadge');
+        badge.textContent = statusLabel(status);
+        badge.className = `nm-support-admin__chat-status nm-support-admin__chat-status--${status}`;
+    }
+
+    function setChatResolvedState() {
+        currentTicketStatus = 'resolved';
+        setChatStatusBadge('resolved');
+        chatInput.disabled = true;
+        chatInput.placeholder = I18N.inputClosed;
+        sendBtn.disabled = true;
+        resolveBtn.hidden = true;
+    }
+
+    function openChatPanel() {
+        chatPanel.classList.add('is-open');
+        chatPlaceholder.hidden = true;
+        chatInner.hidden = false;
+    }
+
+    function closeChatPanel() {
+        chatPanel.classList.remove('is-open');
+        chatPlaceholder.hidden = false;
+        chatInner.hidden = true;
+    }
+
+    async function loadTicket(ticketId) {
+        if (!ticketId) return;
+
+        currentTicketId = ticketId;
+        setActiveTicket(ticketId);
+        updateUrl(ticketId);
+        workspace.classList.add('has-selection');
+        openChatPanel();
+        chatLoading.hidden = false;
+        chatLoading.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <%= __('admin_support_loading') %>';
+        chatMessages.hidden = true;
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+
+        try {
+            const response = await fetch(`/support/admin/ticket/${ticketId}`);
+            if (!response.ok) throw new Error('load_failed');
+            const data = await response.json();
+            const ticket = data.ticket;
+            const user = ticket.user || {};
+
+            currentTicketStatus = ticket.status;
+            document.getElementById('chatUserAvatar').src = user.avatar || '/assets/images/default-avatar.svg';
+            document.getElementById('chatUserName').textContent = user.name || '';
+            document.getElementById('chatUserMeta').textContent = `${I18N.ticketLabel}: ${String(ticket._id).slice(-6).toUpperCase()} · ${roleLabel(user.role)}${user.email ? ' · ' + user.email : ''}`;
+
+            setChatStatusBadge(ticket.status);
+
+            const isResolved = ticket.status === 'resolved' || ticket.status === 'closed';
+            resolveBtn.hidden = isResolved;
+            chatInput.disabled = isResolved;
+            sendBtn.disabled = isResolved;
+            chatInput.placeholder = isResolved ? I18N.inputClosed : '<%= __('support_page_input_placeholder') %>';
+
+            if (data.messages.length === 0) {
+                chatMessages.innerHTML = `<div class="nm-support-chat__empty"><i class="fas fa-comments"></i><p>${escapeHtml(I18N.noMessages)}</p></div>`;
+            } else {
+                chatMessages.innerHTML = data.messages.map(renderMessage).join('');
+            }
+
+            chatLoading.hidden = true;
+            chatMessages.hidden = false;
+            scrollChatToBottom();
+        } catch (_) {
+            chatLoading.innerHTML = '<p style="color:#b91c1c;"><i class="fas fa-exclamation-circle"></i> <%= __('admin_support_load_error') %></p>';
+        }
+    }
+
+    async function sendMessage() {
+        const content = chatInput.value.trim();
+        if (!content || !currentTicketId || currentTicketStatus === 'resolved') return;
+
+        sendBtn.disabled = true;
+        try {
+            const response = await fetch('/support/message/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: JSON.stringify({ ticketId: currentTicketId, content }),
+            });
+            if (response.ok) {
+                chatInput.value = '';
+                if (currentTicketStatus === 'open') {
+                    currentTicketStatus = 'in_progress';
+                    updateTicketStatusInList(currentTicketId, 'in_progress');
+                    setChatStatusBadge('in_progress');
+                }
+            }
+        } finally {
+            sendBtn.disabled = currentTicketStatus === 'resolved';
+        }
+    }
+
+    async function resolveTicket() {
+        if (!currentTicketId) return;
+        if (!confirm(I18N.resolveConfirm)) return;
+
+        resolveBtn.disabled = true;
+        try {
+            const response = await fetch(`/support/admin/ticket/${currentTicketId}/resolve`, {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': csrfToken },
+            });
+            if (response.ok) {
+                setChatResolvedState();
+                updateTicketStatusInList(currentTicketId, 'resolved');
+            } else {
+                alert(I18N.resolveFail);
+            }
+        } finally {
+            resolveBtn.disabled = false;
+        }
+    }
+
+    document.querySelectorAll('.nm-support-admin__filter').forEach((btn) => {
+        btn.addEventListener('click', () => setActiveFilter(btn.dataset.filter));
+    });
+
+    ticketSearch.addEventListener('input', applyFilters);
+
+    ticketList.addEventListener('click', (event) => {
+        const item = event.target.closest('.nm-support-admin__ticket');
+        if (!item || item.hidden) return;
+        loadTicket(item.dataset.ticketId);
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    resolveBtn.addEventListener('click', resolveTicket);
+
+    chatBackBtn.addEventListener('click', () => {
+        workspace.classList.remove('has-selection');
+        closeChatPanel();
+        setActiveTicket('');
+        updateUrl('');
+        currentTicketId = '';
+    });
+
+    if (typeof socket !== 'undefined') {
+        socket.on('newSupportMessage', (data) => {
+            const item = ticketList.querySelector(`[data-ticket-id="${data.ticketId}"]`);
+            if (item) {
+                ticketList.prepend(item);
+                if (!data.isAdminTeam) {
+                    item.dataset.status = 'open';
+                    updateTicketStatusInList(data.ticketId, 'open');
+                }
+            }
+
+            if (data.ticketId === currentTicketId) {
+                const placeholder = chatMessages.querySelector('.nm-support-chat__empty');
+                if (placeholder) placeholder.remove();
+                chatMessages.insertAdjacentHTML('beforeend', renderMessage({
+                    _id: data.messageId || Date.now(),
+                    content: data.content,
+                    createdAt: new Date().toISOString(),
+                    sender: {
+                        _id: data.senderId,
+                        name: data.senderName,
+                        role: data.isAdminTeam ? 'admin' : 'donor',
+                    },
+                }));
+                scrollChatToBottom();
+            }
+        });
+
+        socket.on('ticketResolved', (data) => {
+            if (data.ticketId === currentTicketId) {
+                setChatResolvedState();
+            }
+            updateTicketStatusInList(data.ticketId, 'resolved');
+        });
+    }
+
+    applyFilters();
+    recalculateStats();
+    if (initialTicketId) loadTicket(initialTicketId);
+});
+</script>
 
 <%- include('../../partials/admin-layout-bottom') %>

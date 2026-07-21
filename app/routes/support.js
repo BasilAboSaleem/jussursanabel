@@ -11,6 +11,7 @@ router.post('/message/send', protect, supportController.sendMessage);
 
 // Admin Routes
 router.get('/admin/dashboard', protect, restrictTo('admin', 'super_admin', 'support'), supportController.getAdminSupportDashboard);
+router.get('/admin/ticket/:id', protect, restrictTo('admin', 'super_admin', 'support'), supportController.getAdminTicketDetail);
 router.post('/admin/message/send', protect, restrictTo('admin', 'super_admin', 'support'), supportController.sendMessage);
 router.post('/admin/ticket/:id/resolve', protect, restrictTo('admin', 'super_admin', 'support'), supportController.resolveTicket);
 

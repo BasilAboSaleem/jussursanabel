@@ -3,22 +3,21 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const { logActivity } = require('../utils/logger');
 const { isSupportAdmin, emitSupportMessage } = require('../utils/socketAuth');
+const { resolveUserAvatar } = require('../utils/userAvatar');
 
 exports.getSupportPage = async (req, res) => {
     try {
         const isAdmin = isSupportAdmin(req.user.role);
         const adminTicketId = req.query.adminTicketId;
 
-        let ticket;
         if (isAdmin && adminTicketId) {
-            ticket = await SupportTicket.findById(adminTicketId).populate('user', 'name avatar email role');
-        } else {
-            // Find existing open/in_progress ticket for user
-            ticket = await SupportTicket.findOne({ 
-                user: req.user._id, 
-                status: { $in: ['open', 'in_progress'] } 
-            });
+            return res.redirect(`/support/admin/dashboard?ticket=${adminTicketId}`);
         }
+
+        let ticket = await SupportTicket.findOne({
+            user: req.user._id,
+            status: { $in: ['open', 'in_progress'] }
+        });
         
         let messages = [];
         if (ticket) {
@@ -119,16 +118,62 @@ exports.sendMessage = async (req, res) => {
 exports.getAdminSupportDashboard = async (req, res) => {
     try {
         const tickets = await SupportTicket.find()
-            .populate('user', 'name avatar email')
+            .populate('user', 'name avatar email role')
             .sort({ lastMessageAt: -1 });
 
         res.render('admin/support/dashboard', {
             title: res.__('admin_sidebar_support_center'),
             tickets,
+            selectedTicketId: req.query.ticket || '',
             user: req.user
         });
     } catch (error) {
         res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة الدعم' });
+    }
+};
+
+exports.getAdminTicketDetail = async (req, res) => {
+    try {
+        const ticket = await SupportTicket.findById(req.params.id)
+            .populate('user', 'name avatar email role');
+
+        if (!ticket) {
+            return res.status(404).json({ message: 'التذكرة غير موجودة' });
+        }
+
+        const messages = await Message.find({ supportTicket: ticket._id })
+            .sort({ createdAt: 1 })
+            .populate('sender', 'name avatar role');
+
+        const user = ticket.user
+            ? { ...ticket.user.toObject(), avatar: resolveUserAvatar(ticket.user) }
+            : null;
+
+        res.json({
+            ticket: {
+                _id: ticket._id,
+                subject: ticket.subject,
+                status: ticket.status,
+                priority: ticket.priority,
+                lastMessageAt: ticket.lastMessageAt,
+                createdAt: ticket.createdAt,
+                user,
+            },
+            messages: messages.map((msg) => ({
+                _id: msg._id,
+                content: msg.content,
+                createdAt: msg.createdAt,
+                sender: {
+                    _id: msg.sender._id,
+                    name: msg.sender.name,
+                    role: msg.sender.role,
+                    avatar: resolveUserAvatar(msg.sender),
+                },
+            })),
+        });
+    } catch (error) {
+        console.error('Admin Ticket Detail Error:', error);
+        res.status(500).json({ message: 'فشل في تحميل التذكرة' });
     }
 };
 
