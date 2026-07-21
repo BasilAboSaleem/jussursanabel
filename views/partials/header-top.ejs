@@ -37,8 +37,11 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('<%= asset('/sw.js') %>')
-                    .then(reg => console.log('Service Worker Registered'))
+                navigator.serviceWorker.register('<%= asset('/sw.js') %>', { updateViaCache: 'none' })
+                    .then(reg => {
+                        reg.update();
+                        console.log('Service Worker Registered');
+                    })
                     .catch(err => console.log('Service Worker failed', err));
             });
         }

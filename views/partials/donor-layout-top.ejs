@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Global CSS -->
-    <link rel="stylesheet" href="/assets/css/premium.css">
-    <link rel="stylesheet" href="/assets/css/dashboard-mobile.css">
+    <link rel="stylesheet" href="<%= asset('/assets/css/premium.css') %>">
+    <link rel="stylesheet" href="<%= asset('/assets/css/dashboard-mobile.css') %>">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
@@ -32,17 +32,25 @@
 
     <main class="admin-main">
         <header class="admin-top-bar" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <button id="sidebarToggle" class="btn-lux btn-lux-outline mobile-sidebar-toggle" style="padding: 8px 12px;">
+            <div class="admin-top-bar__leading">
+                <button id="sidebarToggle" class="btn-lux btn-lux-outline mobile-sidebar-toggle admin-top-bar__menu-btn" type="button" style="padding: 8px 12px;">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="font-cairo" style="margin: 0; font-weight: 800; color: var(--primary);"><%= typeof title !== 'undefined' ? title : '' %></h4>
+                <%
+                    const donorPath = (typeof currentPath !== 'undefined' ? currentPath : '') || '';
+                    const donorPageIcon = (typeof titleIcon !== 'undefined' && titleIcon)
+                        ? titleIcon
+                        : (typeof resolveDashboardPageIcon === 'function'
+                            ? resolveDashboardPageIcon(donorPath, { user: typeof user !== 'undefined' ? user : null })
+                            : null);
+                %>
+                <h4 class="font-cairo admin-top-bar__title">
+                    <% if (donorPageIcon) { %><i class="<%= donorPageIcon %> admin-top-bar__title-icon" aria-hidden="true"></i><% } %>
+                    <span class="admin-top-bar__title-text"><%= typeof title !== 'undefined' ? title : '' %></span>
+                </h4>
             </div>
             
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="admin-active-mode-badge glass-panel" style="padding: 5px 15px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; color: var(--secondary);">
-                    <i class="fas fa-heart"></i> <%= (locals.currentLocale || lang) === 'en' ? 'Donor Portal' : 'بوابة المتبرعين' %>
-                </div>
                 <!-- Notifications -->
                 <%- include('./notifications-dropdown') %>
             </div>
