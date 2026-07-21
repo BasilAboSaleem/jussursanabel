@@ -1,169 +1,231 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--accent">
-    <div class="logs-head-row" style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-            <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-binoculars"></i> <%= __('admin_sidebar_activity_logs') %></h3>
-            <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_activity_logs_desc') %></p>
-        </div>
-        <div style="background: rgba(0,0,0,0.03); padding: 10px 20px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 0.75rem; color: var(--text-muted);"><%= __('admin_activity_logs_total_label') %></div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);"><%= logs.length %></div>
+<%
+const updatedAt = new Date().toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+});
+const currentAction = (query && query.action) ? query.action : 'all';
+const pageCurrent = pagination ? pagination.currentPage : 1;
+const pageTotal = pagination ? pagination.totalPages : 1;
+const totalCount = pagination ? pagination.totalCount : logs.length;
+const perPage = pagination ? pagination.perPage : 100;
+
+function t(key, vars) {
+    var text = __(key);
+    if (!vars) return text;
+    Object.keys(vars).forEach(function(k) {
+        var val = vars[k];
+        text = text.split('%{' + k + '}').join(val);
+        text = text.split('{' + k + '}').join(val);
+    });
+    return text;
+}
+
+function activityLogsPageUrl(pageNum) {
+    const params = new URLSearchParams();
+    if (pageNum > 1) params.set('page', String(pageNum));
+    if (query && query.search) params.set('search', query.search);
+    if (query && query.action && query.action !== 'all') params.set('action', query.action);
+    if (query && query.startDate) params.set('startDate', query.startDate);
+    if (query && query.endDate) params.set('endDate', query.endDate);
+    const qs = params.toString();
+    return '/admin/activity-logs' + (qs ? '?' + qs : '');
+}
+
+function activityLogActionMeta(action) {
+    const map = {
+        login: { icon: 'fa-sign-in-alt', tone: 'indigo', label: __('admin_log_action_login') },
+        logout: { icon: 'fa-sign-out-alt', tone: 'muted', label: __('admin_log_action_logout') },
+        profile_update: { icon: 'fa-user-edit', tone: 'pink', label: __('admin_log_action_profile_update') },
+        case_create: { icon: 'fa-plus-square', tone: 'green', label: __('admin_log_action_case_create') },
+        case_update: { icon: 'fa-edit', tone: 'blue', label: __('admin_log_action_case_update') },
+        case_delete: { icon: 'fa-trash', tone: 'danger', label: __('admin_log_action_case_delete') },
+        transaction_create: { icon: 'fa-hand-holding-heart', tone: 'green', label: __('admin_log_action_transaction_create') },
+        transaction_verify: { icon: 'fa-check-double', tone: 'green-dark', label: __('admin_log_action_transaction_verify') },
+        user_moderate: { icon: 'fa-user-shield', tone: 'danger', label: __('admin_log_action_user_moderate') },
+        user_activate: { icon: 'fa-user-check', tone: 'navy', label: __('admin_log_action_user_activate') },
+        chat_request_create: { icon: 'fa-comments', tone: 'purple', label: __('admin_log_action_chat_open') },
+        chat_request_handle: { icon: 'fa-comment-dots', tone: 'purple-dark', label: __('admin_log_action_chat_reply') },
+        case_update_submit: { icon: 'fa-file-invoice', tone: 'navy', label: __('admin_log_action_impact_submit') },
+        impact_proof_approve: { icon: 'fa-file-shield', tone: 'green', label: __('admin_log_action_impact_verify') },
+        impact_proof_reject: { icon: 'fa-file-circle-xmark', tone: 'danger', label: __('admin_log_action_impact_reject') },
+        admin_escalation_request: { icon: 'fa-tower-observation', tone: 'danger', label: __('admin_log_action_escalation') },
+        admin_escalation_approved: { icon: 'fa-circle-check', tone: 'green', label: __('admin_log_action_escalation') },
+        admin_escalation_rejected: { icon: 'fa-circle-xmark', tone: 'danger', label: __('admin_log_action_escalation') },
+    };
+    return map[action] || { icon: 'fa-cog', tone: 'muted', label: action };
+}
+%>
+
+<div class="nm-activity-hub" style="text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
+    <div class="nm-analytics-hub__meta nm-activity-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= __('admin_activity_logs_desc') %></p>
+        <div class="nm-activity-hub__meta-aside">
+            <span class="nm-activity-hub__stat" title="<%= t('admin_activity_logs_results_hint', { count: perPage }) %>">
+                <strong><%= totalCount.toLocaleString() %></strong>
+                <span><%= __('admin_activity_logs_total_label') %></span>
+            </span>
+            <div class="nm-analytics-hub__updated">
+                <i class="fas fa-clock" aria-hidden="true"></i>
+                <span><%= __('admin_analytics_last_update') %></span>
+                <time datetime="<%= new Date().toISOString() %>"><%= updatedAt %></time>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Advanced Filters -->
-<div class="nm-admin-card nm-admin-filter-bar">
-    <form action="/admin/activity-logs" method="GET" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-        <div style="flex: 2; min-width: 250px;">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_activity_logs_search_label') %></label>
-            <input type="text" name="search" class="form-input" placeholder="<%= __('admin_activity_logs_search_placeholder') %>" value="<%= query && query.search || '' %>">
+    <section class="nm-activity-hub__panel nm-admin-card nm-admin-card--flush">
+        <div class="nm-activity-hub__filter-bar">
+            <form action="/admin/activity-logs" method="GET" class="nm-activity-hub__filter-form">
+                <div class="nm-activity-hub__search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="search"
+                        name="search"
+                        class="form-input"
+                        placeholder="<%= __('admin_activity_logs_search_placeholder') %>"
+                        value="<%= query && query.search || '' %>"
+                        aria-label="<%= __('admin_activity_logs_search_placeholder') %>">
+                </div>
+
+                <div class="nm-activity-hub__filter-field">
+                    <label for="activityAction"><%= __('admin_activity_logs_type_label') %></label>
+                    <select name="action" id="activityAction" class="form-input">
+                        <option value="all" <%= currentAction === 'all' ? 'selected' : '' %>><%= __('common_all') %></option>
+                        <option value="login" <%= currentAction === 'login' ? 'selected' : '' %>><%= __('admin_log_action_login') %></option>
+                        <option value="case_create" <%= currentAction === 'case_create' ? 'selected' : '' %>><%= __('admin_log_action_case_create') %></option>
+                        <option value="case_update" <%= currentAction === 'case_update' ? 'selected' : '' %>><%= __('admin_log_action_case_update') %></option>
+                        <option value="transaction_create" <%= currentAction === 'transaction_create' ? 'selected' : '' %>><%= __('admin_log_action_transaction_create') %></option>
+                        <option value="transaction_verify" <%= currentAction === 'transaction_verify' ? 'selected' : '' %>><%= __('admin_log_action_transaction_verify') %></option>
+                        <option value="profile_update" <%= currentAction === 'profile_update' ? 'selected' : '' %>><%= __('admin_log_action_profile_update') %></option>
+                        <option value="user_moderate" <%= currentAction === 'user_moderate' ? 'selected' : '' %>><%= __('admin_log_action_user_moderate') %></option>
+                        <option value="user_activate" <%= currentAction === 'user_activate' ? 'selected' : '' %>><%= __('admin_log_action_user_activate') %></option>
+                        <option value="chat_request_create" <%= currentAction === 'chat_request_create' ? 'selected' : '' %>><%= __('admin_log_action_chat_ticket_open') %></option>
+                        <option value="impact_proof" <%= currentAction === 'impact_proof' ? 'selected' : '' %>><%= __('admin_log_action_impact_proof') %></option>
+                        <option value="escalation" <%= currentAction === 'escalation' ? 'selected' : '' %>><%= __('admin_log_action_escalation') %></option>
+                    </select>
+                </div>
+
+                <div class="nm-activity-hub__filter-field nm-activity-hub__filter-field--date">
+                    <label for="activityStart"><%= __('common_from_date') %></label>
+                    <input type="date" id="activityStart" name="startDate" class="form-input" value="<%= query.startDate || '' %>">
+                </div>
+                <div class="nm-activity-hub__filter-field nm-activity-hub__filter-field--date">
+                    <label for="activityEnd"><%= __('common_to_date') %></label>
+                    <input type="date" id="activityEnd" name="endDate" class="form-input" value="<%= query.endDate || '' %>">
+                </div>
+
+                <div class="nm-activity-hub__filter-actions">
+                    <button type="submit" class="btn-lux btn-lux-primary">
+                        <i class="fas fa-filter"></i> <%= __('common_apply_filter') %>
+                    </button>
+                    <a href="/admin/activity-logs" class="btn-lux btn-lux-outline" title="<%= __('common_reset') %>">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                </div>
+            </form>
         </div>
-        
-        <div style="flex: 1; min-width: 150px;">
-            <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('admin_activity_logs_type_label') %></label>
-            <select name="action" class="form-input">
-                <option value="all"><%= __('common_all') %></option>
-                <option value="login" <%= query.action === 'login' ? 'selected' : '' %>><%= __('admin_log_action_login') %></option>
-                <option value="case_create" <%= query.action === 'case_create' ? 'selected' : '' %>><%= __('admin_log_action_case_create') %></option>
-                <option value="case_update" <%= query.action === 'case_update' ? 'selected' : '' %>><%= __('admin_log_action_case_update') %></option>
-                <option value="transaction_create" <%= query.action === 'transaction_create' ? 'selected' : '' %>><%= __('admin_log_action_transaction_create') %></option>
-                <option value="transaction_verify" <%= query.action === 'transaction_verify' ? 'selected' : '' %>><%= __('admin_log_action_transaction_verify') %></option>
-                <option value="profile_update" <%= query.action === 'profile_update' ? 'selected' : '' %>><%= __('admin_log_action_profile_update') %></option>
-                <option value="user_moderate" <%= query.action === 'user_moderate' ? 'selected' : '' %>><%= __('admin_log_action_user_moderate') %></option>
-                <option value="user_activate" <%= query.action === 'user_activate' ? 'selected' : '' %>><%= __('admin_log_action_user_activate') %></option>
-                <option value="chat_request_create" <%= query.action === 'chat_request_create' ? 'selected' : '' %>><%= __('admin_log_action_chat_ticket_open') %></option>
-                <option value="impact_proof" <%= query.action === 'impact_proof' ? 'selected' : '' %>><%= __('admin_log_action_impact_proof') %></option>
-                <option value="escalation" <%= query.action === 'escalation' ? 'selected' : '' %>><%= __('admin_log_action_escalation') %></option>
-            </select>
+
+        <div class="nm-activity-hub__table-wrap table-responsive">
+            <table class="nm-activity-log-table">
+                <thead>
+                    <tr>
+                        <th><%= __('common_time_date') %></th>
+                        <th><%= __('common_user_admin') %></th>
+                        <th><%= __('common_action') %></th>
+                        <th><%= __('common_full_details') %></th>
+                        <th class="nm-activity-log-table__id"><%= __('common_id') %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (logs.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="nm-activity-log-table__empty">
+                                <i class="fas fa-ghost" aria-hidden="true"></i>
+                                <p><%= __('admin_activity_logs_empty') %></p>
+                            </td>
+                        </tr>
+                    <% } %>
+                    <% logs.forEach(log => { %>
+                        <% const actionMeta = activityLogActionMeta(log.action); %>
+                        <tr class="nm-activity-log-table__row">
+                            <td data-label="<%= __('common_time_date') %>">
+                                <div class="nm-activity-log-table__date"><%= new Date(log.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+                                <div class="nm-activity-log-table__time"><%= new Date(log.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) %></div>
+                            </td>
+                            <td data-label="<%= __('common_user_admin') %>">
+                                <div class="nm-activity-log-table__user">
+                                    <img src="<%= log.user ? userAvatar(log.user) : userAvatar({}) %>" alt="" class="nm-activity-log-table__avatar">
+                                    <div>
+                                        <div class="nm-activity-log-table__user-name"><%= log.user ? log.user.name : __('common_system_auto') %></div>
+                                        <div class="nm-activity-log-table__user-email"><%= log.user ? log.user.email : 'system@jussur.org' %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="<%= __('common_action') %>">
+                                <span class="nm-activity-log__badge nm-activity-log__badge--<%= actionMeta.tone %>">
+                                    <i class="fas <%= actionMeta.icon %>" aria-hidden="true"></i>
+                                    <%= actionMeta.label %>
+                                </span>
+                            </td>
+                            <td data-label="<%= __('common_full_details') %>">
+                                <p class="nm-activity-log-table__details"><%= log.details %></p>
+                            </td>
+                            <td data-label="<%= __('common_id') %>" class="nm-activity-log-table__id">
+                                <% if (log.targetId) { %>
+                                    <code class="nm-activity-log-table__code"><%= log.targetId.toString().slice(-8).toUpperCase() %></code>
+                                <% } else { %>
+                                    <span class="nm-activity-log-table__dash">—</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
         </div>
 
-        <div style="flex: 1; min-width: 200px; display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_from_date') %></label>
-                <input type="date" name="startDate" class="form-input" value="<%= query.startDate || '' %>">
-            </div>
-            <div style="flex: 1;">
-                <label class="form-label-luxury" style="font-size: 0.75rem;"><%= __('common_to_date') %></label>
-                <input type="date" name="endDate" class="form-input" value="<%= query.endDate || '' %>">
-            </div>
-        </div>
+        <% if (pageTotal > 1) { %>
+            <%
+                const startPage = Math.max(1, pageCurrent - 2);
+                const endPage = Math.min(pageTotal, pageCurrent + 2);
+            %>
+            <nav class="nm-activity-hub__pagination" aria-label="<%= t('admin_activity_logs_page_summary', { current: pageCurrent, total: pageTotal, shown: logs.length, totalCount: totalCount.toLocaleString() }) %>">
+                <p class="nm-activity-hub__pagination-summary">
+                    <%= t('admin_activity_logs_page_summary', { current: pageCurrent, total: pageTotal, shown: logs.length, totalCount: totalCount.toLocaleString() }) %>
+                </p>
+                <div class="nm-activity-hub__pagination-links">
+                    <% if (pageCurrent > 1) { %>
+                        <a href="<%= activityLogsPageUrl(pageCurrent - 1) %>" class="btn-lux btn-lux-outline nm-activity-hub__pagination-btn" aria-label="<%= __('common_prev') %>">
+                            <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i>
+                        </a>
+                    <% } %>
 
-        <button type="submit" class="btn-lux btn-lux-primary" style="padding: 12px 25px;">
-            <i class="fas fa-filter"></i> <%= __('common_apply_filter') %>
-        </button>
-        <a href="/admin/activity-logs" class="btn-lux btn-lux-outline-white" style="padding: 12px 15px;">
-            <i class="fas fa-sync-alt"></i>
-        </a>
-    </form>
-</div>
-
-<!-- Logs Timeline/Table -->
-<div class="nm-admin-card nm-admin-card--flush">
-    <div class="table-responsive">
-    <table style="width: 100%; border-collapse: collapse; text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;">
-        <thead style="background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05);">
-            <tr>
-                <th style="padding: 20px;"><%= __('common_time_date') %></th>
-                <th style="padding: 20px;"><%= __('common_user_admin') %></th>
-                <th style="padding: 20px;"><%= __('common_action') %></th>
-                <th style="padding: 20px;"><%= __('common_full_details') %></th>
-                <th style="padding: 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;"><%= __('common_id') %></th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (logs.length === 0) { %>
-                <tr>
-                    <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-muted);">
-                        <i class="fas fa-ghost" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.2;"></i>
-                        <%= __('admin_activity_logs_empty') %>
-                    </td>
-                </tr>
-            <% } %>
-            <% logs.forEach(log => { %>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.01)'" onmouseout="this.style.background='transparent'">
-                    <td style="padding: 15px 20px;">
-                        <div style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">
-                            <%= new Date(log.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 600;">
-                            <%= new Date(log.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="<%= log.user ? userAvatar(log.user) : userAvatar({}) %>" style="width: 35px; height: 35px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.05); object-fit: cover;">
-                            <div style="overflow: hidden; max-width: 150px;">
-                                <div style="font-weight: 700; font-size: 0.9rem; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.name : __('common_system_auto') %></div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= log.user ? log.user.email : 'system@jussur.org' %></div>
-                            </div>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <% 
-                            let icon = 'fa-cog';
-                            let color = '#64748b';
-                            let actionLabel = log.action;
-                            
-                            if (log.action === 'login') { icon = 'fa-sign-in-alt'; color = '#6366f1'; actionLabel = __('admin_log_action_login'); }
-                            if (log.action === 'logout') { icon = 'fa-sign-out-alt'; color = '#94a3b8'; actionLabel = __('admin_log_action_logout'); }
-                            if (log.action === 'profile_update') { icon = 'fa-user-edit'; color = '#ec4899'; actionLabel = __('admin_log_action_profile_update'); }
-                            if (log.action === 'case_create') { icon = 'fa-plus-square'; color = '#00A544'; actionLabel = __('admin_log_action_case_create'); }
-                            if (log.action === 'case_update') { icon = 'fa-edit'; color = '#3b82f6'; actionLabel = __('admin_log_action_case_update'); }
-                            if (log.action === 'case_delete') { icon = 'fa-trash'; color = '#ef4444'; actionLabel = __('admin_log_action_case_delete'); }
-                            if (log.action === 'transaction_create') { icon = 'fa-hand-holding-heart'; color = '#00A544'; actionLabel = __('admin_log_action_transaction_create'); }
-                            if (log.action === 'transaction_verify') { icon = 'fa-check-double'; color = '#016630'; actionLabel = __('admin_log_action_transaction_verify'); }
-                            if (log.action === 'user_moderate') { icon = 'fa-user-shield'; color = '#dc2626'; actionLabel = __('admin_log_action_user_moderate'); }
-                            if (log.action === 'user_activate') { icon = 'fa-user-check'; color = '#002661'; actionLabel = __('admin_log_action_user_activate'); }
-                            if (log.action === 'chat_request_create') { icon = 'fa-comments'; color = '#8b5cf6'; actionLabel = __('admin_log_action_chat_open'); }
-                            if (log.action === 'chat_request_handle') { icon = 'fa-comment-dots'; color = '#6d28d9'; actionLabel = __('admin_log_action_chat_reply'); }
-                            if (log.action === 'case_update_submit') { icon = 'fa-file-invoice'; color = '#002661'; actionLabel = __('admin_log_action_impact_submit'); }
-                            if (log.action === 'impact_proof_approve') { icon = 'fa-file-shield'; color = '#00A544'; actionLabel = __('admin_log_action_impact_verify'); }
-                            if (log.action === 'impact_proof_reject') { icon = 'fa-file-circle-xmark'; color = '#ef4444'; actionLabel = __('admin_log_action_impact_reject'); }
-                        %>
-                        <div style="display: flex; align-items: center; gap: 8px; color: <%= color %>; font-weight: 700; font-size: 0.8rem; background: rgba(0,0,0,0.05); border: 1px solid <%= color %>40; padding: 6px 12px; border-radius: 8px; width: fit-content;">
-                            <i class="fas <%= icon %>"></i>
-                            <%= actionLabel %>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 20px;">
-                        <div style="font-size: 0.9rem; color: var(--primary); line-height: 1.5; max-width: 450px;">
-                            <%= log.details %>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 20px; text-align: <%= langDir === 'rtl' ? 'left' : 'right' %>;">
-                        <% if (log.targetId) { %>
-                            <code style="font-size: 0.7rem; background: #f1f5f9; padding: 4px 8px; border-radius: 5px; color: #64748b;">
-                                <%= log.targetId.toString().slice(-8).toUpperCase() %>
-                            </code>
-                        <% } else { %>
-                            <span style="color: #eee;">-</span>
+                    <% if (startPage > 1) { %>
+                        <a href="<%= activityLogsPageUrl(1) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === 1 ? ' is-active' : '' %>">1</a>
+                        <% if (startPage > 2) { %>
+                            <span class="nm-activity-hub__pagination-ellipsis">…</span>
                         <% } %>
-                    </td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
-    </div>
+                    <% } %>
+
+                    <% for (let p = startPage; p <= endPage; p++) { %>
+                        <a href="<%= activityLogsPageUrl(p) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === p ? ' is-active' : '' %>"<%= pageCurrent === p ? ' aria-current="page"' : '' %>><%= p %></a>
+                    <% } %>
+
+                    <% if (endPage < pageTotal) { %>
+                        <% if (endPage < pageTotal - 1) { %>
+                            <span class="nm-activity-hub__pagination-ellipsis">…</span>
+                        <% } %>
+                        <a href="<%= activityLogsPageUrl(pageTotal) %>" class="nm-activity-hub__pagination-num<%= pageCurrent === pageTotal ? ' is-active' : '' %>"><%= pageTotal %></a>
+                    <% } %>
+
+                    <% if (pageCurrent < pageTotal) { %>
+                        <a href="<%= activityLogsPageUrl(pageCurrent + 1) %>" class="btn-lux btn-lux-outline nm-activity-hub__pagination-btn" aria-label="<%= __('common_next') %>">
+                            <i class="fas fa-chevron-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
+                        </a>
+                    <% } %>
+                </div>
+            </nav>
+        <% } %>
+    </section>
 </div>
-
-<style>
-    .form-input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(0, 165, 68, 0.1); }
-
-    @media (max-width: 992px) {
-        .logs-head-row {
-            flex-direction: column;
-            align-items: stretch !important;
-            gap: 14px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .table-responsive table {
-            min-width: 760px;
-        }
-    }
-</style>
 
 <%- include('../../partials/admin-layout-bottom') %>
