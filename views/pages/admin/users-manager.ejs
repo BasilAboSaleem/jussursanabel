@@ -1,111 +1,420 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--primary">
-    <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-user-shield"></i> <%= __('admin_sidebar_team_management') %></h3>
-    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_users_manager_desc') %></p>
-</div>
+<%
+function teamUrl(overrides) {
+    const role = overrides && overrides.role !== undefined ? overrides.role : currentRole;
+    const params = new URLSearchParams();
+    if (role && role !== 'all') params.set('role', role);
+    const qs = params.toString();
+    return '/admin/users' + (qs ? '?' + qs : '');
+}
 
-    <div class="grid-2" style="gap: 40px; margin-bottom: 50px; grid-template-columns: 1fr 2fr;">
-        <!-- Add Admin Form -->
-        <div class="nm-admin-card">
-            <h4 class="font-cairo" style="margin-bottom: 25px;"><i class="fas fa-user-plus"></i> <%= __('admin_users_manager_add_title') %></h4>
-            <form action="/admin/users/create" method="POST" class="premium-form">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label-luxury"><%= __('admin_users_manager_label_name') %></label>
-                    <input type="text" name="name" required class="form-input" placeholder="<%= __('admin_users_manager_placeholder_name') %>">
+const roleFilters = [
+    { key: 'all', href: teamUrl({ role: 'all' }), label: __('common_all'), count: roleCounts.all },
+    { key: 'super_admin', href: teamUrl({ role: 'super_admin' }), label: __('admin_users_manager_filter_super_short'), title: __('admin_role_super_admin'), count: roleCounts.super_admin, dot: 'pending' },
+    { key: 'admin', href: teamUrl({ role: 'admin' }), label: __('admin_users_manager_filter_admin_short'), title: __('admin_role_admin'), count: roleCounts.admin, dot: 'field' },
+    { key: 'regulator', href: teamUrl({ role: 'regulator' }), label: __('admin_users_manager_filter_regulator_short'), title: __('admin_role_regulator'), count: roleCounts.regulator, dot: 'media' },
+    { key: 'support', href: teamUrl({ role: 'support' }), label: __('admin_users_manager_filter_support_short'), title: __('admin_role_support'), count: roleCounts.support, dot: 'approved' },
+    { key: 'media', href: teamUrl({ role: 'media' }), label: __('admin_users_manager_filter_media_short'), title: __('admin_role_media'), count: roleCounts.media, dot: 'rejected' },
+];
+
+function teamRoleMeta(role) {
+    if (role === 'super_admin') {
+        return { badge: 'badge-gold', icon: 'fa-crown', label: __('admin_role_super_admin_desc') };
+    }
+    if (role === 'regulator') {
+        return { badge: 'badge-navy', icon: 'fa-eye', label: __('admin_role_regulator_desc') };
+    }
+    if (role === 'support') {
+        return { badge: 'badge-success', icon: 'fa-headset', label: __('admin_role_support_desc') };
+    }
+    if (role === 'media') {
+        return { badge: 'badge-teal', icon: 'fa-photo-film', label: __('admin_role_media_desc') };
+    }
+    return { badge: 'badge-navy', icon: 'fa-user-shield', label: __('admin_role_admin_desc') };
+}
+%>
+
+<div class="nm-team-hub">
+    <div class="nm-analytics-hub__meta nm-team-hub__meta">
+        <p class="nm-analytics-hub__desc"><%= __('admin_users_manager_desc') %></p>
+        <div class="nm-team-hub__meta-aside">
+            <span class="nm-activity-hub__stat" title="<%= __('admin_users_manager_total_label') %>">
+                <strong><%= roleCounts.all.toLocaleString() %></strong>
+                <span><%= __('admin_users_manager_total_label') %></span>
+            </span>
+            <button type="button" class="btn-lux btn-lux-primary nm-team-hub__add-btn" id="toggleAddTeamPanel" aria-expanded="false" aria-controls="addTeamPanel">
+                <i class="fas fa-user-plus" aria-hidden="true"></i> <%= __('admin_users_manager_btn_toggle_add') %>
+            </button>
+        </div>
+    </div>
+
+    <section id="addTeamPanel" class="nm-team-hub__add-panel nm-admin-card" hidden>
+        <div class="nm-team-hub__add-header">
+            <h4 class="font-cairo nm-team-hub__add-title">
+                <i class="fas fa-user-plus" aria-hidden="true"></i> <%= __('admin_users_manager_add_title') %>
+            </h4>
+            <button type="button" class="nm-team-hub__add-close" id="closeAddTeamPanel" aria-label="<%= __('common_close') %>">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form action="/admin/users/create" method="POST" class="nm-team-hub__add-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="nm-team-hub__add-grid">
+                <div class="form-group">
+                    <label class="form-label-luxury" for="teamAdminName"><%= __('admin_users_manager_label_name') %></label>
+                    <input type="text" id="teamAdminName" name="name" required class="form-input" placeholder="<%= __('admin_users_manager_placeholder_name') %>">
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label-luxury"><%= __('admin_users_manager_label_email') %></label>
-                    <input type="email" name="email" required class="form-input" placeholder="email@jussur.org">
+                <div class="form-group">
+                    <label class="form-label-luxury" for="teamAdminEmail"><%= __('admin_users_manager_label_email') %></label>
+                    <input type="email" id="teamAdminEmail" name="email" required class="form-input" placeholder="email@jussur.org">
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label-luxury"><%= __('admin_users_manager_label_password') %></label>
-                    <input type="password" name="password" required class="form-input" placeholder="••••••••">
+                <div class="form-group">
+                    <label class="form-label-luxury" for="teamAdminPassword"><%= __('admin_users_manager_label_password') %></label>
+                    <input type="password" id="teamAdminPassword" name="password" required class="form-input" placeholder="••••••••">
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label-luxury"><%= __('admin_users_manager_table_role') %></label>
-                    <select name="role" required class="form-input" style="background: var(--navy-900);">
+                <div class="form-group">
+                    <label class="form-label-luxury" for="teamAdminRole"><%= __('admin_users_manager_table_role') %></label>
+                    <select id="teamAdminRole" name="role" required class="form-input">
                         <option value="admin"><%= __('admin_role_admin') %></option>
                         <option value="regulator"><%= __('admin_role_regulator') %></option>
                         <option value="support"><%= __('admin_role_support') %></option>
                         <option value="media"><%= __('admin_role_media') %></option>
                     </select>
                 </div>
-                <button type="submit" class="btn-lux btn-lux-primary" style="width: 100%; justify-content: center; padding: 15px;"><%= __('admin_users_manager_btn_add') %></button>
-            </form>
+            </div>
+            <div class="nm-team-hub__add-actions">
+                <button type="button" class="btn-lux btn-lux-outline" id="cancelAddTeamPanel"><%= __('common_cancel') %></button>
+                <button type="submit" class="btn-lux btn-lux-primary">
+                    <i class="fas fa-check" aria-hidden="true"></i> <%= __('admin_users_manager_btn_add') %>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <div class="nm-admin-hub nm-admin-card nm-admin-card--flush">
+        <div class="nm-admin-hub__toolbar">
+            <div class="nm-admin-hub__search">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search"
+                    id="teamSearch"
+                    oninput="filterTeamMembers()"
+                    placeholder="<%= __('admin_users_manager_search_placeholder') %>"
+                    autocomplete="off"
+                    aria-label="<%= __('admin_users_manager_search_placeholder') %>">
+            </div>
+
+            <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_users_manager_filter_label') %>">
+                <% roleFilters.forEach((f) => { %>
+                <a href="<%= f.href %>"
+                   class="nm-admin-hub__filter<%= currentRole === f.key ? ' is-active' : '' %>"
+                   role="tab"
+                   aria-selected="<%= currentRole === f.key ? 'true' : 'false' %>"
+                   <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                    <% if (f.key === 'all') { %>
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <% } else { %>
+                        <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                    <% } %>
+                    <span><%= f.label %></span>
+                    <em><%= f.count %></em>
+                </a>
+                <% }) %>
+            </div>
         </div>
 
-        <!-- Admins List -->
-        <div class="nm-admin-card nm-admin-card--flush">
-            <div style="padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.01);">
-                <h4 class="font-cairo" style="margin: 0;"><%= __('admin_users_manager_list_title') %></h4>
-            </div>
-            <div class="table-responsive">
-            <table style="width: 100%; border-collapse: collapse; text-align: right;">
-                <thead style="background: rgba(0,0,0,0.02);">
+        <div class="table-responsive nm-admin-chat-table-wrap">
+            <table class="nm-admin-chat-table nm-team-table">
+                <thead>
                     <tr>
-                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_admin') %></th>
-                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_role') %></th>
-                        <th style="padding: 15px 20px;"><%= __('admin_users_manager_table_action') %></th>
+                        <th><%= __('admin_users_manager_table_admin') %></th>
+                        <th><%= __('admin_users_manager_table_role') %></th>
+                        <th><%= __('common_registration_date') %></th>
+                        <th><%= __('admin_users_manager_table_action') %></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <% admins.forEach(admin => { %>
-                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
-                            <td style="padding: 15px 20px;">
-                                <div style="display: flex; align-items: center; gap: 15px;">
-                                    <img src="<%= admin.avatar %>" style="width: 45px; height: 45px; border-radius: 12px; border: 2px solid var(--secondary); object-fit: cover; background: var(--grad-navy);">
+                <tbody id="teamBody">
+                    <% if (!admins || admins.length === 0) { %>
+                        <tr>
+                            <td colspan="4" class="nm-admin-chat-empty">
+                                <i class="fas fa-users" aria-hidden="true" style="font-size: 2rem; opacity: 0.15; display: block; margin-bottom: 10px; color: var(--primary);"></i>
+                                <%= __('admin_users_manager_empty') %>
+                            </td>
+                        </tr>
+                    <% } %>
+                    <% (admins || []).forEach((admin) => { %>
+                        <%
+                            const roleMeta = teamRoleMeta(admin.role);
+                            const joinedAt = admin.createdAt ? new Date(admin.createdAt) : null;
+                        %>
+                        <tr class="team-member-row"
+                            data-name="<%= (admin.name || '').toLowerCase() %>"
+                            data-email="<%= (admin.email || '').toLowerCase() %>"
+                            data-role="<%= roleMeta.label.toLowerCase() %>">
+                            <td data-label="<%= __('admin_users_manager_table_admin') %>">
+                                <div class="nm-admin-pending-user">
+                                    <img src="<%= userAvatar(admin) %>" alt="" class="nm-admin-pending-user__avatar">
                                     <div>
-                                        <div style="font-weight: 700; color: var(--primary);"><%= admin.name %></div>
-                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><%= admin.email %></div>
+                                        <div class="nm-admin-chat-name"><%= admin.name %></div>
+                                        <div class="nm-admin-chat-meta nm-team-email"><%= admin.email %></div>
                                     </div>
                                 </div>
                             </td>
-                            <td style="padding: 15px 20px;">
-                                <% 
-                                    let badgeType = 'badge-navy';
-                                    let icon = 'fa-user-shield';
-                                    let roleDesc = __('admin_role_admin_desc');
-                                    
-                                    if (admin.role === 'super_admin') {
-                                        badgeType = 'badge-gold';
-                                        icon = 'fa-crown';
-                                        roleDesc = __('admin_role_super_admin_desc');
-                                    } else if (admin.role === 'regulator') {
-                                        badgeType = 'badge-purple'; // Need to check if badge-purple exists
-                                        icon = 'fa-eye';
-                                        roleDesc = __('admin_role_regulator_desc');
-                                    } else if (admin.role === 'support') {
-                                        badgeType = 'badge-success';
-                                        icon = 'fa-headset';
-                                        roleDesc = __('admin_role_support_desc');
-                                    } else if (admin.role === 'media') {
-                                        badgeType = 'badge-teal';
-                                        icon = 'fa-photo-film';
-                                        roleDesc = __('admin_role_media_desc');
-                                    }
-                                %>
-                                <span class="badge <%= badgeType %>" style="font-size: 0.75rem;">
-                                    <i class="fas <%= icon %>" style="margin-<%= langDir === 'rtl' ? 'left' : 'right' %>: 5px;"></i>
-                                    <%= roleDesc %>
+                            <td data-label="<%= __('admin_users_manager_table_role') %>">
+                                <span class="badge <%= roleMeta.badge %> nm-team-role-badge">
+                                    <i class="fas <%= roleMeta.icon %>" aria-hidden="true"></i>
+                                    <%= roleMeta.label %>
                                 </span>
                             </td>
-                            <td style="padding: 15px 20px;">
+                            <td data-label="<%= __('common_registration_date') %>" class="nm-admin-chat-date">
+                                <% if (joinedAt) { %>
+                                    <div><%= joinedAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %></div>
+                                    <div class="nm-admin-chat-meta"><%= joinedAt.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                                <% } else { %>
+                                    <span class="nm-admin-chat-meta"><%= __('common_not_available') %></span>
+                                <% } %>
+                            </td>
+                            <td data-label="<%= __('admin_users_manager_table_action') %>">
                                 <% if (admin.role !== 'super_admin') { %>
-                                    <form action="/admin/users/<%= admin._id %>/delete" method="POST" style="margin: 0;">
-                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                        <button type="submit" class="btn-lux btn-lux-outline-white" style="padding: 6px 15px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); transition: all 0.3s;">
-                                            <i class="fas fa-user-minus"></i> <%= __('admin_users_manager_btn_delete') %>
-                                        </button>
-                                    </form>
+                                    <div class="nm-admin-pending-actions">
+                                        <form action="/admin/users/<%= admin._id %>/delete" method="POST" class="nm-team-delete-form" data-admin-name="<%= admin.name %>">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button type="submit" class="btn-lux btn-lux-outline nm-admin-pending-actions__btn nm-admin-pending-actions__btn--danger">
+                                                <i class="fas fa-user-minus" aria-hidden="true"></i> <%= __('admin_users_manager_btn_delete') %>
+                                            </button>
+                                        </form>
+                                    </div>
+                                <% } else { %>
+                                    <span class="nm-team-protected" title="<%= __('admin_users_manager_super_protected') %>">
+                                        <i class="fas fa-lock" aria-hidden="true"></i> <%= __('admin_users_manager_super_protected_short') %>
+                                    </span>
                                 <% } %>
                             </td>
                         </tr>
                     <% }) %>
                 </tbody>
             </table>
-            </div>
+            <p class="nm-admin-hub__no-results" id="teamNoResults" hidden><%= __('admin_users_manager_no_results') %></p>
         </div>
     </div>
+</div>
+
+<style>
+    .nm-team-hub {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 24px;
+        text-align: start;
+    }
+
+    .nm-team-hub__meta.nm-analytics-hub__meta {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .nm-team-hub__meta-aside {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+    }
+
+    .nm-team-hub__add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        font-size: 0.84rem;
+        padding: 10px 16px !important;
+    }
+
+    .nm-team-hub__add-panel {
+        padding: 20px 22px;
+    }
+
+    .nm-team-hub__add-panel[hidden] {
+        display: none;
+    }
+
+    .nm-team-hub__add-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .nm-team-hub__add-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nm-team-hub__add-close {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(0, 38, 97, 0.1);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nm-team-hub__add-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 16px;
+    }
+
+    .nm-team-hub__add-form .form-group {
+        margin: 0;
+    }
+
+    .nm-team-hub__add-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+
+    .nm-team-table {
+        text-align: <%= langDir === 'rtl' ? 'right' : 'left' %>;
+    }
+
+    .nm-admin-pending-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .nm-admin-pending-user__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .nm-team-email {
+        direction: ltr;
+        text-align: start;
+    }
+
+    .nm-team-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .nm-admin-pending-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+
+    .nm-admin-pending-actions__btn {
+        font-size: 0.78rem !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+    }
+
+    .nm-admin-pending-actions__btn--danger {
+        color: #ef4444 !important;
+        border-color: #fecaca !important;
+    }
+
+    .nm-team-delete-form {
+        margin: 0;
+    }
+
+    .nm-team-protected {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.04);
+    }
+
+    @media (max-width: 900px) {
+        .nm-team-hub__add-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .nm-team-hub__meta.nm-analytics-hub__meta {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    function filterTeamMembers() {
+        const query = (document.getElementById('teamSearch').value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.team-member-row');
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const haystack = [row.dataset.name, row.dataset.email, row.dataset.role].join(' ');
+            const show = !query || haystack.includes(query);
+            row.hidden = !show;
+            if (show) visible += 1;
+        });
+
+        const noResults = document.getElementById('teamNoResults');
+        if (noResults) noResults.hidden = visible > 0 || rows.length === 0;
+    }
+
+    function setAddTeamPanelOpen(open) {
+        const panel = document.getElementById('addTeamPanel');
+        const toggleBtn = document.getElementById('toggleAddTeamPanel');
+        if (!panel || !toggleBtn) return;
+        panel.hidden = !open;
+        toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+            const nameInput = document.getElementById('teamAdminName');
+            if (nameInput) nameInput.focus();
+        }
+    }
+
+    document.getElementById('toggleAddTeamPanel')?.addEventListener('click', () => {
+        const panel = document.getElementById('addTeamPanel');
+        setAddTeamPanelOpen(panel && panel.hidden);
+    });
+
+    document.getElementById('closeAddTeamPanel')?.addEventListener('click', () => setAddTeamPanelOpen(false));
+    document.getElementById('cancelAddTeamPanel')?.addEventListener('click', () => setAddTeamPanelOpen(false));
+
+    document.querySelectorAll('.nm-team-delete-form').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            const name = form.dataset.adminName || '';
+            const message = '<%= __('admin_users_manager_confirm_delete') %>'.replace('{name}', name);
+            if (!confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+
 <%- include('../../partials/admin-layout-bottom') %>
