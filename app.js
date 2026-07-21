@@ -11,6 +11,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const hpp = require("hpp");
 const path = require("path");
+const fs = require("fs");
 const helmet = require("helmet");
 const compression = require("compression");
 const methodOverride = require("method-override");
@@ -20,8 +21,9 @@ const { metricsMiddleware, metricsHandler } = require("./app/utils/monitoring");
 const { protectMetrics } = require("./app/middlewares/metricsAuth");
 const { sanitizeRequest } = require("./app/middlewares/securitySanitizer");
 const { resolveUserAvatar } = require("./app/utils/userAvatar");
-const { resolveAdminBackUrl } = require("./app/utils/adminNavigation");
+const { resolveAdminBackUrl, resolveDashboardPageIcon } = require("./app/utils/adminNavigation");
 const { usesAdminPanel, isSuperAdmin } = require("./app/utils/adminRoles");
+const { getBuildVersion } = require("./app/utils/buildVersion");
 
 i18n.configure({
   locales: ['ar', 'en'],
@@ -70,12 +72,30 @@ app.use((req, res, next) => {
 });
 
 const assetBaseUrl = (process.env.CDN_BASE_URL || "").replace(/\/$/, "");
+const buildVersion = getBuildVersion();
+
+function withAssetVersion(pathValue = "") {
+  if (!pathValue || pathValue.startsWith("http://") || pathValue.startsWith("https://")) {
+    return pathValue;
+  }
+  const separator = pathValue.includes("?") ? "&" : "?";
+  return `${pathValue}${separator}v=${buildVersion}`;
+}
+
 app.locals.asset = (pathValue = "") => {
-  if (!assetBaseUrl) return pathValue;
-  if (pathValue.startsWith("http://") || pathValue.startsWith("https://")) return pathValue;
-  if (!pathValue.startsWith("/")) return `${assetBaseUrl}/${pathValue}`;
-  return `${assetBaseUrl}${pathValue}`;
+  let url = pathValue;
+  if (assetBaseUrl) {
+    if (pathValue.startsWith("http://") || pathValue.startsWith("https://")) {
+      url = pathValue;
+    } else if (!pathValue.startsWith("/")) {
+      url = `${assetBaseUrl}/${pathValue}`;
+    } else {
+      url = `${assetBaseUrl}${pathValue}`;
+    }
+  }
+  return withAssetVersion(url);
 };
+app.locals.buildVersion = buildVersion;
 
 // Lightweight endpoints should bypass expensive middleware.
 app.get("/health", (req, res) => {
@@ -144,7 +164,17 @@ app.use(
   })
 );
 app.use(sanitizeRequest);
-app.use(express.static(path.join(__dirname, "public"), { maxAge: "30d" }));
+
+app.get("/sw.js", (req, res) => {
+  const swPath = path.join(__dirname, "public", "sw.js");
+  const template = fs.readFileSync(swPath, "utf8");
+  const body = template.replace(/__BUILD_VERSION__/g, buildVersion);
+  res.set("Content-Type", "application/javascript; charset=utf-8");
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.send(body);
+});
+
+app.use(express.static(path.join(__dirname, "public"), { maxAge: isProduction ? "30d" : 0 }));
 
 app.use(
   cors({
@@ -229,8 +259,10 @@ app.use((req, res, next) => {
   res.locals.currentPath = (req.originalUrl || req.path || "").split("?")[0];
   res.locals.cloudinaryEnabled = cloudinaryEnabled;
   res.locals.asset = app.locals.asset;
+  res.locals.buildVersion = buildVersion;
   res.locals.userAvatar = resolveUserAvatar;
   res.locals.resolveAdminBackUrl = resolveAdminBackUrl;
+  res.locals.resolveDashboardPageIcon = resolveDashboardPageIcon;
   res.locals.usesAdminPanel = usesAdminPanel;
   res.locals.isSuperAdmin = isSuperAdmin;
   next();
