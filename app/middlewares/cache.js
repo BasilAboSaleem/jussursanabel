@@ -1,4 +1,5 @@
 const { redisClient, redisEnabled } = require("../utils/redis");
+const { systemLogger } = require("../utils/logger");
 
 const memoryCache = new Map();
 const inflightRenders = new Map();
@@ -105,6 +106,11 @@ async function invalidatePublicCaseCaches(caseId) {
   return keys;
 }
 
+function clearLocalPageCaches() {
+  memoryCache.clear();
+  inflightRenders.clear();
+}
+
 function initPageCacheInvalidation() {
   if (!redisEnabled || !redisClient || invalidationSubscriber) return;
 
@@ -114,8 +120,12 @@ function initPageCacheInvalidation() {
     invalidationSubscriber.on("message", (channel, payload) => {
       if (channel !== PAGE_CACHE_INVALIDATE_CHANNEL) return;
       try {
-        const keys = JSON.parse(payload);
-        if (Array.isArray(keys)) deleteMemoryCacheKeys(keys);
+        const data = JSON.parse(payload);
+        if (data && data.purgeAll) {
+          clearLocalPageCaches();
+          return;
+        }
+        if (Array.isArray(data)) deleteMemoryCacheKeys(data);
       } catch (_) {}
     });
   } catch (_) {
@@ -123,10 +133,44 @@ function initPageCacheInvalidation() {
   }
 }
 
-function sendCachedPage(res, body, ttlSeconds, hitLabel = "HIT") {
+function sendCachedPage(res, body, _ttlSeconds, hitLabel = "HIT") {
   res.set("X-Cache", hitLabel);
-  res.set("Cache-Control", `public, max-age=${ttlSeconds}`);
+  // Server-side cache handles performance; browsers must revalidate after deploys.
+  res.set("Cache-Control", "private, no-cache, must-revalidate");
   return res.send(body);
+}
+
+async function purgeAllPageCaches() {
+  clearLocalPageCaches();
+
+  if (!redisEnabled || !redisClient) {
+    systemLogger.info("Page cache purged locally (Redis unavailable)");
+    return 0;
+  }
+
+  let deleted = 0;
+
+  try {
+    let cursor = "0";
+    do {
+      const [nextCursor, keys] = await redisClient.scan(cursor, "MATCH", "page:*", "COUNT", 200);
+      cursor = nextCursor;
+      if (keys.length) {
+        await redisClient.del(...keys);
+        deleted += keys.length;
+      }
+    } while (cursor !== "0");
+
+    await redisClient.publish(
+      PAGE_CACHE_INVALIDATE_CHANNEL,
+      JSON.stringify({ purgeAll: true })
+    );
+  } catch (err) {
+    systemLogger.warn("Failed to purge Redis page cache", { error: err.message });
+  }
+
+  systemLogger.info("Page cache purged on deploy", { redisKeysDeleted: deleted });
+  return deleted;
 }
 
 function shouldBypassPageCache(req) {
@@ -190,7 +234,7 @@ function pageCache(ttlSeconds = 60) {
 
       const originalSend = res.send.bind(res);
       res.set("X-Cache", "MISS");
-      res.set("Cache-Control", `public, max-age=${ttlSeconds}`);
+      res.set("Cache-Control", "private, no-cache, must-revalidate");
       res.send = (body) => {
         try {
           if (res.statusCode === 200 && typeof body === "string") {
@@ -254,4 +298,5 @@ module.exports = {
   invalidatePublicCaseCaches,
   invalidatePublicSiteCaches,
   initPageCacheInvalidation,
+  purgeAllPageCaches,
 };

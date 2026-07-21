@@ -41,6 +41,9 @@ async function initInfrastructure() {
     systemLogger.warn("Redis unavailable — emails will be sent directly via SMTP");
   }
 
+  const { purgeAllPageCaches } = require("./app/middlewares/cache");
+  await purgeAllPageCaches();
+
   return { redisOk, queueResult };
 }
 
