@@ -586,13 +586,28 @@ exports.requestChat = async (req, res) => {
 
 exports.adminGetRequests = async (req, res) => {
     try {
-        const requests = await ChatRequest.find()
+        const { status } = req.query;
+        const filter = {};
+        if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+            filter.status = status;
+        }
+
+        const requests = await ChatRequest.find(filter)
             .populate('donor family case')
             .sort({ createdAt: -1 });
-            
+
+        const [all, pending, approved, rejected] = await Promise.all([
+            ChatRequest.countDocuments({}),
+            ChatRequest.countDocuments({ status: 'pending' }),
+            ChatRequest.countDocuments({ status: 'approved' }),
+            ChatRequest.countDocuments({ status: 'rejected' }),
+        ]);
+
         res.render('pages/admin/chat-requests', {
             title: res.__('admin_sidebar_chat_requests'),
-            requests
+            requests,
+            currentStatus: status && ['pending', 'approved', 'rejected'].includes(status) ? status : 'all',
+            statusCounts: { all, pending, approved, rejected },
         });
     } catch (err) {
         console.error(err);

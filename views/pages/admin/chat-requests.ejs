@@ -1,78 +1,135 @@
 <%- include('../../partials/admin-layout-top') %>
 
-<div class="nm-admin-card nm-admin-page-header nm-admin-page-header--accent nm-admin-chat-requests">
-    <h3 class="font-cairo" style="margin: 0;"><i class="fas fa-comments"></i> <%= __('admin_sidebar_chat_requests') %></h3>
-    <p style="color: var(--text-muted); margin-top: 5px;"><%= __('admin_chat_requests_desc') %></p>
-</div>
+<%
+const chatFilters = [
+    { key: 'all', href: '/admin/chat-requests', label: __('common_all'), count: statusCounts.all },
+    { key: 'pending', href: '/admin/chat-requests?status=pending', label: __('common_pending'), title: __('common_pending_review'), count: statusCounts.pending, dot: 'pending' },
+    { key: 'approved', href: '/admin/chat-requests?status=approved', label: __('admin_chat_filter_approved_short'), title: __('common_approved_status'), count: statusCounts.approved, dot: 'approved' },
+    { key: 'rejected', href: '/admin/chat-requests?status=rejected', label: __('admin_chat_filter_rejected_short'), title: __('common_rejected_status'), count: statusCounts.rejected, dot: 'rejected' },
+];
+%>
 
-<div class="table-responsive nm-admin-chat-table-wrap">
-    <table class="nm-admin-chat-table">
-        <thead>
-            <tr>
-                <th><%= __('common_donor') %></th>
-                <th><%= __('common_case_family') %></th>
-                <th><%= __('common_date') %></th>
-                <th><%= __('common_status') %></th>
-                <th><%= __('common_actions') %></th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (requests.length === 0) { %>
-                <tr>
-                    <td colspan="5" class="nm-admin-chat-empty">
-                        <%= __('admin_chat_requests_empty') %>
-                    </td>
-                </tr>
-            <% } %>
-            <% requests.forEach(req => { %>
-                <tr>
-                    <td data-label="<%= __('common_donor') %>">
-                        <div class="nm-admin-chat-name"><%= req.donor.name %></div>
-                        <div class="nm-admin-chat-meta"><%= req.donor.email %></div>
-                    </td>
-                    <td data-label="<%= __('common_case_family') %>">
-                        <div class="nm-admin-chat-name"><%= req.case.title %></div>
-                        <div class="nm-admin-chat-meta"><%= __('common_guardian_prefix') %><%= req.family.name %></div>
-                    </td>
-                    <td data-label="<%= __('common_date') %>" class="nm-admin-chat-date">
-                        <%= req.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
-                    </td>
-                    <td data-label="<%= __('common_status') %>">
-                        <span class="badge <%= 
-                            req.status === 'approved' ? 'badge-success' : 
-                            req.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
-                        %>">
-                            <%= 
-                                req.status === 'approved' ? __('common_approved_status') : 
-                                req.status === 'rejected' ? __('common_rejected_status') : __('common_pending_review') 
-                            %>
-                        </span>
-                        <% if (req.status === 'rejected' && req.adminComment) { %>
-                            <div class="nm-admin-chat-meta" style="margin-top: 6px;"><%= req.adminComment %></div>
-                        <% } %>
-                    </td>
-                    <td data-label="<%= __('common_actions') %>">
-                        <form action="/admin/chat-requests/handle" method="POST" class="nm-admin-chat-form" data-request-id="<%= req._id %>">
-                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <input type="hidden" name="requestId" value="<%= req._id %>">
-                            <select name="status" class="form-input nm-admin-chat-select" onchange="toggleRejectReason(this)">
-                                <option value="approved" <%= req.status === 'approved' ? 'selected' : '' %>><%= __('common_approve') %></option>
-                                <option value="rejected" <%= req.status === 'rejected' ? 'selected' : '' %>><%= __('common_reject') %></option>
-                            </select>
-                            <input type="text" name="adminComment" class="form-input nm-admin-chat-reason"
-                                placeholder="<%= __('admin_chat_reject_reason_placeholder') %>"
-                                value="<%= req.adminComment || '' %>"
-                                style="display: <%= req.status === 'rejected' ? 'block' : 'none' %>;">
-                            <button type="submit" class="btn-lux btn-lux-primary nm-admin-chat-submit"><%= __('common_update') %></button>
-                        </form>
-                    </td>
-                </tr>
+<div class="nm-admin-hub nm-admin-card nm-admin-card--flush">
+    <div class="nm-admin-hub__toolbar">
+        <div class="nm-admin-hub__search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="chatRequestSearch" oninput="filterChatRequests()" placeholder="<%= __('admin_chat_search_placeholder') %>" autocomplete="off" aria-label="<%= __('admin_chat_search_placeholder') %>">
+        </div>
+
+        <div class="nm-admin-hub__filters" role="tablist" aria-label="<%= __('admin_chat_filter_label') %>">
+            <% chatFilters.forEach((f) => { %>
+            <a href="<%= f.href %>"
+               class="nm-admin-hub__filter<%= currentStatus === f.key ? ' is-active' : '' %>"
+               role="tab"
+               aria-selected="<%= currentStatus === f.key ? 'true' : 'false' %>"
+               <% if (f.title) { %>title="<%= f.title %>"<% } %>>
+                <% if (f.key === 'all') { %>
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <% } else { %>
+                    <span class="nm-admin-hub__filter-dot nm-admin-hub__filter-dot--<%= f.dot %>" aria-hidden="true"></span>
+                <% } %>
+                <span><%= f.label %></span>
+                <em><%= f.count %></em>
+            </a>
             <% }) %>
-        </tbody>
-    </table>
+        </div>
+    </div>
+
+    <div class="table-responsive nm-admin-chat-table-wrap">
+        <table class="nm-admin-chat-table">
+            <thead>
+                <tr>
+                    <th><%= __('common_donor') %></th>
+                    <th><%= __('common_case_family') %></th>
+                    <th><%= __('common_date') %></th>
+                    <th><%= __('common_status') %></th>
+                    <th><%= __('common_actions') %></th>
+                </tr>
+            </thead>
+            <tbody id="chatRequestsBody">
+                <% if (requests.length === 0) { %>
+                    <tr>
+                        <td colspan="5" class="nm-admin-chat-empty">
+                            <%= __('admin_chat_requests_empty') %>
+                        </td>
+                    </tr>
+                <% } %>
+                <% requests.forEach(req => { %>
+                    <tr class="chat-request-row"
+                        data-donor="<%= (req.donor && req.donor.name ? req.donor.name : '').toLowerCase() %>"
+                        data-email="<%= (req.donor && req.donor.email ? req.donor.email : '').toLowerCase() %>"
+                        data-case="<%= (req.case && req.case.title ? req.case.title : '').toLowerCase() %>"
+                        data-family="<%= (req.family && req.family.name ? req.family.name : '').toLowerCase() %>">
+                        <td data-label="<%= __('common_donor') %>">
+                            <div class="nm-admin-chat-name"><%= req.donor.name %></div>
+                            <div class="nm-admin-chat-meta"><%= req.donor.email %></div>
+                        </td>
+                        <td data-label="<%= __('common_case_family') %>">
+                            <div class="nm-admin-chat-name"><%= req.case.title %></div>
+                            <div class="nm-admin-chat-meta"><%= __('common_guardian_prefix') %><%= req.family.name %></div>
+                        </td>
+                        <td data-label="<%= __('common_date') %>" class="nm-admin-chat-date">
+                            <%= req.createdAt.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') %>
+                        </td>
+                        <td data-label="<%= __('common_status') %>">
+                            <span class="badge <%= 
+                                req.status === 'approved' ? 'badge-success' : 
+                                req.status === 'rejected' ? 'badge-danger' : 'badge-navy' 
+                            %>">
+                                <%= 
+                                    req.status === 'approved' ? __('common_approved_status') : 
+                                    req.status === 'rejected' ? __('common_rejected_status') : __('common_pending_review') 
+                                %>
+                            </span>
+                            <% if (req.status === 'rejected' && req.adminComment) { %>
+                                <div class="nm-admin-chat-meta" style="margin-top: 6px;"><%= req.adminComment %></div>
+                            <% } %>
+                        </td>
+                        <td data-label="<%= __('common_actions') %>">
+                            <form action="/admin/chat-requests/handle" method="POST" class="nm-admin-chat-form" data-request-id="<%= req._id %>">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="requestId" value="<%= req._id %>">
+                                <select name="status" class="form-input nm-admin-chat-select" onchange="toggleRejectReason(this)">
+                                    <option value="approved" <%= req.status === 'approved' ? 'selected' : '' %>><%= __('common_approve') %></option>
+                                    <option value="rejected" <%= req.status === 'rejected' ? 'selected' : '' %>><%= __('common_reject') %></option>
+                                </select>
+                                <input type="text" name="adminComment" class="form-input nm-admin-chat-reason"
+                                    placeholder="<%= __('admin_chat_reject_reason_placeholder') %>"
+                                    value="<%= req.adminComment || '' %>"
+                                    style="display: <%= req.status === 'rejected' ? 'block' : 'none' %>;">
+                                <button type="submit" class="btn-lux btn-lux-primary nm-admin-chat-submit"><%= __('common_update') %></button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <p class="nm-admin-hub__no-results" id="chatRequestsNoResults" hidden><%= __('admin_chat_no_results') %></p>
+    </div>
 </div>
 
 <script>
+    function filterChatRequests() {
+        const query = (document.getElementById('chatRequestSearch').value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.chat-request-row');
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const haystack = [
+                row.dataset.donor,
+                row.dataset.email,
+                row.dataset.case,
+                row.dataset.family,
+            ].join(' ');
+            const show = !query || haystack.includes(query);
+            row.hidden = !show;
+            if (show) visible += 1;
+        });
+
+        const noResults = document.getElementById('chatRequestsNoResults');
+        if (noResults) noResults.hidden = visible > 0 || rows.length === 0;
+    }
+
     function toggleRejectReason(selectEl) {
         const form = selectEl.closest('form');
         const reasonInput = form && form.querySelector('.nm-admin-chat-reason');
