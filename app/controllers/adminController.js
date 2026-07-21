@@ -217,10 +217,10 @@ function fmtDate(d) {
     return new Date(d).toLocaleString('ar-EG');
 }
 
-function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTotalsFacet = false, skip = 0, limit = 50 }) {
+function buildDonationsLedgerStages({ filters = {}, search = null, excludeStatusFilter = false }) {
     const match = {};
 
-    if (filters.status && filters.status !== 'all') match.status = filters.status;
+    if (!excludeStatusFilter && filters.status && filters.status !== 'all') match.status = filters.status;
     if (filters.type && filters.type !== 'all') match.type = filters.type;
     if (filters.paymentMethod && filters.paymentMethod !== 'all') match.paymentMethod = filters.paymentMethod;
     if (filters.disbursementStatus && filters.disbursementStatus !== 'all') match.disbursementStatus = filters.disbursementStatus;
@@ -259,13 +259,23 @@ function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTota
         },
         { $unwind: { path: '$teamDoc', preserveNullAndEmptyArrays: true } },
         {
+            $lookup: {
+                from: 'users',
+                localField: 'caseDoc.guardian',
+                foreignField: '_id',
+                as: 'beneficiaryDoc'
+            }
+        },
+        { $unwind: { path: '$beneficiaryDoc', preserveNullAndEmptyArrays: true } },
+        {
             $addFields: {
                 _idStr: { $toString: '$_id' },
                 _idShort: { $toUpper: { $substrCP: [{ $toString: '$_id' }, 16, 8] } },
                 donorName: '$donorDoc.name',
                 donorEmail: '$donorDoc.email',
                 caseTitle: '$caseDoc.title',
-                teamName: '$teamDoc.name'
+                teamName: '$teamDoc.name',
+                beneficiaryName: '$beneficiaryDoc.name'
             }
         }
     ];
@@ -286,6 +296,12 @@ function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTota
             }
         });
     }
+
+    return pipeline;
+}
+
+function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTotalsFacet = false, skip = 0, limit = 50 }) {
+    const pipeline = buildDonationsLedgerStages({ filters, search });
 
     const dataPipeline = [
         { $skip: Math.max(0, Number(skip || 0)) },
@@ -320,6 +336,20 @@ function buildDonationsLedgerPipeline({ filters = {}, search = null, includeTota
     });
 
     return pipeline;
+}
+
+async function getDonationsLedgerStatusCounts(filters, search) {
+    const pipeline = buildDonationsLedgerStages({ filters, search, excludeStatusFilter: true });
+    pipeline.push({ $group: { _id: '$status', count: { $sum: 1 } } });
+
+    const grouped = await Transaction.aggregate(pipeline);
+    const counts = { all: 0, verified: 0, pending: 0, failed: 0 };
+    grouped.forEach((row) => {
+        const key = row._id;
+        if (counts[key] !== undefined) counts[key] = row.count;
+        counts.all += row.count;
+    });
+    return counts;
 }
 
 function extractCloudinaryPublicId(assetUrl = '') {
@@ -535,10 +565,29 @@ exports.getAdminDashboard = async (req, res) => {
 
 exports.getUsersManager = async (req, res) => {
     try {
-        const admins = await User.find({ role: { $in: ['admin', 'super_admin', 'regulator', 'support', 'media'] } }).sort({ createdAt: -1 });
+        const staffRoles = ['admin', 'super_admin', 'regulator', 'support', 'media'];
+        const filterRoles = ['all', 'admin', 'regulator', 'support', 'media', 'super_admin'];
+        const currentRole = filterRoles.includes(req.query.role) ? req.query.role : 'all';
+
+        const allAdmins = await User.find({ role: { $in: staffRoles } })
+            .select('name email role avatar createdAt status')
+            .sort({ createdAt: -1 });
+
+        const roleCounts = { all: 0, admin: 0, regulator: 0, support: 0, media: 0, super_admin: 0 };
+        allAdmins.forEach((admin) => {
+            roleCounts.all += 1;
+            if (roleCounts[admin.role] !== undefined) roleCounts[admin.role] += 1;
+        });
+
+        const admins = currentRole === 'all'
+            ? allAdmins
+            : allAdmins.filter((admin) => admin.role === currentRole);
+
         res.render('pages/admin/users-manager', {
             title: res.__('admin_sidebar_team_management'),
-            admins
+            admins,
+            currentRole,
+            roleCounts
         });
     } catch (err) {
         console.error(err);
@@ -1232,11 +1281,24 @@ exports.getCasesManager = async (req, res) => {
             }
         }
         if (updated) cases = await Case.find(filter).sort({ createdAt: -1 });
-        
+
+        let statusCounts = null;
+        if (req.user.role !== 'media') {
+            const [all, pending, field_verification, media_review, approved] = await Promise.all([
+                Case.countDocuments({}),
+                Case.countDocuments({ status: 'pending' }),
+                Case.countDocuments({ status: 'field_verification' }),
+                Case.countDocuments({ status: 'media_review' }),
+                Case.countDocuments({ status: 'approved' }),
+            ]);
+            statusCounts = { all, pending, field_verification, media_review, approved };
+        }
+
         res.render('pages/admin/cases-manager', {
             title: res.__('admin_sidebar_cases_manager'),
             cases,
-            currentStatus: status || 'all'
+            currentStatus: status || 'all',
+            statusCounts,
         });
     } catch (err) {
         console.error(err);
@@ -1343,18 +1405,22 @@ exports.getDonationsLedger = async (req, res) => {
         const filters = { from, to, status, type, paymentMethod, disbursementStatus, isBankConfirmed };
         const search = safeRegex(q);
 
-        const [result] = await Transaction.aggregate(
-            buildDonationsLedgerPipeline({
-                filters,
-                search,
-                includeTotalsFacet: true,
-                skip,
-                limit: limitNum
-            })
-        );
+        const [aggregateResult, statusCounts] = await Promise.all([
+            Transaction.aggregate(
+                buildDonationsLedgerPipeline({
+                    filters,
+                    search,
+                    includeTotalsFacet: true,
+                    skip,
+                    limit: limitNum
+                })
+            ),
+            getDonationsLedgerStatusCounts(filters, search)
+        ]);
 
-        const meta = result && result.meta ? result.meta : { count: 0 };
-        const rows = (result && result.data) ? result.data : [];
+        const result = aggregateResult && aggregateResult[0] ? aggregateResult[0] : {};
+        const meta = result.meta || { count: 0 };
+        const rows = result.data || [];
 
         const totalCount = meta.count || 0;
         const totalPages = Math.max(1, Math.ceil(totalCount / limitNum));
@@ -1369,6 +1435,8 @@ exports.getDonationsLedger = async (req, res) => {
             title: res.__('admin_sidebar_donations_ledger'),
             rows,
             filters: { ...filters, q, page: pageNum, limit: limitNum },
+            currentStatus: status,
+            statusCounts,
             totals: {
                 count: totalCount,
                 sumAmount: meta.sumAmount || 0,
@@ -1647,9 +1715,43 @@ exports.getChatMonitor = async (req, res) => {
             .populate('donor family case')
             .sort({ createdAt: -1 });
 
+        const chatIds = approvedChats.map((c) => c._id);
+        const messageCounts = chatIds.length
+            ? await Message.aggregate([
+                { $match: { chatRequest: { $in: chatIds } } },
+                { $group: { _id: '$chatRequest', count: { $sum: 1 } } },
+            ])
+            : [];
+        const countMap = new Map(messageCounts.map((m) => [m._id.toString(), m.count]));
+
+        const chatsMeta = approvedChats.map((chat) => {
+            const messageCount = countMap.get(chat._id.toString()) || 0;
+            const donorSuspended = chat.donor?.status === 'suspended';
+            const familySuspended = chat.family?.status === 'suspended';
+            const hasWarnings = (chat.donor?.warningsCount || 0) > 0 || (chat.family?.warningsCount || 0) > 0;
+            let monitorFilter = 'active';
+            if (donorSuspended || familySuspended) monitorFilter = 'suspended';
+            else if (hasWarnings) monitorFilter = 'warnings';
+            else if (messageCount === 0) monitorFilter = 'empty';
+
+            return { messageCount, monitorFilter };
+        });
+
+        const filterCounts = {
+            all: approvedChats.length,
+            active: chatsMeta.filter((m) => m.monitorFilter === 'active').length,
+            warnings: chatsMeta.filter((m) => m.monitorFilter === 'warnings').length,
+            suspended: chatsMeta.filter((m) => m.monitorFilter === 'suspended').length,
+        };
+
+        const selectedChatId = String(req.query.chat || '');
+
         res.render('pages/admin/chat-monitor', {
             title: res.__('admin_sidebar_chat_monitor'),
-            chats: approvedChats
+            chats: approvedChats,
+            chatsMeta,
+            filterCounts,
+            selectedChatId,
         });
     } catch (err) {
         console.error(err);
@@ -1963,7 +2065,8 @@ exports.getAnalytics = async (req, res) => {
 
 exports.getActivityLogs = async (req, res) => {
     try {
-        const { search, action, userId, startDate, endDate } = req.query;
+        const { search, action, userId, startDate, endDate, page: pageParam } = req.query;
+        const perPage = 100;
         let query = {};
 
         // 1. Action Filter
@@ -2016,15 +2119,28 @@ exports.getActivityLogs = async (req, res) => {
             }
         }
 
+        const totalCount = await ActivityLog.countDocuments(query);
+        const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+        const requestedPage = Math.max(1, parseInt(pageParam, 10) || 1);
+        const currentPage = Math.min(requestedPage, totalPages);
+        const skip = (currentPage - 1) * perPage;
+
         const logs = await ActivityLog.find(query)
             .populate('user', 'name email role avatar')
             .sort({ createdAt: -1 })
-            .limit(200);
+            .skip(skip)
+            .limit(perPage);
 
         res.render('pages/admin/activity-logs', {
             title: res.__('admin_sidebar_activity_logs'),
             logs,
-            query: { search, action, userId, startDate, endDate }
+            query: { search, action, userId, startDate, endDate },
+            pagination: {
+                currentPage,
+                totalPages,
+                totalCount,
+                perPage,
+            }
         });
     } catch (err) {
         console.error('Activity Logs Error:', err);
@@ -2036,30 +2152,31 @@ exports.getAllUsers = async (req, res) => {
     try {
         const { role, caseType, status, donorType } = req.query;
         const publicUserRoles = ['donor', 'beneficiary', 'family', 'guardian'];
-        let query = {};
 
-        if (role === 'beneficiary') {
-            query.role = { $in: ['beneficiary', 'family', 'guardian'] };
-        } else if (role === 'donor') {
-            query.role = 'donor';
-        } else {
-            query.role = { $in: publicUserRoles };
-        }
-        
+        const getRoleQuery = (roleKey) => {
+            if (roleKey === 'beneficiary') return { role: { $in: ['beneficiary', 'family', 'guardian'] } };
+            if (roleKey === 'donor') return { role: 'donor' };
+            return { role: { $in: publicUserRoles } };
+        };
+
+        const query = { ...getRoleQuery(role || 'all') };
+
         if (status && status !== 'all') {
             query.status = status;
         }
 
-        // Handle caseType filtering for beneficiaries
         if (caseType && caseType !== 'all') {
             const matchingCases = await Case.find({ type: caseType }).select('guardian');
             const guardianIds = matchingCases.map(c => c.guardian).filter(id => id);
             query._id = { $in: guardianIds };
         }
 
+        if (donorType && donorType !== 'all' && (!role || role === 'all')) {
+            query.role = 'donor';
+        }
+
         const users = await User.find(query).sort({ createdAt: -1 });
-        
-        // Enhance users with their case info and computing verification on the fly
+
         let enhancedUsers = await Promise.all(users.map(async (user) => {
             const userData = user.toObject();
             if (['beneficiary', 'family', 'guardian'].includes(userData.role)) {
@@ -2072,18 +2189,40 @@ exports.getAllUsers = async (req, res) => {
             return userData;
         }));
 
-        // In-memory filter for specialized donor type
         if (donorType && donorType !== 'all') {
-            enhancedUsers = enhancedUsers.filter(u => 
-                u.role === 'donor' && 
+            enhancedUsers = enhancedUsers.filter(u =>
+                u.role === 'donor' &&
                 (donorType === 'verified' ? u.isVerifiedDonor : !u.isVerifiedDonor)
             );
         }
 
+        const currentRoleKey = role || 'all';
+        const roleScopeQuery = getRoleQuery(currentRoleKey);
+
+        const [
+            roleAll, roleDonor, roleBeneficiary,
+            statusAll, statusActive, statusPending, statusSuspended,
+        ] = await Promise.all([
+            User.countDocuments({ role: { $in: publicUserRoles } }),
+            User.countDocuments({ role: 'donor' }),
+            User.countDocuments({ role: { $in: ['beneficiary', 'family', 'guardian'] } }),
+            User.countDocuments(roleScopeQuery),
+            User.countDocuments({ ...roleScopeQuery, status: 'active' }),
+            User.countDocuments({ ...roleScopeQuery, status: 'pending' }),
+            User.countDocuments({ ...roleScopeQuery, status: 'suspended' }),
+        ]);
+
         res.render('pages/admin/all-users', {
             title: res.__('admin_sidebar_all_users'),
             users: enhancedUsers,
-            filters: { role: role || 'all', caseType: caseType || 'all', status: status || 'all', donorType: donorType || 'all' }
+            filters: {
+                role: currentRoleKey,
+                caseType: caseType || 'all',
+                status: status || 'all',
+                donorType: donorType || 'all',
+            },
+            roleCounts: { all: roleAll, donor: roleDonor, beneficiary: roleBeneficiary },
+            statusCounts: { all: statusAll, active: statusActive, pending: statusPending, suspended: statusSuspended },
         });
     } catch (err) {
         console.error(err);
@@ -2223,11 +2362,29 @@ exports.getUserOversight = async (req, res) => {
 
 exports.getPendingApprovals = async (req, res) => {
     try {
-        const pendingUsers = await User.find({ status: 'pending' }).sort({ createdAt: -1 });
-        
+        const { role: roleFilter } = req.query;
+        const pendingRoles = ['beneficiary', 'family', 'guardian'];
+        const baseQuery = { status: 'pending', role: { $in: pendingRoles } };
+        const query = { ...baseQuery };
+
+        if (roleFilter && pendingRoles.includes(roleFilter)) {
+            query.role = roleFilter;
+        }
+
+        const users = await User.find(query).sort({ createdAt: -1 });
+
+        const [all, beneficiary, family, guardian] = await Promise.all([
+            User.countDocuments(baseQuery),
+            User.countDocuments({ status: 'pending', role: 'beneficiary' }),
+            User.countDocuments({ status: 'pending', role: 'family' }),
+            User.countDocuments({ status: 'pending', role: 'guardian' }),
+        ]);
+
         res.render('pages/admin/pending-approvals', {
             title: res.__('admin_sidebar_pending_approvals'),
-            users: pendingUsers
+            users,
+            currentRole: roleFilter && pendingRoles.includes(roleFilter) ? roleFilter : 'all',
+            roleCounts: { all, beneficiary, family, guardian },
         });
     } catch (err) {
         console.error(err);
@@ -2361,22 +2518,34 @@ exports.rejectImpactProof = async (req, res) => {
 // ==========================================
 exports.getEscalationsCenter = async (req, res) => {
     try {
-        let requests;
-        if (req.user.role === 'super_admin' || req.user.role === 'regulator') {
-            // Super Admin and Regulator see ALL requests
-            requests = await AdminRequest.find()
-                .populate('requester targetUser targetCase resolvedBy')
-                .sort({ createdAt: -1 });
-        } else {
-            // Regular Admin sees only THEIR requests
-            requests = await AdminRequest.find({ requester: req.user._id })
-                .populate('targetUser targetCase resolvedBy')
-                .sort({ createdAt: -1 });
+        const { status } = req.query;
+        const isElevatedViewer = req.user.role === 'super_admin' || req.user.role === 'regulator';
+        const baseQuery = isElevatedViewer ? {} : { requester: req.user._id };
+        const query = { ...baseQuery };
+
+        if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+            query.status = status;
         }
+
+        const requests = await AdminRequest.find(query)
+            .populate('requester targetUser targetCase resolvedBy')
+            .sort({ createdAt: -1 });
+
+        const [all, pending, approved, rejected] = await Promise.all([
+            AdminRequest.countDocuments(baseQuery),
+            AdminRequest.countDocuments({ ...baseQuery, status: 'pending' }),
+            AdminRequest.countDocuments({ ...baseQuery, status: 'approved' }),
+            AdminRequest.countDocuments({ ...baseQuery, status: 'rejected' }),
+        ]);
 
         res.render('pages/admin/escalations-center', {
             title: res.__('admin_sidebar_escalations'),
-            requests
+            requests,
+            currentStatus: status && ['pending', 'approved', 'rejected'].includes(status) ? status : 'all',
+            statusCounts: { all, pending, approved, rejected },
+            pageDesc: isElevatedViewer
+                ? res.__('admin_escalations_super_desc')
+                : res.__('admin_escalations_admin_desc'),
         });
     } catch (err) {
         console.error(err);
@@ -2518,20 +2687,43 @@ exports.resolveAdminRequest = async (req, res) => {
 exports.getPasswordRecovery = async (req, res) => {
     try {
         const search = (req.query.q || '').trim();
+        const allowedRoles = ['all', 'donor', 'beneficiary'];
+        const currentRole = allowedRoles.includes(req.query.role) ? req.query.role : 'all';
+        const roleCounts = { all: 0, donor: 0, beneficiary: 0 };
+        const beneficiaryRoles = ['beneficiary', 'family', 'guardian'];
         let users = [];
 
         if (search.length >= 2) {
             const query = buildPasswordRecoverySearchQuery(search);
-            users = await User.find(query)
-                .select('name email idNumber role status mustChangePassword tempPasswordSetAt')
+            const matchedUsers = await User.find(query)
+                .select('name email idNumber role status mustChangePassword tempPasswordSetAt phone')
                 .sort({ name: 1 })
-                .limit(25);
+                .limit(50);
+
+            matchedUsers.forEach((u) => {
+                roleCounts.all += 1;
+                if (u.role === 'donor') {
+                    roleCounts.donor += 1;
+                } else if (beneficiaryRoles.includes(u.role)) {
+                    roleCounts.beneficiary += 1;
+                }
+            });
+
+            if (currentRole === 'donor') {
+                users = matchedUsers.filter((u) => u.role === 'donor');
+            } else if (currentRole === 'beneficiary') {
+                users = matchedUsers.filter((u) => beneficiaryRoles.includes(u.role));
+            } else {
+                users = matchedUsers;
+            }
         }
 
         res.render('pages/admin/password-recovery', {
             title: res.__('admin_sidebar_password_recovery'),
             users,
-            search
+            search,
+            currentRole,
+            roleCounts
         });
     } catch (err) {
         console.error(err);
