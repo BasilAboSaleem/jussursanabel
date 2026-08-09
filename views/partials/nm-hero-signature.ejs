@@ -1,0 +1,73 @@
+<%#
+  Unified signature hero (home + about).
+  Locals: ariaLabel, affiliate, titleAr, titleEn, tagline, text,
+          primaryHref, primaryText, secondaryHref, secondaryText,
+          emblemPrefix, emblemCaption, horizonFill, showEmblemLabels, showEmblemParticles
+%>
+<%
+  const hasAffiliate = typeof affiliate !== 'undefined' && affiliate;
+  const hasTitleEn = typeof titleEn !== 'undefined' && titleEn;
+  const hasTagline = typeof tagline !== 'undefined' && tagline;
+  const hasText = typeof text !== 'undefined' && text;
+  const hasPrimary = typeof primaryHref !== 'undefined' && primaryHref && typeof primaryText !== 'undefined' && primaryText;
+  const hasSecondary = typeof secondaryHref !== 'undefined' && secondaryHref && typeof secondaryText !== 'undefined' && secondaryText;
+  const hasEmblemCaption = typeof emblemCaption !== 'undefined' && emblemCaption;
+%>
+<section class="nm-hero nm-hero--signature nm-about-hero" aria-label="<%= ariaLabel %>">
+    <div class="nm-about-hero__atmosphere nm-hero__atmosphere" aria-hidden="true">
+        <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
+        <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--1"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--2"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--3"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--4"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--5"></span>
+        <span class="nm-about-hero__grain nm-hero__grain nm-hero__grain--6"></span>
+    </div>
+
+    <div class="nm-about-hero__watermark nm-hero__watermark" aria-hidden="true"><%= titleAr %></div>
+
+    <div class="container nm-about-hero__layout nm-hero__layout">
+        <div class="nm-about-hero__copy nm-hero__copy">
+            <% if (hasAffiliate) { %>
+                <p class="nm-about-hero__affiliate nm-hero__eyebrow"><%= affiliate %></p>
+            <% } %>
+            <h1 class="nm-about-hero__title nm-hero__title">
+                <span class="nm-about-hero__title-ar nm-hero__title-main"><%= titleAr %></span>
+                <% if (hasTitleEn) { %>
+                    <span class="nm-about-hero__title-en nm-hero__title-sub"><%= titleEn %></span>
+                <% } %>
+            </h1>
+            <% if (hasTagline) { %>
+                <p class="nm-about-hero__tagline nm-hero__tagline"><%= tagline %></p>
+            <% } %>
+            <% if (hasText) { %>
+                <p class="nm-about-hero__text nm-hero__text"><%= text %></p>
+            <% } %>
+            <% if (hasPrimary) { %>
+                <div class="nm-about-hero__cta nm-hero__cta">
+                    <a href="<%= primaryHref %>" class="nm-about-hero__btn nm-about-hero__btn--primary nm-hero__btn nm-hero__btn--primary"><%= primaryText %></a>
+                    <% if (hasSecondary) { %>
+                        <a href="<%= secondaryHref %>" class="nm-about-hero__btn nm-about-hero__btn--line nm-hero__btn nm-hero__btn--line"><%= secondaryText %></a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+
+        <div class="nm-about-hero__emblem nm-about-hero__emblem--nameer nm-hero__emblem" aria-hidden="true">
+            <%- include('./nm-impact-emblem', {
+                emblemPrefix: typeof emblemPrefix !== 'undefined' ? emblemPrefix : 'nmImpact',
+                showEmblemLabels: typeof showEmblemLabels !== 'undefined' ? showEmblemLabels : true,
+                showEmblemParticles: typeof showEmblemParticles !== 'undefined' ? showEmblemParticles : true
+            }) %>
+            <% if (hasEmblemCaption) { %>
+                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer nm-hero__emblem-caption"><%= emblemCaption %></p>
+            <% } %>
+        </div>
+    </div>
+
+    <svg class="nm-about-hero__horizon nm-hero__horizon" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,80 C240,20 480,110 720,60 C960,10 1200,90 1440,40 L1440,120 L0,120 Z" fill="<%= typeof horizonFill !== 'undefined' ? horizonFill : '#f8fafc' %>"/>
+    </svg>
+</section>

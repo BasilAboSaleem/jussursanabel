@@ -1,18 +1,14 @@
 <%- include('../partials/header-top') %>
 
 <main class="nm-contact-page">
-    <section class="nm-page-hero" aria-label="<%= siteText('navbar_contact') %>">
-        <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
-        <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= siteText('contact_hero_badge') %></p>
-            <h1 class="nm-page-hero__title"><%= siteText('contact_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= siteText('contact_hero_desc') %></p>
-        </div>
-        <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#f8fafc"/>
-        </svg>
-    </section>
+    <%- include('../partials/nm-hero-page', {
+        ariaLabel: siteText('navbar_contact'),
+        watermark: siteText('hero_title'),
+        eyebrow: siteText('contact_hero_badge'),
+        title: siteText('contact_hero_title'),
+        desc: siteText('contact_hero_desc'),
+        horizonFill: '#f8fafc'
+    }) %>
 
     <!-- Channels + form -->
     <section class="nm-contact-main" id="contact-form">

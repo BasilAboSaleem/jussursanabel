@@ -1,0 +1,22 @@
+<%#
+  Unified section header.
+  Locals: badgeIcon, badgeText, title, desc, centered, bordered, titleLarge
+%>
+<%
+  const isCentered = typeof centered === 'undefined' ? true : centered;
+  const isBordered = typeof bordered === 'undefined' ? false : bordered;
+  const isTitleLarge = typeof titleLarge === 'undefined' ? false : titleLarge;
+  const hasBadge = typeof badgeText !== 'undefined' && badgeText;
+  const hasDesc = typeof desc !== 'undefined' && desc;
+%>
+<header class="nm-section-head<%= isCentered ? ' nm-section-head--center' : '' %> reveal-on-scroll">
+    <% if (hasBadge) { %>
+        <span class="nm-section-head__badge section-badge<%= isBordered ? ' nm-section-head__badge--bordered' : '' %>">
+            <% if (typeof badgeIcon !== 'undefined' && badgeIcon) { %><i class="fas <%= badgeIcon %>"></i> <% } %><%= badgeText %>
+        </span>
+    <% } %>
+    <h2 class="nm-section-head__title section-title-luxury<%= isTitleLarge ? ' nm-section-head__title--lg' : '' %>"><%= title %></h2>
+    <% if (hasDesc) { %>
+        <p class="nm-section-head__desc section-subtitle-luxury"><%= desc %></p>
+    <% } %>
+</header>

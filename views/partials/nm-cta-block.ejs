@@ -1,0 +1,30 @@
+<%#
+  Unified call-to-action block.
+  Locals: icon, title, desc, btnHref, btnText, btnIcon, compact
+%>
+<%
+  const isCompact = typeof compact === 'undefined' ? false : compact;
+  const hasIcon = typeof icon !== 'undefined' && icon;
+  const hasDesc = typeof desc !== 'undefined' && desc;
+  const hasBtn = typeof btnHref !== 'undefined' && btnHref && typeof btnText !== 'undefined' && btnText;
+  const hasBtnIcon = typeof btnIcon !== 'undefined' && btnIcon;
+%>
+<section class="section-zen nm-cta-block<%= isCompact ? ' nm-cta-block--compact' : '' %> text-center">
+    <div class="container nm-cta-block__inner">
+        <% if (hasIcon) { %>
+            <div class="nm-cta-block__icon-wrap">
+                <i class="fas <%= icon %> nm-cta-block__icon"></i>
+            </div>
+        <% } %>
+        <h2 class="nm-cta-block__title section-title-luxury"><%= title %></h2>
+        <% if (hasDesc) { %>
+            <p class="nm-cta-block__desc"><%= desc %></p>
+        <% } %>
+        <% if (hasBtn) { %>
+            <a href="<%= btnHref %>" class="btn-lux btn-lux-primary btn-lg nm-cta-block__btn">
+                <%= btnText %>
+                <% if (hasBtnIcon) { %><i class="fas <%= btnIcon %> nm-cta-block__btn-icon"></i><% } %>
+            </a>
+        <% } %>
+    </div>
+</section>

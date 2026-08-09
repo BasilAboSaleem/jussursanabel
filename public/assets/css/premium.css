@@ -89,6 +89,7 @@ body.stories-page,
 body:has(.admin-layout),
 body:has(.dashboard-main),
 body:has(.sidebar-premium),
+body:has(.nm-hero),
 body:has(.nm-about-hero),
 body:has(.nm-page-hero),
 body:has(.nm-auth-screen) {

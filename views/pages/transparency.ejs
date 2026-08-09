@@ -1,18 +1,14 @@
 <%- include('../partials/header-top') %>
 
 <main class="nm-transparency-page">
-    <section class="nm-page-hero" aria-label="<%= siteText('navbar_transparency') %>">
-        <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
-        <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= siteText('transparency_hero_badge') %></p>
-            <h1 class="nm-page-hero__title"><%= siteText('transparency_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= siteText('transparency_hero_desc') %></p>
-        </div>
-        <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#ffffff"/>
-        </svg>
-    </section>
+    <%- include('../partials/nm-hero-page', {
+        ariaLabel: siteText('navbar_transparency'),
+        watermark: siteText('hero_title'),
+        eyebrow: siteText('transparency_hero_badge'),
+        title: siteText('transparency_hero_title'),
+        desc: siteText('transparency_hero_desc'),
+        horizonFill: '#ffffff'
+    }) %>
 
     <!-- Impact metrics -->
     <section class="nm-transparency-stats" aria-label="<%= siteText('transparency_hero_title') %>">

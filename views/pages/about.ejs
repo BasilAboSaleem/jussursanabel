@@ -1,47 +1,23 @@
 <%- include('../partials/header-top') %>
 
 <main class="about-page">
-    <!-- Signature About Hero — unique to this page -->
-    <section class="nm-about-hero" aria-label="<%= siteText('about_us') %>">
-        <div class="nm-about-hero__atmosphere" aria-hidden="true">
-            <span class="nm-about-hero__orb nm-about-hero__orb--1"></span>
-            <span class="nm-about-hero__orb nm-about-hero__orb--2"></span>
-            <span class="nm-about-hero__orb nm-about-hero__orb--3"></span>
-            <span class="nm-about-hero__grain" style="--x:12%; --d:0s;"></span>
-            <span class="nm-about-hero__grain" style="--x:28%; --d:1.2s;"></span>
-            <span class="nm-about-hero__grain" style="--x:46%; --d:0.4s;"></span>
-            <span class="nm-about-hero__grain" style="--x:63%; --d:2s;"></span>
-            <span class="nm-about-hero__grain" style="--x:78%; --d:0.8s;"></span>
-            <span class="nm-about-hero__grain" style="--x:91%; --d:1.6s;"></span>
-        </div>
-
-        <div class="nm-about-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
-
-        <div class="container nm-about-hero__layout">
-            <div class="nm-about-hero__copy">
-                <p class="nm-about-hero__affiliate"><%= siteText('hero_affiliation') %></p>
-                <h1 class="nm-about-hero__title">
-                    <span class="nm-about-hero__title-ar"><%= siteText('hero_title') %></span>
-                    <span class="nm-about-hero__title-en"><%= siteText('hero_title_en') %></span>
-                </h1>
-                <p class="nm-about-hero__tagline"><%= siteText('about_story_title') %></p>
-                <p class="nm-about-hero__text"><%= siteText('about_hero_desc') %></p>
-                <div class="nm-about-hero__cta">
-                    <a href="#about-story" class="nm-about-hero__btn nm-about-hero__btn--primary"><%= siteText('about_story_badge') %></a>
-                    <a href="/cases" class="nm-about-hero__btn nm-about-hero__btn--line"><%= siteText('cases') %></a>
-                </div>
-            </div>
-
-            <div class="nm-about-hero__emblem nm-about-hero__emblem--nameer" aria-hidden="true">
-                <%- include('../partials/nm-impact-emblem', { emblemPrefix: 'nmAboutImpact', showEmblemLabels: true, showEmblemParticles: true }) %>
-                <p class="nm-about-hero__emblem-caption nm-about-hero__emblem-caption--nameer"><%= siteText('hero_tagline') %></p>
-            </div>
-        </div>
-
-        <svg class="nm-about-hero__horizon" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,80 C240,20 480,110 720,60 C960,10 1200,90 1440,40 L1440,120 L0,120 Z" fill="#ffffff"/>
-        </svg>
-    </section>
+    <%- include('../partials/nm-hero-signature', {
+        ariaLabel: siteText('about_us'),
+        affiliate: siteText('hero_affiliation'),
+        titleAr: siteText('hero_title'),
+        titleEn: siteText('hero_title_en'),
+        tagline: siteText('about_story_title'),
+        text: siteText('about_hero_desc'),
+        primaryHref: '#about-story',
+        primaryText: siteText('about_story_badge'),
+        secondaryHref: '/cases',
+        secondaryText: siteText('cases'),
+        emblemPrefix: 'nmAboutImpact',
+        emblemCaption: siteText('hero_tagline'),
+        horizonFill: '#ffffff',
+        showEmblemLabels: true,
+        showEmblemParticles: true
+    }) %>
 
     <!-- What is Nameer -->
     <section id="about-story" class="about-section about-section--story">

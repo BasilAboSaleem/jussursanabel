@@ -92,7 +92,7 @@
 
     function syncNavState() {
         if (!nav) return;
-        const hasDarkHero = !!document.querySelector('.nm-about-hero, .nm-page-hero, .nm-auth-screen');
+        const hasDarkHero = !!document.querySelector('.nm-hero, .nm-about-hero, .nm-page-hero, .nm-auth-screen');
         const scrolled = window.scrollY > 24;
         const menuOpen = navLinks?.classList.contains('active');
         // Transparent only over dark hero at top; otherwise solid white (Senabil-style)

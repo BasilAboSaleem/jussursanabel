@@ -1,21 +1,17 @@
 <%- include('../../partials/header-top') %>
 
-<main style="background: #ffffff; min-height: 100vh; overflow: hidden;">
-    <section class="nm-page-hero" aria-label="<%= siteText('cases') %>">
-        <div class="nm-page-hero__glow" aria-hidden="true"></div>
-        <div class="nm-page-hero__watermark" aria-hidden="true"><%= siteText('hero_title') %></div>
-        <div class="container nm-page-hero__inner">
-            <p class="nm-page-hero__eyebrow"><%= siteText('brand_affiliation_short') %></p>
-            <h1 class="nm-page-hero__title"><%= siteText('cases_hero_title') %></h1>
-            <p class="nm-page-hero__desc"><%= siteText('cases_hero_desc') %></p>
-        </div>
-        <svg class="nm-page-hero__horizon" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="#f8fafc"/>
-        </svg>
-    </section>
+<main class="nm-public-main nm-public-main--clip">
+    <%- include('../../partials/nm-hero-page', {
+        ariaLabel: siteText('cases'),
+        watermark: siteText('hero_title'),
+        eyebrow: siteText('brand_affiliation_short'),
+        title: siteText('cases_hero_title'),
+        desc: siteText('cases_hero_desc'),
+        horizonFill: '#f8fafc'
+    }) %>
 
     <!-- Opportunities list -->
-    <section class="cases-list-section" id="cases-list" style="background: #f8fafc; padding: 20px 0 100px;">
+    <section class="cases-list-section" id="cases-list">
         <div class="container">
             <div class="cases-controls reveal-on-scroll">
                 <div class="cases-type-filters" role="navigation" aria-label="<%= siteText('cases') %>">
@@ -51,7 +47,7 @@
                 </div>
             </div>
 
-            <div class="grid-3" id="casesGrid" style="gap: 40px;">
+            <div class="grid-3" id="casesGrid">
             <% if (typeof cases !== 'undefined' && cases.length > 0) { %>
                 <% cases.forEach((item, index) => { %>
                     <div class="luxury-card case-card h-100 reveal-on-scroll" data-type="<%= item.type %>" style="transition-delay: <%= index * 0.1 %>s">
@@ -80,20 +76,20 @@
 
                             <% if (item.isSatisfied) { %>
                                 <div class="satisfied-overlay">
-                                    <span class="badge" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; font-weight: 900; box-shadow: 0 4px 15px rgba(0, 165, 68, 0.4);">
+                                    <span class="badge case-satisfied-badge">
                                         <i class="fas fa-heart-circle-check"></i> <%= __('cases_satisfied_text') %>
                                     </span>
                                 </div>
                             <% } %>
                         </div>
                         
-                        <div class="card-body-content" style="position: relative;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <h3 class="font-cairo case-title" style="margin: 0;">
+                        <div class="card-body-content case-card-body">
+                            <div class="case-card-header">
+                                <h3 class="font-cairo case-title">
                                     <%= item.title %>
                                 </h3>
                                 <% if (item.area) { %>
-                                    <span style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; background: rgba(0, 165, 68, 0.1); padding: 2px 8px; border-radius: 5px;">
+                                    <span class="case-area-badge">
                                         <i class="fas fa-location-dot"></i> <%= item.area %>
                                     </span>
                                 <% } %>
@@ -116,7 +112,7 @@
                                         <i class="fas fa-circle-play"></i> <%= __('cases_btn_watch_story') %>
                                     </a>
                                 <% } %>
-                                <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-primary btn-sm btn-full-width" style="background: var(--grad-green); color: #fff; box-shadow: 0 10px 20px rgba(0, 165, 68, 0.2);">
+                                <a href="/cases/<%= item._id %>" class="btn-lux btn-lux-primary btn-sm btn-full-width case-cta-btn">
                                     <%= __('cases_btn_details') %> <i class="fas fa-arrow-<%= langDir === 'rtl' ? 'left' : 'right' %>"></i>
                                 </a>
                             </div>
@@ -124,12 +120,12 @@
                     </div>
                 <% }) %>
             <% } else { %>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 100px 5%; background: white; border-radius: 30px; border: 2px dashed #f1f5f9;" class="reveal-on-scroll">
-                    <div style="width: 100px; height: 100px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; color: #cbd5e1;">
+                <div class="cases-empty-state reveal-on-scroll">
+                    <div class="cases-empty-icon">
                         <i class="fas fa-magnifying-glass-chart fa-3x"></i>
                     </div>
-                    <h3 class="font-cairo" style="color: var(--primary); font-weight: 900;"><%= __('cases_empty_title') %></h3>
-                    <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;"><%= __('cases_empty_desc') %></p>
+                    <h3 class="font-cairo cases-empty-title"><%= __('cases_empty_title') %></h3>
+                    <p class="cases-empty-desc"><%= __('cases_empty_desc') %></p>
                 </div>
             <% } %>
         </div>
@@ -143,8 +139,8 @@
                 const pageUrl = (p) => buildCasesUrl({ page: p });
             %>
 
-            <nav aria-label="Cases pagination" class="cases-pagination cases-pagination-desktop" style="display: flex; justify-content: center; margin-top: 38px;">
-                <ul class="pagination-lux" style="display: flex; list-style: none; padding: 0; gap: 8px; flex-wrap: wrap; justify-content: center;">
+            <nav aria-label="Cases pagination" class="cases-pagination cases-pagination-desktop">
+                <ul class="pagination-lux">
                     <% if (currentPage > 1) { %>
                         <li><a class="page-link-lux" href="<%= pageUrl(currentPage - 1) %>" aria-label="Previous"><i class="fas fa-chevron-<%= langDir === 'rtl' ? 'right' : 'left' %>"></i></a></li>
                     <% } %>
@@ -173,8 +169,8 @@
                 </ul>
             </nav>
 
-            <div id="casesLoadMoreWrap" class="cases-load-more-wrap" style="display: none; justify-content: center; margin-top: 28px;">
-                <button type="button" id="casesLoadMoreBtn" class="btn-lux btn-lux-primary" style="min-width: 220px; justify-content: center; border-radius: 999px; padding: 14px 28px; font-weight: 800;">
+            <div id="casesLoadMoreWrap" class="cases-load-more-wrap">
+                <button type="button" id="casesLoadMoreBtn" class="btn-lux btn-lux-primary cases-load-more-btn">
                     <i class="fas fa-chevron-down"></i> <%= __('cases_load_more') %>
                 </button>
             </div>

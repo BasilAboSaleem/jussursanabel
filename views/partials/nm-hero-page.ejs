@@ -1,0 +1,25 @@
+<%#
+  Unified compact page hero (cases, transparency, contact).
+  Locals: ariaLabel, watermark, eyebrow, title, desc, horizonFill
+%>
+<%
+  const heroWatermark = typeof watermark !== 'undefined' ? watermark : title;
+  const hasEyebrow = typeof eyebrow !== 'undefined' && eyebrow;
+  const hasDesc = typeof desc !== 'undefined' && desc;
+%>
+<section class="nm-hero nm-hero--page nm-page-hero" aria-label="<%= ariaLabel %>">
+    <div class="nm-page-hero__glow nm-hero__glow" aria-hidden="true"></div>
+    <div class="nm-page-hero__watermark nm-hero__watermark" aria-hidden="true"><%= heroWatermark %></div>
+    <div class="container nm-page-hero__inner nm-hero__inner">
+        <% if (hasEyebrow) { %>
+            <p class="nm-page-hero__eyebrow nm-hero__eyebrow"><%= eyebrow %></p>
+        <% } %>
+        <h1 class="nm-page-hero__title nm-hero__title-main"><%= title %></h1>
+        <% if (hasDesc) { %>
+            <p class="nm-page-hero__desc nm-hero__text"><%= desc %></p>
+        <% } %>
+    </div>
+    <svg class="nm-page-hero__horizon nm-hero__horizon nm-hero__horizon--compact" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,48 C280,10 520,70 760,36 C1000,4 1220,58 1440,28 L1440,80 L0,80 Z" fill="<%= typeof horizonFill !== 'undefined' ? horizonFill : '#f8fafc' %>"/>
+    </svg>
+</section>

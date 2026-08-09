@@ -1,0 +1,12 @@
+<%#
+  Unified impact/stat card.
+  Locals: icon, target, suffix, label, bordered
+%>
+<% const isBordered = typeof bordered !== 'undefined' && bordered; %>
+<div class="reveal-on-scroll text-center nm-stat-card impact-slide<%= isBordered ? ' impact-card' : '' %>">
+    <div class="nm-stat-card__icon-wrap">
+        <i class="fas <%= icon %> nm-stat-card__icon"></i>
+    </div>
+    <div class="impact-number nm-stat-card__value" data-target="<%= target %>" data-suffix="<%= typeof suffix !== 'undefined' ? suffix : '+' %>">0</div>
+    <div class="nm-stat-card__label"><%= label %></div>
+</div>
