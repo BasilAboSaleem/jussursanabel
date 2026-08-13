@@ -68,9 +68,20 @@
                                 <p><%= __('register_step2_desc') %></p>
                             </div>
 
+                            <div id="donor-privacy-notice" class="nm-register-privacy-notice">
+                                <div class="nm-register-privacy-notice__icon" aria-hidden="true">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div class="nm-register-privacy-notice__body">
+                                    <strong><%= __('register_donor_privacy_title') %></strong>
+                                    <p><%= __('register_donor_privacy_text') %></p>
+                                </div>
+                            </div>
+
                             <div class="form-group">
-                                <label class="form-label-luxury" for="reg-name"><%= __('register_full_name_label') %></label>
-                                <input type="text" name="name" id="reg-name" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_full_name_placeholder') %>" required>
+                                <label class="form-label-luxury" id="reg-name-label" for="reg-name"><%= __('register_donor_name_label') %></label>
+                                <p class="nm-register-field-hint" id="reg-name-hint"><%= __('register_donor_name_hint') %></p>
+                                <input type="text" name="name" id="reg-name" class="nm-auth-input nm-auth-input--plain" placeholder="<%= __('register_donor_name_placeholder') %>" required>
                                 <div class="nm-register-field-error" id="error-name"></div>
                             </div>
 
@@ -206,7 +217,12 @@
         fixText: '<%= __('register_validation_fix_text') %>',
         ok: '<%= __('register_ok') %>',
         financialTitle: '<%= __('register_financial_incomplete_title') %>',
-        approvalTitle: '<%= __('register_approval_required_title') %>'
+        approvalTitle: '<%= __('register_approval_required_title') %>',
+        donorNameLabel: '<%= __('register_donor_name_label') %>',
+        donorNameHint: '<%= __('register_donor_name_hint') %>',
+        donorNamePlaceholder: '<%= __('register_donor_name_placeholder') %>',
+        beneficiaryNameLabel: '<%= __('register_full_name_label') %>',
+        beneficiaryNamePlaceholder: '<%= __('register_full_name_placeholder') %>'
     };
 
     function normalizeIbanValue(iban) {
@@ -299,6 +315,29 @@
         scrollRegisterTop();
     }
 
+    function updateNameFieldForRole(role) {
+        const nameLabel = document.getElementById('reg-name-label');
+        const nameHint = document.getElementById('reg-name-hint');
+        const nameInput = document.getElementById('reg-name');
+        if (!nameLabel || !nameInput) return;
+
+        if (role === 'donor') {
+            nameLabel.textContent = I18N.donorNameLabel;
+            if (nameHint) {
+                nameHint.textContent = I18N.donorNameHint;
+                nameHint.hidden = false;
+            }
+            nameInput.placeholder = I18N.donorNamePlaceholder;
+        } else {
+            nameLabel.textContent = I18N.beneficiaryNameLabel;
+            if (nameHint) {
+                nameHint.textContent = '';
+                nameHint.hidden = true;
+            }
+            nameInput.placeholder = I18N.beneficiaryNamePlaceholder;
+        }
+    }
+
     function selectRole(role, opts) {
         opts = opts || {};
         document.getElementById('selected-role').value = role;
@@ -319,10 +358,14 @@
         const contractSec = document.getElementById('beneficiary-contract-section');
         const termsCb = document.getElementById('beneficiary-terms-checkbox');
         const termsErr = document.getElementById('error-beneficiary-terms');
+        const privacyNotice = document.getElementById('donor-privacy-notice');
+
+        updateNameFieldForRole(role);
 
         if (role === 'beneficiary') {
             bFields.style.display = 'block';
             dFields.style.display = 'none';
+            if (privacyNotice) privacyNotice.style.display = 'none';
             phoneGrp.style.display = 'block';
             phoneInput.setAttribute('required', 'true');
             idInput.setAttribute('required', 'true');
@@ -331,6 +374,7 @@
         } else {
             bFields.style.display = 'none';
             dFields.style.display = 'block';
+            if (privacyNotice) privacyNotice.style.display = 'flex';
             phoneGrp.style.display = 'none';
             phoneInput.removeAttribute('required');
             idInput.removeAttribute('required');
