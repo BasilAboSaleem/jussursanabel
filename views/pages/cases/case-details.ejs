@@ -515,7 +515,7 @@
                                 <% recentDonors.forEach(transaction => { %>
                                     <div class="case-donor-row">
                                         <div class="case-donor-avatar">
-                                            <% if (transaction.isAnonymous || !transaction.donor) { %>
+                                            <% if (transaction.isAnonymous || transaction.isGuest || !transaction.donor) { %>
                                                 <i class="fas fa-user-secret"></i>
                                             <% } else { %>
                                                 <img src="<%= userAvatar(transaction.donor) %>" alt="">
@@ -524,7 +524,7 @@
                                         <div class="case-donor-body">
                                             <div class="case-donor-top">
                                                 <span class="case-donor-name">
-                                                    <%= (transaction.isAnonymous || !transaction.donor) ? __('case_details_donor_anonymous') : transaction.donor.name %>
+                                                    <%= (transaction.isAnonymous || transaction.isGuest || !transaction.donor) ? __('case_details_donor_anonymous') : transaction.donor.name %>
                                                 </span>
                                                 <strong class="case-donor-amount">$<%= transaction.amount %></strong>
                                             </div>

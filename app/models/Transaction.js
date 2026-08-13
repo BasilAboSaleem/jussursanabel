@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-    donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    isGuest: { type: Boolean, default: false },
+    guestName: { type: String, trim: true, maxlength: 120 },
+    guestEmail: { type: String, trim: true, lowercase: true, maxlength: 200 },
     case: { type: mongoose.Schema.Types.ObjectId, ref: 'Case', required: true },
     team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' }, // Optional: link to a fundraising team
     amount: { type: Number, required: true }, // The original donation amount for the case
@@ -37,11 +40,19 @@ const transactionSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+transactionSchema.pre('validate', function validateDonorOrGuest() {
+    if (this.isGuest) {
+        this.donor = undefined;
+    } else if (!this.donor) {
+        this.invalidate('donor', 'Donor is required for registered donations');
+    }
+});
+
 transactionSchema.index({ case: 1, status: 1, createdAt: -1 });
 transactionSchema.index({ donor: 1, createdAt: -1 });
 transactionSchema.index({ status: 1, disbursementStatus: 1, createdAt: -1 });
 transactionSchema.index({ type: 1, createdAt: -1 });
 transactionSchema.index({ stripeSessionId: 1 }, { unique: true, sparse: true });
-transactionSchema.index({ stripePaymentIntentId: 1 }, { unique: true, sparse: true });
+transactionSchema.index({ guestEmail: 1, createdAt: -1 }, { sparse: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -7,6 +7,11 @@ const { logActivity, systemLogger } = require('../utils/logger');
 const sendEmail = require('../utils/emailSender');
 const { donationReceipt } = require('../utils/emailTemplates');
 const { getStripeClient } = require('../utils/stripeConfig');
+const {
+    METADATA_SCHEMA_VERSION,
+    buildStripeDonationMetadata,
+    parseStripeDonationMetadata
+} = require('../utils/stripeDonationMetadata');
 
 const stripeCurrency = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
 const {
@@ -58,33 +63,51 @@ const applyVerifiedDonationEffects = async ({ transaction, foundCase }) => {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
         foundCase.sponsorshipExpiryDate = expiryDate;
-        foundCase.currentSponsor = transaction.donor;
+        if (transaction.donor) {
+            foundCase.currentSponsor = transaction.donor;
+        }
     }
     applyGoalReachedState(foundCase);
     await foundCase.save();
 
-    await logActivity(
-        transaction.donor,
-        'transaction_create',
-        'Transaction',
-        transaction._id,
-        `تبرع ${transaction.type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${transaction.amount} للحالة: ${foundCase.title}`
-    );
+    if (transaction.donor) {
+        await logActivity(
+            transaction.donor,
+            'transaction_create',
+            'Transaction',
+            transaction._id,
+            `تبرع ${transaction.type === 'monthly' ? 'كفالة شهرية' : 'مباشر'} بقيمة ${transaction.amount} للحالة: ${foundCase.title}`
+        );
+    }
 
     try {
-        const donor = await User.findById(transaction.donor).select('name email');
-        if (donor && donor.email) {
+        let receiptEmail = null;
+        let receiptName = 'Donor';
+
+        if (transaction.isGuest) {
+            receiptEmail = transaction.guestEmail;
+            receiptName = transaction.guestName || 'متبرع زائر';
+        } else if (transaction.donor) {
+            const donor = await User.findById(transaction.donor).select('name email');
+            if (donor && donor.email) {
+                receiptEmail = donor.email;
+                receiptName = donor.name || 'Donor';
+            }
+        }
+
+        if (receiptEmail) {
             const emailResult = await sendEmail({
-                email: donor.email,
+                email: receiptEmail,
                 subject: 'إيصال تبرع — منصة نَمير',
-                html: donationReceipt(donor.name || 'Donor', transaction.amount, foundCase.title),
+                html: donationReceipt(receiptName, transaction.amount, foundCase.title),
                 type: 'donation_receipt',
                 immediate: true
             });
             if (!emailResult.ok) {
                 systemLogger.warn('Donation receipt email not delivered', {
                     transactionId: String(transaction._id),
-                    donorId: String(transaction.donor),
+                    donorId: transaction.donor ? String(transaction.donor) : null,
+                    guestEmail: transaction.guestEmail || null,
                     reason: emailResult.reason
                 });
             }
@@ -124,69 +147,14 @@ function resolvePaymentIntentId(sessionOrIntent) {
     return null;
 }
 
-function buildStripeDonationMetadata({
-    donorId,
-    caseId,
-    type,
-    finalCaseAmount,
-    totalAmount,
-    institutionPercentage,
-    gatewayPercentage,
-    operationPercentage,
-    institutionFee,
-    gatewayFee,
-    operationFee,
-    isAnonymous,
-    encouragementMessage,
-    teamId
-}) {
-    const metadata = {
-        schemaVersion: '2',
-        donorId: String(donorId),
-        caseId: String(caseId),
-        type: String(type),
-        amount: String(finalCaseAmount),
-        totalAmount: String(totalAmount),
-        institutionPct: String(institutionPercentage),
-        gatewayPct: String(gatewayPercentage),
-        operationPct: String(operationPercentage),
-        institutionFee: String(institutionFee),
-        gatewayFee: String(gatewayFee),
-        operationFee: String(operationFee),
-        isAnonymous: isAnonymous ? '1' : '0'
-    };
+function resolveCheckoutCustomerDetails(session) {
+    if (!session) return { email: '', name: '' };
 
-    if (teamId) {
-        metadata.teamId = String(teamId);
-    }
-    if (encouragementMessage) {
-        metadata.encouragementMessage = String(encouragementMessage).slice(0, 500);
-    }
+    const details = session.customer_details || {};
+    const email = String(details.email || session.customer_email || '').trim().toLowerCase();
+    const name = String(details.name || '').trim();
 
-    return metadata;
-}
-
-function parseStripeDonationMetadata(metadata = {}) {
-    if (!metadata.donorId || !metadata.caseId || !metadata.type || !metadata.amount) {
-        return null;
-    }
-
-    return {
-        donorId: metadata.donorId,
-        caseId: metadata.caseId,
-        type: metadata.type,
-        amount: Number(metadata.amount),
-        totalAmount: Number(metadata.totalAmount || metadata.amount),
-        institutionPercentage: Number(metadata.institutionPct || 0),
-        gatewayPercentage: Number(metadata.gatewayPct || 0),
-        operationPercentage: Number(metadata.operationPct || 0),
-        institutionFee: Number(metadata.institutionFee || 0),
-        gatewayFee: Number(metadata.gatewayFee || 0),
-        operationFee: Number(metadata.operationFee || 0),
-        isAnonymous: metadata.isAnonymous === '1' || metadata.isAnonymous === 'true',
-        encouragementMessage: metadata.encouragementMessage || undefined,
-        teamId: metadata.teamId || null
-    };
+    return { email, name };
 }
 
 async function findExistingStripeDonation({ stripeSessionId, paymentIntentId }) {
@@ -241,8 +209,19 @@ async function createVerifiedDonationFromStripeMetadata(payload, {
 
     let transaction;
     try {
+        const checkoutCustomer = payload.object === 'checkout.session'
+            ? resolveCheckoutCustomerDetails(payload)
+            : { email: '', name: '' };
+
         transaction = await Transaction.create({
-            donor: meta.donorId,
+            donor: meta.isGuest ? undefined : meta.donorId,
+            isGuest: meta.isGuest,
+            guestName: meta.isGuest
+                ? (meta.guestName || checkoutCustomer.name || 'متبرع زائر')
+                : undefined,
+            guestEmail: meta.isGuest
+                ? (meta.guestEmail || checkoutCustomer.email || undefined)
+                : undefined,
             case: meta.caseId,
             amount: meta.amount,
             institutionPercentage: meta.institutionPercentage,
@@ -423,6 +402,8 @@ exports.processDonation = async (req, res) => {
             return res.redirect('/cases');
         }
 
+        const isGuestCheckout = !req.user;
+
         const donatableCheck = verifyCaseIsDonatable(foundCase, type);
         if (!donatableCheck.ok) {
             req.flash('error', res.__(donatableCheck.key));
@@ -443,7 +424,8 @@ exports.processDonation = async (req, res) => {
         const totalAmountToCharge = feeCalc.totalAmountToCharge;
 
         const donationMetadata = buildStripeDonationMetadata({
-            donorId: req.user._id,
+            donorId: isGuestCheckout ? null : req.user._id,
+            isGuest: isGuestCheckout,
             caseId,
             type,
             finalCaseAmount,
@@ -459,9 +441,8 @@ exports.processDonation = async (req, res) => {
             teamId: teamId || null
         });
 
-        const session = await stripe.checkout.sessions.create({
+        const checkoutSessionParams = {
             mode: 'payment',
-            customer_email: req.user.email || undefined,
             success_url: `${process.env.BASE_URL}/donations/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.BASE_URL}/donations/cancel`,
             metadata: donationMetadata,
@@ -481,7 +462,13 @@ exports.processDonation = async (req, res) => {
                     }
                 }
             ]
-        });
+        };
+
+        if (!isGuestCheckout && req.user.email) {
+            checkoutSessionParams.customer_email = req.user.email;
+        }
+
+        const session = await stripe.checkout.sessions.create(checkoutSessionParams);
 
         return res.redirect(303, session.url);
     } catch (err) {
@@ -494,15 +481,17 @@ exports.processDonation = async (req, res) => {
 exports.handleCheckoutSuccess = async (req, res) => {
     try {
         const stripe = getStripeClient();
+        const isGuestCheckout = !req.user;
+
         if (!stripe) {
             req.flash('error', 'Stripe غير مهيأ على الخادم.');
-            return res.redirect('/dashboard');
+            return isGuestCheckout ? res.redirect('/cases') : res.redirect('/dashboard');
         }
 
         const { session_id: sessionId } = req.query;
         if (!sessionId) {
             req.flash('error', 'لم تكتمل عملية الدفع.');
-            return res.redirect('/dashboard');
+            return isGuestCheckout ? res.redirect('/cases') : res.redirect('/dashboard');
         }
 
         const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -511,16 +500,25 @@ exports.handleCheckoutSuccess = async (req, res) => {
         const result = await verifyDonationFromCheckoutSession(session, req, 'success_url');
 
         if (result.verified || result.alreadyVerified) {
-            req.flash('success', 'تم استلام عملية الدفع والتحقق منها.');
+            req.flash('success', res.__('flash_donation_done'));
         } else {
             req.flash('error', 'لم تكتمل عملية الدفع بنجاح.');
+            return isGuestCheckout ? res.redirect('/cases') : res.redirect('/dashboard');
+        }
+
+        if (isGuestCheckout) {
+            const caseId = session.metadata && session.metadata.caseId;
+            return res.render('pages/donations/thank-you', {
+                title: res.__('donation_thank_you_title'),
+                caseId: caseId || null
+            });
         }
 
         return res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
         req.flash('error', 'حدث خطأ أثناء العودة من بوابة الدفع.');
-        return res.redirect('/dashboard');
+        return req.user ? res.redirect('/dashboard') : res.redirect('/cases');
     }
 };
 
@@ -623,7 +621,10 @@ exports.handleStripeWebhook = async (req, res) => {
                         legacy: true
                     });
                 }
-            } else if (meta.donorId && meta.schemaVersion === '2') {
+            } else if (
+                meta.schemaVersion === '3' ||
+                (meta.schemaVersion === '2' && meta.donorId)
+            ) {
                 const result = await createVerifiedDonationFromStripeMetadata(paymentIntent, {
                     paymentIntentId: paymentIntent.id,
                     source: 'webhook:payment_intent.succeeded'
@@ -663,7 +664,7 @@ exports.getStripeWebhookStatus = (req, res) => {
         cliWebhookSecretSet: Boolean(process.env.STRIPE_CLI_WEBHOOK_SECRET),
         signingSecretsConfigured: secrets.length,
         endpoint: `${baseUrl}/donations/webhook`,
-        metadataSchema: '2',
+        metadataSchema: METADATA_SCHEMA_VERSION,
         localTestingNote:
             'stripe listen uses a different whsec_ than Dashboard — set STRIPE_CLI_WEBHOOK_SECRET from the CLI output.',
         events: [

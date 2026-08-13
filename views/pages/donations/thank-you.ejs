@@ -1,0 +1,77 @@
+<%- include('../../partials/header-top') %>
+
+<main class="checkout-page donation-thank-you-page">
+    <div class="container checkout-wrap">
+        <section class="luxury-card donation-thank-you-card text-center">
+            <div class="donation-thank-you-icon" aria-hidden="true">
+                <i class="fas fa-circle-check"></i>
+            </div>
+            <h1 class="section-title-luxury donation-thank-you-title"><%= __('donation_thank_you_title') %></h1>
+            <p class="section-subtitle-luxury donation-thank-you-desc"><%= __('donation_thank_you_desc') %></p>
+            <p class="donation-thank-you-note"><%= __('donation_thank_you_receipt_note') %></p>
+
+            <div class="donation-thank-you-actions">
+                <% if (caseId) { %>
+                    <a href="/cases/<%= caseId %>" class="btn-lux btn-lux-primary">
+                        <i class="fas fa-arrow-<%= locals.langDir === 'ltr' ? 'left' : 'right' %>"></i>
+                        <%= __('donation_thank_you_back_case') %>
+                    </a>
+                <% } %>
+                <a href="/cases" class="btn-lux btn-lux-outline">
+                    <%= __('cases') %>
+                </a>
+                <a href="/auth/register" class="btn-lux btn-lux-navy">
+                    <%= __('donation_thank_you_register_cta') %>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<style>
+    .donation-thank-you-page {
+        padding: 48px 0 80px;
+    }
+
+    .donation-thank-you-card {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 48px 32px;
+    }
+
+    .donation-thank-you-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: rgba(0, 165, 68, 0.1);
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+
+    .donation-thank-you-title {
+        margin-bottom: 12px;
+    }
+
+    .donation-thank-you-desc {
+        margin-bottom: 10px;
+    }
+
+    .donation-thank-you-note {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 28px;
+    }
+
+    .donation-thank-you-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+</style>
+
+<%- include('../../partials/footer') %>

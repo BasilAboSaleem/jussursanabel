@@ -352,7 +352,7 @@ exports.exportBankTransactions = async (req, res) => {
         const rows = transactions.map((t, i) => [
             i + 1,
             String(t._id).slice(-8).toUpperCase(),
-            t.donor ? t.donor.name : '—',
+            t.donor ? t.donor.name : (t.isGuest ? (t.guestName || 'متبرع زائر') : '—'),
             t.case  ? t.case.title  : '—',
             (t.case && t.case.guardian) ? t.case.guardian.name : '—',
             t.amount || 0,

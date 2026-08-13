@@ -41,6 +41,41 @@ exports.protect = async (req, res, next) => {
     }
 };
 
+// Optional auth — attaches req.user when logged in; guests continue without redirect
+exports.optionalProtect = async (req, res, next) => {
+    try {
+        let token;
+        if (req.cookies.jwt) {
+            token = req.cookies.jwt;
+        }
+
+        if (!token) {
+            return next();
+        }
+
+        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+        const currentUser = await User.findById(decoded.id);
+
+        if (!currentUser || currentUser.isSoftDeleted || currentUser.status === 'suspended') {
+            res.cookie('jwt', 'loggedout', {
+                expires: new Date(Date.now() + 10 * 1000),
+                httpOnly: true
+            });
+            return next();
+        }
+
+        req.user = currentUser;
+        res.locals.user = currentUser;
+
+        const Message = require('../models/Message');
+        res.locals.unreadCount = await Message.countDocuments({ receiver: currentUser._id, isRead: false });
+
+        return next();
+    } catch (err) {
+        return next();
+    }
+};
+
 // Check for roles
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {

@@ -50,10 +50,21 @@ async function main() {
   const { stopQueueWorkers } = require('../app/utils/queue');
   await stopQueueWorkers();
 
+  const mongoose = require('mongoose');
+  const { redisClient } = require('../app/utils/redis');
+  if (redisClient && redisClient.status === 'ready') {
+    await redisClient.quit().catch(() => {});
+  }
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect().catch(() => {});
+  }
+
   console.log('Redis verification completed.');
 }
 
 main().catch((err) => {
   console.error('Redis verification failed:', err.message);
   process.exit(1);
+}).finally(() => {
+  setTimeout(() => process.exit(0), 50);
 });

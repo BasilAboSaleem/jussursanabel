@@ -271,8 +271,20 @@ function buildDonationsLedgerStages({ filters = {}, search = null, excludeStatus
             $addFields: {
                 _idStr: { $toString: '$_id' },
                 _idShort: { $toUpper: { $substrCP: [{ $toString: '$_id' }, 16, 8] } },
-                donorName: '$donorDoc.name',
-                donorEmail: '$donorDoc.email',
+                donorName: {
+                    $cond: [
+                        { $eq: ['$isGuest', true] },
+                        { $ifNull: ['$guestName', 'متبرع زائر'] },
+                        '$donorDoc.name'
+                    ]
+                },
+                donorEmail: {
+                    $cond: [
+                        { $eq: ['$isGuest', true] },
+                        '$guestEmail',
+                        '$donorDoc.email'
+                    ]
+                },
                 caseTitle: '$caseDoc.title',
                 teamName: '$teamDoc.name',
                 beneficiaryName: '$beneficiaryDoc.name'
@@ -290,6 +302,8 @@ function buildDonationsLedgerStages({ filters = {}, search = null, excludeStatus
                     { stripePaymentIntentId: { $regex: search } },
                     { donorName: { $regex: search } },
                     { donorEmail: { $regex: search } },
+                    { guestName: { $regex: search } },
+                    { guestEmail: { $regex: search } },
                     { caseTitle: { $regex: search } },
                     { teamName: { $regex: search } }
                 ]
@@ -1354,7 +1368,9 @@ exports.updateTransactionStatus = async (req, res) => {
                     const expiryDate = new Date();
                     expiryDate.setDate(expiryDate.getDate() + 30);
                     foundCase.sponsorshipExpiryDate = expiryDate;
-                    foundCase.currentSponsor = transaction.donor;
+                    if (transaction.donor) {
+                        foundCase.currentSponsor = transaction.donor;
+                    }
                 }
 
                 applyGoalReachedState(foundCase);
